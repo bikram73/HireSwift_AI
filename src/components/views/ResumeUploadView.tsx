@@ -130,10 +130,10 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
               PARALLEL_STREAM
             </span>
           </div>
-          <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight">
+          <h1 className="font-heading font-extrabold text-headline-lg text-white tracking-tight">
             Resume Upload
           </h1>
-          <p className="font-body-md text-body-md text-on-surface-variant">
+          <p className="font-body-md text-body-md text-[#94A3B8]">
             Upload multiple resumes and let AI extract candidate information automatically.
           </p>
         </div>
@@ -190,8 +190,8 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
               setIsDragging(false);
               handleFilesAdded(e.dataTransfer.files);
             }}
-            className={`relative group rounded-xl p-8 transition-all duration-300 shadow-md overflow-hidden ${
-              isDragging ? 'bg-surface-container-high ring-2 ring-primary' : 'bg-surface-container-low'
+            className={`relative group rounded-2xl glass-card p-8 transition-all duration-300 shadow-md overflow-hidden ${
+              isDragging ? 'ring-2 ring-[#8B5CF6] bg-[#1B2740]/80' : ''
             }`}
           >
             <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-primary-container/10 blur-3xl pointer-events-none group-hover:bg-primary-container/20 transition-all" />
@@ -261,7 +261,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
           </div>
 
           {/* Upload Queue Ledger Table */}
-          <div className="rounded-xl bg-surface-container-low shadow-sm overflow-hidden flex flex-col">
+          <div className="rounded-2xl glass-card shadow-sm overflow-hidden flex flex-col">
             <div className="p-space-lg bg-surface-container flex flex-wrap items-center justify-between gap-space-md">
               <div className="flex items-center gap-space-md">
                 <div className="flex items-center gap-space-xs">
@@ -503,7 +503,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
           </div>
 
           {/* Quick Feature Callout: Auto-Skill Mapping */}
-          <div className="rounded-xl p-space-lg bg-surface-container flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md shadow-sm">
+          <div className="rounded-2xl glass-card p-space-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md shadow-sm">
             <div className="flex items-center gap-space-md">
               <div className="w-10 h-10 rounded-lg bg-primary-container/20 flex items-center justify-center text-primary">
                 <span className="material-symbols-outlined text-[22px]">hub</span>
@@ -528,7 +528,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
 
         {/* Right Column: AI Processing Intelligence Panel & Diagnostics (4 Cols Desktop) */}
         <div className="xl:col-span-4 flex flex-col gap-space-xl">
-          <div className="rounded-xl bg-surface-container-low p-space-lg shadow-md flex flex-col gap-space-lg relative overflow-hidden">
+          <div className="rounded-2xl glass-card p-space-lg shadow-md flex flex-col gap-space-lg relative overflow-hidden">
             <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-secondary-container/15 blur-2xl pointer-events-none" />
 
             <div className="flex items-start justify-between relative z-10">
@@ -703,7 +703,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
             <button
               type="button"
               onClick={handleStartParsing}
-              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-primary-container via-secondary-container to-inverse-primary text-on-primary-container font-headline-sm text-headline-sm font-semibold flex items-center justify-center gap-2 shadow-lg shadow-primary-container/30 hover:brightness-110 active:scale-[0.99] transition-all cursor-pointer"
+              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-headline-sm text-headline-sm font-semibold flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 border border-white/15 hover:opacity-95 active:scale-[0.99] transition-all cursor-pointer"
             >
               <span className="material-symbols-outlined text-[20px]">
                 auto_awesome
@@ -713,7 +713,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
           </div>
 
           {/* Downstream Operations */}
-          <div className="rounded-xl bg-surface-container-low p-space-lg shadow-sm flex flex-col gap-space-md">
+          <div className="rounded-2xl glass-card p-space-lg shadow-sm flex flex-col gap-space-md">
             <h4 className="font-label-sm text-label-sm text-outline uppercase tracking-wider">
               Downstream Operations
             </h4>

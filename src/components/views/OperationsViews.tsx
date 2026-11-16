@@ -16,15 +16,15 @@ export const SkillGapAnalysisView: React.FC = () => {
   return (
     <div className="flex flex-col w-full gap-space-xl">
       <div>
-        <h1 className="font-headline-lg text-headline-lg text-on-surface">
+        <h1 className="font-heading font-extrabold text-headline-lg text-white">
           Skill Gap Analysis
         </h1>
-        <p className="font-body-md text-body-md text-on-surface-variant">
+        <p className="font-body-md text-body-md text-[#94A3B8]">
           Cohort competency coverage against open requisition requirements (42,000+ taxonomy nodes).
         </p>
       </div>
 
-      <div className="rounded-xl bg-surface-container-low p-space-lg shadow-sm space-y-4 tabular-nums">
+      <div className="rounded-2xl glass-card p-space-lg shadow-sm space-y-4 tabular-nums">
         {skillsMatrix.map((row) => (
           <div
             key={row.skill}
@@ -106,14 +106,14 @@ export const EmailCenterView: React.FC = () => {
   return (
     <div className="flex flex-col w-full gap-space-xl">
       <div>
-        <h1 className="font-headline-lg text-headline-lg text-on-surface">Email Center</h1>
-        <p className="font-body-md text-body-md text-on-surface-variant">
+        <h1 className="font-heading font-extrabold text-headline-lg text-white">Email Center</h1>
+        <p className="font-body-md text-body-md text-[#94A3B8]">
           Automated interview scheduling sequences, reminders, and 1-click offer outreach.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
-        <div className="lg:col-span-4 rounded-xl bg-surface-container-low p-4 space-y-2">
+        <div className="lg:col-span-4 rounded-2xl glass-card p-4 space-y-2">
           <h3 className="font-label-sm text-outline uppercase tracking-wider px-2 pb-1">
             Sequence Templates
           </h3>
@@ -144,7 +144,7 @@ export const EmailCenterView: React.FC = () => {
             setSentNotice(true);
             setTimeout(() => setSentNotice(false), 3000);
           }}
-          className="lg:col-span-8 rounded-xl bg-surface-container-low p-space-lg space-y-4"
+          className="lg:col-span-8 rounded-2xl glass-card p-space-lg space-y-4"
         >
           <div>
             <label className="font-label-sm text-outline block mb-1">Recipient</label>
@@ -186,7 +186,7 @@ export const EmailCenterView: React.FC = () => {
             )}
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-lg bg-primary-container hover:bg-inverse-primary text-on-primary-container font-label-md font-semibold flex items-center gap-2 cursor-pointer"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-white font-label-md font-semibold flex items-center gap-2 border border-white/15 shadow-lg shadow-indigo-600/25 cursor-pointer"
             >
               <span className="material-symbols-outlined text-[16px]">send</span>
               <span>Send Message</span>
@@ -205,33 +205,33 @@ export const ReportsView: React.FC = () => {
   return (
     <div className="flex flex-col w-full gap-space-xl tabular-nums">
       <div>
-        <h1 className="font-headline-lg text-headline-lg text-on-surface">
+        <h1 className="font-heading font-extrabold text-headline-lg text-white">
           Hiring Reports &amp; Benchmarks
         </h1>
-        <p className="font-body-md text-body-md text-on-surface-variant">
+        <p className="font-body-md text-body-md text-[#94A3B8]">
           Velocity telemetry, source quality breakdown, and funnel conversion benchmarks.
         </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-space-lg">
-        <div className="rounded-xl bg-surface-container-low p-5">
+        <div className="rounded-2xl glass-card p-5">
           <span className="font-label-sm text-outline uppercase">Median Time-to-Hire</span>
           <p className="font-headline-xl text-on-surface mt-2">11.4 Days</p>
           <span className="font-mono-code text-xs text-emerald-400">64% faster than industry</span>
         </div>
-        <div className="rounded-xl bg-surface-container-low p-5">
+        <div className="rounded-2xl glass-card p-5">
           <span className="font-label-sm text-outline uppercase">Offer Acceptance Rate</span>
           <p className="font-headline-xl text-on-surface mt-2">88.2%</p>
           <span className="font-mono-code text-xs text-tertiary">+6.4% QoQ improvement</span>
         </div>
-        <div className="rounded-xl bg-surface-container-low p-5">
+        <div className="rounded-2xl glass-card p-5">
           <span className="font-label-sm text-outline uppercase">AI Shortlist Precision</span>
           <p className="font-headline-xl text-on-surface mt-2">94.1%</p>
           <span className="font-mono-code text-xs text-primary">1,280 resumes evaluated</span>
         </div>
       </div>
 
-      <div className="rounded-xl bg-surface-container-low p-space-lg space-y-4">
+      <div className="rounded-2xl glass-card p-space-lg space-y-4">
         <h3 className="font-headline-sm text-on-surface font-semibold">
           Source Channel Effectiveness
         </h3>
@@ -272,15 +272,15 @@ export const SettingsView: React.FC = () => {
   return (
     <div className="flex flex-col w-full gap-space-xl max-w-4xl">
       <div>
-        <h1 className="font-headline-lg text-headline-lg text-on-surface">
+        <h1 className="font-heading font-extrabold text-headline-lg text-white">
           Workspace Settings
         </h1>
-        <p className="font-body-md text-body-md text-on-surface-variant">
+        <p className="font-body-md text-body-md text-[#94A3B8]">
           Configure AI parser strictness, PII redaction, and organization preferences.
         </p>
       </div>
 
-      <div className="rounded-xl bg-surface-container-low p-space-lg space-y-5">
+      <div className="rounded-2xl glass-card p-space-lg space-y-5">
         <div className="flex items-center justify-between pb-4 border-b border-outline-variant/20">
           <div>
             <p className="font-body-md text-on-surface font-semibold">
@@ -337,7 +337,7 @@ export const SettingsView: React.FC = () => {
               setSaved(true);
               setTimeout(() => setSaved(false), 2500);
             }}
-            className="px-4 py-2 rounded-lg bg-primary-container text-on-primary-container text-xs font-semibold cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white text-xs font-semibold border border-white/15 cursor-pointer"
           >
             Save Preferences
           </button>
@@ -356,23 +356,23 @@ export const HelpCenterView: React.FC<{ onNavigate: (r: WorkspaceRoute) => void 
   return (
     <div className="flex flex-col w-full gap-space-xl max-w-4xl">
       <div>
-        <h1 className="font-headline-lg text-headline-lg text-on-surface">
+        <h1 className="font-heading font-extrabold text-headline-lg text-white">
           Help Center &amp; Shortcuts
         </h1>
-        <p className="font-body-md text-body-md text-on-surface-variant">
+        <p className="font-body-md text-body-md text-[#94A3B8]">
           Documentation and keyboard-first shortcuts for high-velocity recruitment teams.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-space-lg">
-        <div className="rounded-xl bg-surface-container-low p-5 space-y-2">
+        <div className="rounded-2xl glass-card p-5 space-y-2">
           <span className="material-symbols-outlined text-primary">keyboard</span>
           <h3 className="font-headline-sm text-on-surface font-semibold">Global Command Search</h3>
           <p className="font-body-sm text-on-surface-variant">
             Press <kbd className="px-1.5 py-0.5 rounded bg-surface-container-high font-mono-code text-xs">⌘K</kbd> anywhere in the workspace to jump directly to candidates, jobs, or tools.
           </p>
         </div>
-        <div className="rounded-xl bg-surface-container-low p-5 space-y-2">
+        <div className="rounded-2xl glass-card p-5 space-y-2">
           <span className="material-symbols-outlined text-tertiary">upload_file</span>
           <h3 className="font-headline-sm text-on-surface font-semibold">Bulk Resume Ingestion</h3>
           <p className="font-body-sm text-on-surface-variant">

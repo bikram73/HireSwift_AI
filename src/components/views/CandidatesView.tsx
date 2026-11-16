@@ -134,10 +134,10 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
               AUTO-SYNC ACTIVE
             </span>
           </div>
-          <h1 className="font-headline-xl text-headline-xl text-on-surface tracking-tight font-bold">
+          <h1 className="font-heading font-extrabold text-headline-xl text-white tracking-tight">
             Candidates
           </h1>
-          <p className="font-body-md text-body-md text-on-surface-variant">
+          <p className="font-body-md text-body-md text-[#94A3B8]">
             Manage, search, filter, and review all applicants across active roles with neural semantic scoring.
           </p>
         </div>
@@ -146,9 +146,9 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
           <button
             type="button"
             onClick={() => triggerToast('Exported 482 candidate records to CSV')}
-            className="flex items-center gap-space-xs px-space-lg py-2 rounded-lg bg-surface-container-high text-on-surface font-label-md text-label-md hover:bg-surface-bright transition-all shadow-sm cursor-pointer"
+            className="flex items-center gap-space-xs px-space-lg py-2 rounded-xl bg-[#151E32] border border-[#263449] text-white font-label-md text-label-md hover:bg-[#1B2740] transition-all shadow-sm cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[18px] text-outline">
+            <span className="material-symbols-outlined text-[18px] text-[#94A3B8]">
               download
             </span>
             <span>Export Candidates</span>
@@ -156,7 +156,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
           <button
             type="button"
             onClick={() => onNavigate('resume-upload')}
-            className="flex items-center gap-space-xs px-space-xl py-2 rounded-lg bg-primary-container text-on-primary-container font-label-md text-label-md hover:opacity-90 shadow-md transition-all cursor-pointer"
+            className="flex items-center gap-space-xs px-space-xl py-2 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-label-md text-label-md font-semibold hover:opacity-95 shadow-lg shadow-indigo-600/25 border border-white/15 transition-all cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">
               upload_file
@@ -168,7 +168,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
 
       {/* Performance & Metric Tiles */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-lg mb-space-xl tabular-nums">
-        <div className="relative overflow-hidden rounded-xl bg-surface-container-low p-space-lg shadow-sm">
+        <div className="relative overflow-hidden rounded-2xl glass-card p-space-lg shadow-sm">
           <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-primary/5 blur-xl pointer-events-none" />
           <div className="flex items-center justify-between mb-space-sm">
             <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider">
@@ -194,7 +194,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
           </span>
         </div>
 
-        <div className="relative overflow-hidden rounded-xl bg-surface-container-low p-space-lg shadow-sm">
+        <div className="relative overflow-hidden rounded-2xl glass-card p-space-lg shadow-sm">
           <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-tertiary/5 blur-xl pointer-events-none" />
           <div className="flex items-center justify-between mb-space-sm">
             <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider">
@@ -217,7 +217,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
           </span>
         </div>
 
-        <div className="relative overflow-hidden rounded-xl bg-surface-container-low p-space-lg shadow-sm">
+        <div className="relative overflow-hidden rounded-2xl glass-card p-space-lg shadow-sm">
           <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-secondary/5 blur-xl pointer-events-none" />
           <div className="flex items-center justify-between mb-space-sm">
             <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider">
@@ -242,7 +242,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
           </span>
         </div>
 
-        <div className="relative overflow-hidden rounded-xl bg-surface-container-low p-space-lg shadow-sm">
+        <div className="relative overflow-hidden rounded-2xl glass-card p-space-lg shadow-sm">
           <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-primary/5 blur-xl pointer-events-none" />
           <div className="flex items-center justify-between mb-space-sm">
             <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider">
@@ -276,7 +276,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
         {/* Left Main Column */}
         <div className="flex-1 w-full min-w-0 flex flex-col gap-space-lg">
           {/* Search & Filters Toolbar */}
-          <div className="rounded-xl bg-surface-container-low p-space-md shadow-sm flex flex-col gap-space-md">
+          <div className="rounded-2xl glass-card p-space-md shadow-sm flex flex-col gap-space-md">
             <div className="flex flex-col md:flex-row items-stretch md:items-center gap-space-md">
               <div className="relative flex-1">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-outline">
@@ -410,7 +410,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
           </div>
 
           {/* Batch Actions Bar */}
-          <div className="rounded-xl bg-surface-container p-space-md shadow-md flex flex-wrap items-center justify-between gap-space-md">
+          <div className="rounded-2xl glass-card p-space-md shadow-md flex flex-wrap items-center justify-between gap-space-md">
             <div className="flex items-center gap-space-md">
               <div className="flex items-center gap-space-xs px-2.5 py-1 rounded-md bg-primary-container text-on-primary-container font-mono-code text-[11px] font-bold">
                 <span className="material-symbols-outlined text-[14px]">
@@ -469,7 +469,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
           </div>
 
           {/* Candidate Data Table Container */}
-          <div className="rounded-xl bg-surface-container-low shadow-sm overflow-hidden flex flex-col">
+          <div className="rounded-2xl glass-card shadow-sm overflow-hidden flex flex-col">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse tabular-nums">
                 <thead>
@@ -731,7 +731,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
 
         {/* Advanced Filter Slide-Out / Persistent Preview Panel */}
         {drawerVisible && (
-          <div className="w-full xl:w-80 shrink-0 rounded-xl bg-surface-container-low p-space-lg shadow-xl flex flex-col gap-space-lg transition-all duration-300">
+          <div className="w-full xl:w-80 shrink-0 rounded-2xl glass-card p-space-lg shadow-xl flex flex-col gap-space-lg transition-all duration-300">
             <div className="flex items-center justify-between pb-space-sm">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary text-[20px]">

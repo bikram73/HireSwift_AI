@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Sparkles } from 'lucide-react';
 import { WorkspaceRoute, CANDIDATES_DATA, JOBS_DATA } from '../data/atsData';
-import { BrandLogo } from './BrandLogo';
 
 interface WorkspaceShellProps {
   activeRoute: WorkspaceRoute;
@@ -74,22 +74,29 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
       <div className="flex flex-col">
         <div
           onClick={onGoLanding}
-          className="h-16 px-space-xl flex items-center gap-space-md border-b border-outline-variant/20 bg-surface-container-lowest/40 cursor-pointer hover:bg-surface-container-lowest/70 transition-colors"
+          className="h-16 px-space-xl flex items-center gap-3 border-b border-[#263449]/70 bg-[#0B1020]/90 cursor-pointer hover:bg-[#151E32]/60 transition-colors group"
           title="Back to HireSwift AI Landing Page"
         >
-          <BrandLogo className="h-8 w-8 shrink-0" />
-          <div className="flex flex-col">
-            <span className="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">
-              HireSwift AI
-            </span>
-            <span className="font-label-sm text-label-sm text-on-surface-variant font-medium mt-0.5">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#4F46E5] to-[#8B5CF6] flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform shrink-0">
+            <Sparkles className="w-4 h-4 text-white" />
+          </div>
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-center gap-1.5">
+              <span className="font-heading font-bold text-base tracking-tight text-white leading-none">
+                HireSwift<span className="text-[#8B5CF6]">AI</span>
+              </span>
+              <span className="text-[9px] font-semibold tracking-wide uppercase px-1.5 py-0.5 rounded-full bg-[#8B5CF6]/15 text-[#8B5CF6] border border-[#8B5CF6]/30">
+                ATS
+              </span>
+            </div>
+            <span className="font-label-sm text-label-sm text-[#94A3B8] font-medium mt-1">
               AI Recruitment
             </span>
           </div>
         </div>
 
         <nav className="flex flex-col gap-1 p-space-md">
-          <div className="px-space-md py-1 font-label-sm text-label-sm text-outline uppercase tracking-wider">
+          <div className="px-space-md py-1 font-label-sm text-label-sm text-[#94A3B8]/70 uppercase tracking-wider">
             Workspace
           </div>
           {WORKSPACE_NAV.map((item) => {
@@ -103,10 +110,10 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
                   onNavigate(item.id);
                   setMobileMenuOpen(false);
                 }}
-                className={`w-full flex items-center gap-space-md px-space-md py-2 rounded-lg transition-all text-left cursor-pointer ${
+                className={`w-full flex items-center gap-space-md px-space-md py-2 rounded-xl transition-all text-left cursor-pointer ${
                   isActive
-                    ? 'bg-primary-container text-on-primary-container font-semibold shadow-sm'
-                    : 'font-body-sm text-body-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+                    ? 'bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-semibold shadow-lg shadow-indigo-600/25 border border-white/15'
+                    : 'font-body-sm text-body-sm text-[#94A3B8] hover:bg-[#151E32] hover:text-white border border-transparent'
                 }`}
               >
                 <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
@@ -117,7 +124,7 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
         </nav>
       </div>
 
-      <div className="p-space-md border-t border-outline-variant/20 bg-surface-container-lowest/30 flex flex-col gap-1">
+      <div className="p-space-md border-t border-[#263449]/70 bg-[#0B1020]/70 flex flex-col gap-1">
         <nav className="flex flex-col gap-1">
           {BOTTOM_NAV.map((item) => {
             const isActive = activeRoute === item.id;
@@ -130,10 +137,10 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
                   onNavigate(item.id);
                   setMobileMenuOpen(false);
                 }}
-                className={`w-full flex items-center gap-space-md px-space-md py-2 rounded-lg transition-all text-left cursor-pointer ${
+                className={`w-full flex items-center gap-space-md px-space-md py-2 rounded-xl transition-all text-left cursor-pointer ${
                   isActive
-                    ? 'bg-primary-container text-on-primary-container font-semibold rounded-lg'
-                    : 'font-body-sm text-body-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+                    ? 'bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-semibold shadow-lg shadow-indigo-600/25 border border-white/15'
+                    : 'font-body-sm text-body-sm text-[#94A3B8] hover:bg-[#151E32] hover:text-white border border-transparent'
                 }`}
               >
                 <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
@@ -144,29 +151,29 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
         </nav>
 
         <div className="flex items-center justify-between px-space-md py-2 mt-1">
-          <div className="flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant">
+          <div className="flex items-center gap-space-xs font-label-sm text-label-sm text-[#94A3B8]">
             <span className="material-symbols-outlined text-[16px]">dark_mode</span>
             <span>Theme</span>
           </div>
-          <div className="flex items-center bg-surface-container-high rounded-full p-0.5 border border-outline-variant/30">
-            <span className="px-2 py-0.5 rounded-full bg-primary-container text-on-primary-container font-mono-code text-[10px]">
+          <div className="flex items-center bg-[#151E32] rounded-full p-0.5 border border-[#263449]">
+            <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-mono-code text-[10px]">
               Dark
             </span>
           </div>
         </div>
 
-        <div className="mt-2 px-space-md py-1.5 rounded-lg bg-surface-container/60 border border-outline-variant/20 flex items-center justify-between">
-          <span className="font-mono-code text-[10px] text-tertiary">v2.4 Pro • AI Enabled</span>
-          <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+        <div className="mt-2 px-space-md py-1.5 rounded-xl bg-[#151E32]/80 border border-[#263449] flex items-center justify-between">
+          <span className="font-mono-code text-[10px] text-[#3B82F6]">v2.4 Pro • AI Enabled</span>
+          <span className="h-2 w-2 rounded-full bg-[#8B5CF6] animate-pulse" />
         </div>
       </div>
     </>
   );
 
   return (
-    <div className="bg-background font-body-md text-on-surface antialiased min-h-screen">
+    <div className="bg-[#0B1020] font-body-md text-[#F8FAFC] antialiased min-h-screen">
       {/* Desktop Fixed Sidebar */}
-      <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-[250px] bg-surface-container-low border-r border-outline-variant/30 z-40 flex-col justify-between overflow-y-auto">
+      <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-[250px] bg-[#0B1020]/95 backdrop-blur-xl border-r border-[#263449]/80 z-40 flex-col justify-between overflow-y-auto">
         {renderSidebarContent()}
       </aside>
 
@@ -186,12 +193,12 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
       {/* Main Content Wrapper */}
       <div className="lg:pl-[250px]">
         {/* Fixed Top Header */}
-        <header className="fixed top-0 left-0 lg:left-[250px] right-0 h-16 bg-surface-dim/90 backdrop-blur-xl border-b border-outline-variant/30 z-30 px-4 lg:px-gutter-desktop flex items-center justify-between gap-4">
+        <header className="fixed top-0 left-0 lg:left-[250px] right-0 h-16 bg-[#0B1020]/80 backdrop-blur-xl border-b border-[#263449]/70 z-30 px-4 lg:px-gutter-desktop flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 lg:gap-space-lg min-w-0">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high cursor-pointer"
+              className="lg:hidden p-1.5 rounded-lg text-[#94A3B8] hover:bg-[#151E32] hover:text-white cursor-pointer"
               aria-label="Open navigation menu"
             >
               <span className="material-symbols-outlined text-[22px]">menu</span>
@@ -199,21 +206,31 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
             <button
               type="button"
               onClick={onGoLanding}
-              className="flex items-center gap-2 cursor-pointer shrink-0"
+              className="flex items-center gap-2 cursor-pointer shrink-0 group"
               title="View Landing Page"
             >
-              <BrandLogo className="h-7 w-7" />
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-[#4F46E5] to-[#8B5CF6] flex items-center justify-center shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+                <Sparkles className="w-3.5 h-3.5 text-white" />
+              </div>
             </button>
-            <div className="flex items-center gap-space-xs font-body-sm text-body-sm text-on-surface-variant truncate">
+            <div className="flex items-center gap-space-xs font-body-sm text-body-sm text-[#94A3B8] truncate">
+              <button
+                type="button"
+                onClick={onGoLanding}
+                className="text-[#94A3B8] hover:text-white transition-colors cursor-pointer"
+              >
+                Home
+              </button>
+              <span className="text-[#263449]">/</span>
               <button
                 type="button"
                 onClick={() => onNavigate('dashboard')}
-                className="text-on-surface font-medium hover:text-primary transition-colors cursor-pointer"
+                className="text-white font-semibold hover:text-[#8B5CF6] transition-colors cursor-pointer"
               >
                 HireSwift
               </button>
-              <span className="text-outline">/</span>
-              <span className="text-tertiary font-medium truncate">{currentNavLabel}</span>
+              <span className="text-[#263449]">/</span>
+              <span className="text-[#8B5CF6] font-semibold truncate">{currentNavLabel}</span>
             </div>
           </div>
 
@@ -221,13 +238,13 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
           <button
             type="button"
             onClick={() => setCmdOpen(true)}
-            className="hidden md:flex items-center w-80 lg:w-96 px-space-md py-1.5 bg-surface-container-low rounded-lg border border-outline-variant/30 text-on-surface-variant hover:border-primary-container transition-all cursor-pointer text-left"
+            className="hidden md:flex items-center w-80 lg:w-96 px-space-md py-1.5 bg-[#151E32]/85 rounded-xl border border-[#263449] text-[#94A3B8] hover:border-[#8B5CF6]/60 transition-all cursor-pointer text-left"
           >
-            <span className="material-symbols-outlined text-[18px] text-outline mr-2">search</span>
-            <span className="font-body-sm text-body-sm text-outline flex-1 truncate">
+            <span className="material-symbols-outlined text-[18px] text-[#94A3B8] mr-2">search</span>
+            <span className="font-body-sm text-body-sm text-[#94A3B8] flex-1 truncate">
               Search candidates, jobs, skills...
             </span>
-            <kbd className="font-mono-code text-[11px] px-1.5 py-0.5 rounded bg-surface-container-high border border-outline-variant/40 text-on-surface-variant">
+            <kbd className="font-mono-code text-[11px] px-1.5 py-0.5 rounded bg-[#1B2740] border border-[#263449] text-[#F8FAFC]">
               ⌘K
             </kbd>
           </button>
@@ -237,7 +254,7 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
             <button
               type="button"
               onClick={() => onNavigate('resume-upload')}
-              className="flex items-center gap-space-xs px-3 py-1.5 bg-primary-container text-on-primary-container rounded-lg font-label-md text-label-md font-medium hover:bg-secondary-container transition-colors shadow-sm cursor-pointer whitespace-nowrap"
+              className="flex items-center gap-space-xs px-3.5 py-1.5 bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-white rounded-xl font-label-md text-label-md font-semibold transition-all shadow-lg shadow-indigo-600/25 border border-white/15 cursor-pointer whitespace-nowrap"
             >
               <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
               <span className="hidden sm:inline">+ Analyze Resumes</span>
@@ -251,11 +268,11 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
                   setNotifOpen((p) => !p);
                   setOrgOpen(false);
                 }}
-                className="relative flex items-center justify-center p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors cursor-pointer"
+                className="relative flex items-center justify-center p-2 rounded-xl bg-[#151E32]/60 border border-[#263449]/80 text-[#94A3B8] hover:bg-[#1B2740] hover:text-white transition-colors cursor-pointer"
                 aria-label="Notifications"
               >
                 <span className="material-symbols-outlined text-[20px]">notifications</span>
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error ring-2 ring-surface-dim" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-[#0B1020]" />
               </button>
 
               {notifOpen && (
@@ -291,17 +308,17 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
                   setOrgOpen((p) => !p);
                   setNotifOpen(false);
                 }}
-                className="flex items-center gap-space-xs px-2 py-1 rounded-lg bg-surface-container-low border border-outline-variant/20 cursor-pointer hover:bg-surface-container-high transition-colors"
+                className="flex items-center gap-space-xs px-2.5 py-1.5 rounded-xl bg-[#151E32]/85 border border-[#263449] cursor-pointer hover:bg-[#1B2740] transition-colors"
               >
-                <span className="material-symbols-outlined text-[16px] text-secondary">business</span>
-                <span className="font-body-sm text-body-sm text-on-surface font-medium hidden sm:inline whitespace-nowrap">
+                <span className="material-symbols-outlined text-[16px] text-[#8B5CF6]">business</span>
+                <span className="font-body-sm text-body-sm text-[#F8FAFC] font-medium hidden sm:inline whitespace-nowrap">
                   {activeOrg}
                 </span>
-                <span className="material-symbols-outlined text-[16px] text-outline">arrow_drop_down</span>
+                <span className="material-symbols-outlined text-[16px] text-[#94A3B8]">arrow_drop_down</span>
               </button>
 
               {orgOpen && (
-                <div className="absolute right-0 mt-2 w-56 rounded-xl bg-surface-container border border-outline-variant/40 shadow-2xl p-1.5 z-50">
+                <div className="absolute right-0 mt-2 w-56 rounded-xl glass-card shadow-2xl p-1.5 z-50">
                   {['Acme Corp', 'SynapticLabs', 'NodeCraft Talent'].map((org) => (
                     <button
                       key={org}
@@ -312,21 +329,21 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
                       }}
                       className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                         activeOrg === org
-                          ? 'bg-primary-container text-on-primary-container'
-                          : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+                          ? 'bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white'
+                          : 'text-[#94A3B8] hover:bg-[#1B2740] hover:text-white'
                       }`}
                     >
                       {org}
                     </button>
                   ))}
-                  <div className="my-1 border-t border-outline-variant/20" />
+                  <div className="my-1 border-t border-[#263449]" />
                   <button
                     type="button"
                     onClick={onGoLanding}
-                    className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-tertiary hover:bg-surface-container-high transition-colors cursor-pointer flex items-center gap-2"
+                    className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-[#3B82F6] hover:bg-[#1B2740] transition-colors cursor-pointer flex items-center gap-2"
                   >
                     <span className="material-symbols-outlined text-[15px]">public</span>
-                    <span>View Marketing Site</span>
+                    <span>View Landing Page</span>
                   </button>
                 </div>
               )}
@@ -335,17 +352,18 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
             <button
               type="button"
               onClick={() => onNavigate('settings')}
-              className="w-8 h-8 rounded-full bg-primary flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
+              className="w-8 h-8 rounded-xl bg-[#151E32] border border-[#263449] hover:border-[#8B5CF6]/60 flex items-center justify-center cursor-pointer transition-colors"
               title="Workspace Settings"
             >
-              <span className="material-symbols-outlined text-on-primary text-[18px]">settings</span>
+              <span className="material-symbols-outlined text-[#F8FAFC] text-[18px]">settings</span>
             </button>
           </div>
         </header>
 
         {/* Main Viewport */}
-        <main className="relative pt-16 bg-background min-h-screen p-4 sm:p-6 lg:p-margin-desktop">
-          <div className="pt-4">{children}</div>
+        <main className="relative pt-16 bg-[#0B1020] subtle-grid min-h-screen p-4 sm:p-6 lg:p-margin-desktop overflow-x-hidden">
+          <div className="pointer-events-none fixed top-16 left-0 lg:left-[250px] right-0 h-[420px] glow-conic blur-3xl opacity-60" />
+          <div className="pt-4 relative z-10">{children}</div>
         </main>
       </div>
 

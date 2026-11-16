@@ -42,10 +42,10 @@ export const AIMatchingView: React.FC<ViewProps> = ({
             <span className="text-outline">/</span>
             <span>TALENT_PIPELINE_V2.4</span>
           </div>
-          <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight">
+          <h1 className="font-heading font-extrabold text-headline-lg text-white tracking-tight">
             Talent Pipeline &amp; Matching
           </h1>
-          <p className="font-body-md text-body-md text-on-surface-variant">
+          <p className="font-body-md text-body-md text-[#94A3B8]">
             Semantic candidate-JD alignment with multi-axis competency radar scoring.
           </p>
         </div>
@@ -53,9 +53,9 @@ export const AIMatchingView: React.FC<ViewProps> = ({
           <button
             type="button"
             onClick={() => onNavigate('compare-candidates')}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-label-md text-label-md cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#151E32] hover:bg-[#1B2740] border border-[#263449] text-white font-label-md text-label-md cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[17px] text-primary">
+            <span className="material-symbols-outlined text-[17px] text-[#8B5CF6]">
               compare_arrows
             </span>
             <span>Compare Top Picks</span>
@@ -63,7 +63,7 @@ export const AIMatchingView: React.FC<ViewProps> = ({
           <button
             type="button"
             onClick={() => onNavigate('resume-upload')}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary-container hover:bg-inverse-primary text-on-primary-container font-label-md text-label-md cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-white font-label-md text-label-md font-semibold border border-white/15 shadow-lg shadow-indigo-600/25 cursor-pointer"
           >
             <span className="material-symbols-outlined text-[17px]">auto_awesome</span>
             <span>Re-Score Batch</span>
@@ -74,7 +74,7 @@ export const AIMatchingView: React.FC<ViewProps> = ({
       {/* Main 2-Column Split matching screen_630d9ae4.png */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-space-xl items-start">
         {/* Left Spotlight Card + Radar + Pipeline Tiles */}
-        <div className="xl:col-span-5 rounded-xl bg-surface-container-low p-space-lg shadow-md flex flex-col gap-space-lg relative overflow-hidden border border-outline-variant/20">
+        <div className="xl:col-span-5 rounded-2xl glass-card p-space-lg shadow-xl flex flex-col gap-space-lg relative overflow-hidden">
           <div className="absolute -top-16 -right-16 w-52 h-52 rounded-full bg-primary-container/15 blur-3xl pointer-events-none" />
 
           {/* Candidate Header */}
@@ -268,10 +268,10 @@ export const AIMatchingView: React.FC<ViewProps> = ({
                 <div
                   key={cand.id}
                   onClick={() => setSelectedSpotlight(cand)}
-                  className={`rounded-xl p-4 transition-all cursor-pointer border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+                  className={`rounded-2xl p-4 transition-all cursor-pointer border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
                     isSpotlight
-                      ? 'bg-surface-container border-primary/60 shadow-md'
-                      : 'bg-surface-container-low border-outline-variant/25 hover:bg-surface-container'
+                      ? 'bg-[#1B2740]/90 border-[#8B5CF6]/70 shadow-lg shadow-indigo-600/15'
+                      : 'glass-card hover:border-[#4F46E5]/50'
                   }`}
                 >
                   <div className="flex items-center gap-3.5 min-w-0">
@@ -393,14 +393,14 @@ export const HiringPipelineView: React.FC<ViewProps> = ({ onSelectCandidate }) =
     <div className="flex flex-col w-full gap-space-xl">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md">
         <div>
-          <h1 className="font-headline-lg text-headline-lg text-on-surface">
+          <h1 className="font-heading font-extrabold text-headline-lg text-white">
             Hiring Pipeline
           </h1>
-          <p className="font-body-md text-body-md text-on-surface-variant">
+          <p className="font-body-md text-body-md text-[#94A3B8]">
             Move applicants across stages with live semantic scorecards and stage timers.
           </p>
         </div>
-        <span className="font-mono-code text-xs px-3 py-1.5 rounded-lg bg-surface-container-low text-tertiary">
+        <span className="font-mono-code text-xs px-3 py-1.5 rounded-xl glass-card text-[#3B82F6]">
           5 Active Stages · {columns.reduce((acc, c) => acc + c.cards.length, 0)} Cards
         </span>
       </div>
@@ -409,7 +409,7 @@ export const HiringPipelineView: React.FC<ViewProps> = ({ onSelectCandidate }) =
         {columns.map((col, colIdx) => (
           <div
             key={col.id}
-            className="rounded-xl bg-[#0F172A] border border-[#263449] p-3 flex flex-col gap-3 min-h-[440px]"
+            className="rounded-2xl bg-[#0B1020]/70 backdrop-blur-md border border-[#263449] p-3 flex flex-col gap-3 min-h-[440px]"
           >
             <div className="flex items-center justify-between px-1 py-1">
               <span className="font-label-sm uppercase tracking-wider text-on-surface font-semibold">
@@ -544,17 +544,17 @@ export const JobManagementView: React.FC<{ onNavigate: (r: WorkspaceRoute) => vo
     <div className="flex flex-col w-full gap-space-xl">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md">
         <div>
-          <h1 className="font-headline-lg text-headline-lg text-on-surface">
+          <h1 className="font-heading font-extrabold text-headline-lg text-white">
             Job Management
           </h1>
-          <p className="font-body-md text-body-md text-on-surface-variant">
+          <p className="font-body-md text-body-md text-[#94A3B8]">
             Manage open requisitions, AI matching rubrics, and applicant yield.
           </p>
         </div>
         <button
           type="button"
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary-container hover:bg-inverse-primary text-on-primary-container font-label-md cursor-pointer"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-white font-label-md font-semibold border border-white/15 shadow-lg shadow-indigo-600/25 cursor-pointer"
         >
           <span className="material-symbols-outlined text-[18px]">add</span>
           <span>Create New Job</span>
@@ -565,7 +565,7 @@ export const JobManagementView: React.FC<{ onNavigate: (r: WorkspaceRoute) => vo
         {jobs.map((job) => (
           <div
             key={job.id}
-            className="rounded-xl bg-surface-container-low border border-outline-variant/25 p-5 flex flex-col justify-between gap-4 hover:bg-surface-container transition-colors"
+            className="rounded-2xl glass-card p-5 flex flex-col justify-between gap-4 hover:border-[#4F46E5]/50 transition-colors"
           >
             <div>
               <div className="flex items-start justify-between gap-3">
@@ -729,15 +729,15 @@ export const CandidateRankingView: React.FC<ViewProps> = ({ onSelectCandidate })
   return (
     <div className="flex flex-col w-full gap-space-xl">
       <div>
-        <h1 className="font-headline-lg text-headline-lg text-on-surface">
+        <h1 className="font-heading font-extrabold text-headline-lg text-white">
           Candidate Ranking
         </h1>
-        <p className="font-body-md text-body-md text-on-surface-variant">
+        <p className="font-body-md text-body-md text-[#94A3B8]">
           Global leaderboard ordered by composite AI semantic alignment, academic score, and tenure.
         </p>
       </div>
 
-      <div className="rounded-xl bg-surface-container-low overflow-hidden shadow-sm">
+      <div className="rounded-2xl glass-card overflow-hidden shadow-sm">
         <table className="w-full text-left tabular-nums">
           <thead>
             <tr className="bg-surface-container-high/60 text-outline font-label-sm uppercase tracking-wider">
@@ -808,10 +808,10 @@ export const CompareCandidatesView: React.FC<ViewProps> = ({ onSelectCandidate }
   return (
     <div className="flex flex-col w-full gap-space-xl">
       <div>
-        <h1 className="font-headline-lg text-headline-lg text-on-surface">
+        <h1 className="font-heading font-extrabold text-headline-lg text-white">
           Compare Candidates
         </h1>
-        <p className="font-body-md text-body-md text-on-surface-variant">
+        <p className="font-body-md text-body-md text-[#94A3B8]">
           Side-by-side competency matrix to eliminate evaluation bias among finalists.
         </p>
       </div>
@@ -820,7 +820,7 @@ export const CompareCandidatesView: React.FC<ViewProps> = ({ onSelectCandidate }
         {compared.map((cand) => (
           <div
             key={cand.id}
-            className="rounded-xl bg-surface-container-low border border-outline-variant/25 p-5 flex flex-col gap-4"
+            className="rounded-2xl glass-card p-5 flex flex-col gap-4 hover:border-[#8B5CF6]/50 transition-colors"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">

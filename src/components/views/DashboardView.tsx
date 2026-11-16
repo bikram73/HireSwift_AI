@@ -25,10 +25,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               Recruiter Workspace • Live Telemetry
             </span>
           </div>
-          <h1 className="font-headline-xl text-headline-xl text-on-surface tracking-tight">
-            Good Morning, Recruiter
+          <h1 className="font-heading font-extrabold text-headline-xl text-white tracking-tight">
+            Good Morning, <span className="gradient-hero-text">Recruiter</span>
           </h1>
-          <p className="font-body-md text-body-md text-on-surface-variant mt-0.5">
+          <p className="font-body-md text-body-md text-[#94A3B8] mt-0.5">
             Here&apos;s what&apos;s happening with your hiring activities today.
           </p>
         </div>
@@ -37,15 +37,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <button
             type="button"
             onClick={() => onNavigate('resume-upload')}
-            className="flex items-center gap-space-xs px-4 py-2 bg-surface-container-high hover:bg-surface-variant text-on-surface rounded-xl font-label-md text-label-md transition-all shadow-sm cursor-pointer"
+            className="flex items-center gap-space-xs px-4 py-2 bg-[#151E32] hover:bg-[#1B2740] border border-[#263449] text-white rounded-xl font-label-md text-label-md transition-all shadow-sm cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[18px] text-tertiary">upload_file</span>
+            <span className="material-symbols-outlined text-[18px] text-[#3B82F6]">upload_file</span>
             <span>Upload Resumes</span>
           </button>
           <button
             type="button"
             onClick={() => onNavigate('job-management')}
-            className="flex items-center gap-space-xs px-4 py-2 bg-primary-container hover:bg-inverse-primary text-on-primary-container rounded-xl font-label-md text-label-md transition-all shadow-md cursor-pointer"
+            className="flex items-center gap-space-xs px-4 py-2 bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-white rounded-xl font-label-md text-label-md font-semibold transition-all shadow-lg shadow-indigo-600/25 border border-white/15 cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">add</span>
             <span>Create New Job</span>
@@ -54,11 +54,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* Hero Spotlight / AI Engine Banner */}
-      <div className="relative overflow-hidden rounded-xl bg-surface-container-low p-space-lg mb-space-xl shadow-md">
-        <div className="absolute -right-20 -top-20 w-72 h-72 rounded-full bg-primary-container/10 blur-3xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-2xl glass-card p-space-lg mb-space-xl shadow-xl">
+        <div className="absolute -right-20 -top-20 w-72 h-72 rounded-full bg-[#8B5CF6]/15 blur-3xl pointer-events-none" />
         <div className="flex flex-col md:flex-row items-center justify-between gap-space-lg relative z-10">
           <div className="flex items-center gap-space-lg">
-            <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-surface-container shrink-0 flex items-center justify-center border border-outline-variant/30">
+            <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-[#0B1020] shrink-0 flex items-center justify-center border border-[#263449]">
               <img
                 alt="AI Engine Visualization"
                 className="w-full h-full object-cover"
@@ -104,7 +104,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
       {/* 8 Statistics Cards (4x2 grid) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md mb-space-xl tabular-nums">
-        <div className="p-5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all shadow-sm flex flex-col justify-between">
+        <div className="p-5 rounded-2xl glass-card hover:border-[#4F46E5]/50 transition-all shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-3">
             <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
               Total Candidates
@@ -124,7 +124,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        <div className="p-5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all shadow-sm flex flex-col justify-between">
+        <div className="p-5 rounded-2xl glass-card hover:border-[#4F46E5]/50 transition-all shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-3">
             <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
               Active Jobs
@@ -144,7 +144,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        <div className="p-5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all shadow-sm flex flex-col justify-between">
+        <div className="p-5 rounded-2xl glass-card hover:border-[#4F46E5]/50 transition-all shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-3">
             <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
               Applications Received
@@ -164,7 +164,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        <div className="p-5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all shadow-sm flex flex-col justify-between">
+        <div className="p-5 rounded-2xl glass-card hover:border-[#4F46E5]/50 transition-all shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-3">
             <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
               Shortlisted
@@ -182,7 +182,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        <div className="p-5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all shadow-sm flex flex-col justify-between">
+        <div className="p-5 rounded-2xl glass-card hover:border-[#4F46E5]/50 transition-all shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-3">
             <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
               Interviews Scheduled
@@ -202,7 +202,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        <div className="p-5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all shadow-sm flex flex-col justify-between">
+        <div className="p-5 rounded-2xl glass-card hover:border-[#4F46E5]/50 transition-all shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-3">
             <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
               Offers Released
@@ -220,7 +220,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        <div className="p-5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all shadow-sm flex flex-col justify-between">
+        <div className="p-5 rounded-2xl glass-card hover:border-[#4F46E5]/50 transition-all shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-3">
             <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
               Rejected Candidates
@@ -238,7 +238,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        <div className="p-5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all shadow-sm flex flex-col justify-between">
+        <div className="p-5 rounded-2xl glass-card hover:border-[#4F46E5]/50 transition-all shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-3">
             <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
               Average Match Score
@@ -262,7 +262,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Charts Section (2x2 Grid) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-space-lg mb-space-xl">
         {/* Chart 1: Application Trends */}
-        <div className="p-space-lg rounded-xl bg-surface-container-low shadow-sm flex flex-col">
+        <div className="p-space-lg rounded-2xl glass-card shadow-sm flex flex-col">
           <div className="flex items-center justify-between mb-space-md">
             <div>
               <h2 className="font-headline-md text-headline-md text-on-surface">
@@ -317,7 +317,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Chart 2: Recruitment Funnel */}
-        <div className="p-space-lg rounded-xl bg-surface-container-low shadow-sm flex flex-col justify-between tabular-nums">
+        <div className="p-space-lg rounded-2xl glass-card shadow-sm flex flex-col justify-between tabular-nums">
           <div className="flex items-center justify-between mb-space-md">
             <div>
               <h2 className="font-headline-md text-headline-md text-on-surface">
@@ -359,7 +359,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Chart 3: Stage Distribution Donut Chart */}
-        <div className="p-space-lg rounded-xl bg-surface-container-low shadow-sm flex flex-col justify-between tabular-nums">
+        <div className="p-space-lg rounded-2xl glass-card shadow-sm flex flex-col justify-between tabular-nums">
           <div className="flex items-center justify-between mb-space-md">
             <div>
               <h2 className="font-headline-md text-headline-md text-on-surface">
@@ -422,7 +422,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Chart 4: Top In-Demand Skills */}
-        <div className="p-space-lg rounded-xl bg-surface-container-low shadow-sm flex flex-col justify-between tabular-nums">
+        <div className="p-space-lg rounded-2xl glass-card shadow-sm flex flex-col justify-between tabular-nums">
           <div className="flex items-center justify-between mb-space-md">
             <div>
               <h2 className="font-headline-md text-headline-md text-on-surface">
@@ -459,7 +459,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Bottom Section: 2-Column Split */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-space-lg">
         {/* Left Column: Top Matching Candidates Table */}
-        <div className="xl:col-span-2 p-space-lg rounded-xl bg-surface-container-low shadow-sm flex flex-col justify-between">
+        <div className="xl:col-span-2 p-space-lg rounded-2xl glass-card shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-space-md">
               <div className="flex items-center gap-space-sm">
@@ -596,7 +596,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Right Column: Recent Hiring Activity Timeline */}
-        <div className="p-space-lg rounded-xl bg-surface-container-low shadow-sm flex flex-col justify-between">
+        <div className="p-space-lg rounded-2xl glass-card shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-space-md">
               <div className="flex items-center gap-space-sm">

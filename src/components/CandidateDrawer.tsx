@@ -35,9 +35,9 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
         onClick={onClose}
       />
       {/* Drawer */}
-      <aside className="relative w-full max-w-[540px] h-full bg-[#0F172A] border-l border-[#263449] shadow-2xl flex flex-col z-10 overflow-hidden">
+      <aside className="relative w-full max-w-[540px] h-full bg-[#0B1020]/95 backdrop-blur-xl border-l border-[#263449] shadow-2xl flex flex-col z-10 overflow-hidden">
         {/* Header */}
-        <div className="p-5 border-b border-[#263449] flex items-start justify-between gap-4 bg-surface-container-low/80">
+        <div className="p-5 border-b border-[#263449] flex items-start justify-between gap-4 bg-[#151E32]/80">
           <div className="flex items-center gap-3.5 min-w-0">
             <div
               className={`w-12 h-12 rounded-full flex items-center justify-center font-headline-sm font-bold text-base shrink-0 ${candidate.avatarTone}`}
