@@ -1,43 +1,325 @@
-import React, { useState } from 'react';
-import { CANDIDATES_DATA, CandidateProfile, WorkspaceRoute } from '../../data/atsData';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useAts } from '../../context/AtsContext';
+import { CandidateProfile, HiringStage, MatchCategory, WorkspaceRoute } from '../../data/atsData';
+import { exportObjectToJson, exportRowsToCsv, normalizeSkillName } from '../../utils/atsEngine';
 
 interface CandidatesViewProps {
   onNavigate: (route: WorkspaceRoute) => void;
   onSelectCandidate: (candidate: CandidateProfile) => void;
 }
 
+const PAGE_SIZE = 10;
+
 export const CandidatesView: React.FC<CandidatesViewProps> = ({
   onNavigate,
   onSelectCandidate,
 }) => {
+  const {
+    candidates,
+    jobs,
+    selectedJobId,
+    setSelectedJobId,
+    getMatchFor,
+    moveCandidateStage,
+    bulkUpdateStage,
+    deleteCandidate,
+    mergeDuplicateCandidate,
+    updateCandidate,
+    toggleCompareCandidate,
+    compareIds,
+    stageFilterPreset,
+    setStageFilterPreset,
+    showToast,
+  } = useAts();
+
   const [searchQuery, setSearchQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState('All Jobs (8 Active)');
-  const [scoreFilter, setScoreFilter] = useState('All Scores');
-  const [expFilter, setExpFilter] = useState('All Experience');
-  const [stageFilter, setStageFilter] = useState('All Stages');
-  const [selectedIds, setSelectedIds] = useState<string[]>(['cand-1', 'cand-2']);
-  const [drawerVisible, setDrawerVisible] = useState(true);
-  const [minCgpa, setMinCgpa] = useState(7.5);
-  const [tenthCutoff, setTenthCutoff] = useState<'Any' | '80%+' | '90%+'>('80%+');
-  const [selectedDegrees, setSelectedDegrees] = useState<string[]>([
-    'B.Tech / B.E. (Computer Science)',
-    'M.Tech / M.S.',
-  ]);
-  const [techStack, setTechStack] = useState<string[]>([
-    'Python',
-    'React',
-    'AWS',
-    'PyTorch',
-    'Docker',
-  ]);
+  const [matchJobId, setMatchJobId] = useState<string>('target');
+  const [stageFilter, setStageFilter] = useState<string>('All Stages');
+  const [matchCatFilter, setMatchCatFilter] = useState<string>('All Categories');
+  const [expFilter, setExpFilter] = useState<string>('All Experience');
+  const [minExp, setMinExp] = useState<string>('');
+  const [maxExp, setMaxExp] = useState<string>('');
+  const [locationQuery, setLocationQuery] = useState<string>('');
+  const [remoteOnly, setRemoteOnly] = useState<boolean>(false);
+
+  // Academic Filters
+  const [minCgpa, setMinCgpa] = useState<string>('');
+  const [maxCgpa, setMaxCgpa] = useState<string>('');
+  const [minTenth, setMinTenth] = useState<string>('');
+  const [maxTenth, setMaxTenth] = useState<string>('');
+  const [minTwelfth, setMinTwelfth] = useState<string>('');
+  const [maxTwelfth, setMaxTwelfth] = useState<string>('');
+  const [gradYearFilter, setGradYearFilter] = useState<string>('');
+  const [selectedDegrees, setSelectedDegrees] = useState<string[]>([]);
+  const [branchQuery, setBranchQuery] = useState<string>('');
+  const [collegeQuery, setCollegeQuery] = useState<string>('');
+
+  // Professional & Skills Filters
+  const [techStack, setTechStack] = useState<string[]>([]);
+  const [skillLogic, setSkillLogic] = useState<'AND' | 'OR'>('AND');
   const [newSkill, setNewSkill] = useState('');
   const [addingSkill, setAddingSkill] = useState(false);
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [hasInternshipOnly, setHasInternshipOnly] = useState(false);
+  const [hasCertsOnly, setHasCertsOnly] = useState(false);
+  const [hasProjectsOnly, setHasProjectsOnly] = useState(false);
+  const [minScoreFilter, setMinScoreFilter] = useState<string>('');
+  const [maxScoreFilter, setMaxScoreFilter] = useState<string>('');
 
-  const triggerToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 2600);
+  // Sorting & Pagination & Selection
+  const [sortBy, setSortBy] = useState<'score' | 'experience' | 'cgpa' | 'gradYear' | 'recent'>('score');
+  const [page, setPage] = useState<number>(1);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [drawerVisible, setDrawerVisible] = useState(true);
+  const [duplicateReviewCand, setDuplicateReviewCand] = useState<CandidateProfile | null>(null);
+
+  useEffect(() => {
+    if (stageFilterPreset) {
+      setStageFilter(stageFilterPreset);
+      setStageFilterPreset(null);
+      setPage(1);
+    }
+  }, [stageFilterPreset, setStageFilterPreset]);
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (searchQuery.trim()) count++;
+    if (stageFilter !== 'All Stages') count++;
+    if (matchCatFilter !== 'All Categories') count++;
+    if (expFilter !== 'All Experience') count++;
+    if (minExp || maxExp) count++;
+    if (locationQuery.trim() || remoteOnly) count++;
+    if (minCgpa || maxCgpa) count++;
+    if (minTenth || maxTenth) count++;
+    if (minTwelfth || maxTwelfth) count++;
+    if (gradYearFilter) count++;
+    if (selectedDegrees.length > 0) count++;
+    if (branchQuery.trim() || collegeQuery.trim()) count++;
+    if (techStack.length > 0) count++;
+    if (hasInternshipOnly || hasCertsOnly || hasProjectsOnly) count++;
+    if (minScoreFilter || maxScoreFilter) count++;
+    return count;
+  }, [
+    searchQuery,
+    stageFilter,
+    matchCatFilter,
+    expFilter,
+    minExp,
+    maxExp,
+    locationQuery,
+    remoteOnly,
+    minCgpa,
+    maxCgpa,
+    minTenth,
+    maxTenth,
+    minTwelfth,
+    maxTwelfth,
+    gradYearFilter,
+    selectedDegrees,
+    branchQuery,
+    collegeQuery,
+    techStack,
+    hasInternshipOnly,
+    hasCertsOnly,
+    hasProjectsOnly,
+    minScoreFilter,
+    maxScoreFilter,
+  ]);
+
+  const toggleDegree = (deg: string) => {
+    setPage(1);
+    setSelectedDegrees((prev) =>
+      prev.includes(deg) ? prev.filter((d) => d !== deg) : [...prev, deg]
+    );
   };
+
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setStageFilter('All Stages');
+    setMatchCatFilter('All Categories');
+    setExpFilter('All Experience');
+    setMinExp('');
+    setMaxExp('');
+    setLocationQuery('');
+    setRemoteOnly(false);
+    setMinCgpa('');
+    setMaxCgpa('');
+    setMinTenth('');
+    setMaxTenth('');
+    setMinTwelfth('');
+    setMaxTwelfth('');
+    setGradYearFilter('');
+    setSelectedDegrees([]);
+    setBranchQuery('');
+    setCollegeQuery('');
+    setTechStack([]);
+    setHasInternshipOnly(false);
+    setHasCertsOnly(false);
+    setHasProjectsOnly(false);
+    setMinScoreFilter('');
+    setMaxScoreFilter('');
+    setPage(1);
+    showToast('Cleared all active filters', 'info');
+  };
+
+  const enrichedCandidates = useMemo(() => {
+    return candidates.map((cand) => {
+      const targetJobId = matchJobId === 'target' ? cand.targetJobId : matchJobId;
+      const match = getMatchFor(cand, targetJobId);
+      return {
+        cand,
+        score: match?.overallScore ?? cand.matchScore,
+        category: match?.category ?? ('Good Match' as MatchCategory),
+      };
+    });
+  }, [candidates, matchJobId, getMatchFor]);
+
+  const filteredCandidates = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    const locQ = locationQuery.trim().toLowerCase();
+    const brQ = branchQuery.trim().toLowerCase();
+    const colQ = collegeQuery.trim().toLowerCase();
+
+    const filtered = enrichedCandidates.filter(({ cand, score, category }) => {
+      if (q) {
+        const hay = `${cand.name} ${cand.email} ${cand.role} ${cand.educationDetail.college} ${cand.educationDetail.branch} ${cand.skills.join(' ')}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+
+      if (stageFilter !== 'All Stages' && cand.status !== stageFilter) return false;
+      if (matchCatFilter !== 'All Categories' && category !== matchCatFilter) return false;
+
+      if (expFilter === 'Fresher (0 yrs)' && cand.experienceYears > 0.5) return false;
+      if (expFilter === '0 - 2 years' && cand.experienceYears > 2) return false;
+      if (expFilter === '2 - 5 years' && (cand.experienceYears < 2 || cand.experienceYears > 5))
+        return false;
+      if (expFilter === '5+ years' && cand.experienceYears < 5) return false;
+
+      if (minExp && cand.experienceYears < parseFloat(minExp)) return false;
+      if (maxExp && cand.experienceYears > parseFloat(maxExp)) return false;
+
+      if (locQ && !cand.location.toLowerCase().includes(locQ)) return false;
+      if (remoteOnly && !cand.remoteAvailable) return false;
+
+      // Missing Academic Info rule: exclude null when academic filter is active!
+      if (minCgpa) {
+        if (cand.educationDetail.cgpa === null || cand.educationDetail.cgpa < parseFloat(minCgpa))
+          return false;
+      }
+      if (maxCgpa) {
+        if (cand.educationDetail.cgpa === null || cand.educationDetail.cgpa > parseFloat(maxCgpa))
+          return false;
+      }
+      if (minTenth) {
+        if (
+          cand.educationDetail.tenthPercentage === null ||
+          cand.educationDetail.tenthPercentage < parseFloat(minTenth)
+        )
+          return false;
+      }
+      if (maxTenth) {
+        if (
+          cand.educationDetail.tenthPercentage === null ||
+          cand.educationDetail.tenthPercentage > parseFloat(maxTenth)
+        )
+          return false;
+      }
+      if (minTwelfth) {
+        if (
+          cand.educationDetail.twelfthPercentage === null ||
+          cand.educationDetail.twelfthPercentage < parseFloat(minTwelfth)
+        )
+          return false;
+      }
+      if (maxTwelfth) {
+        if (
+          cand.educationDetail.twelfthPercentage === null ||
+          cand.educationDetail.twelfthPercentage > parseFloat(maxTwelfth)
+        )
+          return false;
+      }
+      if (gradYearFilter) {
+        if (
+          cand.educationDetail.graduationYear === null ||
+          cand.educationDetail.graduationYear !== parseInt(gradYearFilter, 10)
+        )
+          return false;
+      }
+
+      if (selectedDegrees.length > 0) {
+        const degLower = cand.educationDetail.degree.toLowerCase();
+        const matchesDeg = selectedDegrees.some((d) => degLower.includes(d.toLowerCase()));
+        if (!matchesDeg) return false;
+      }
+
+      if (brQ && !cand.educationDetail.branch.toLowerCase().includes(brQ)) return false;
+      if (colQ && !cand.educationDetail.college.toLowerCase().includes(colQ)) return false;
+
+      if (techStack.length > 0) {
+        const candSkillsNorm = new Set(cand.skills.map(normalizeSkillName));
+        if (skillLogic === 'AND') {
+          if (!techStack.every((req) => candSkillsNorm.has(normalizeSkillName(req)))) return false;
+        } else {
+          if (!techStack.some((req) => candSkillsNorm.has(normalizeSkillName(req)))) return false;
+        }
+      }
+
+      if (hasInternshipOnly && cand.internships.length === 0) return false;
+      if (hasCertsOnly && cand.certifications.length === 0) return false;
+      if (hasProjectsOnly && cand.projects.length === 0) return false;
+
+      if (minScoreFilter && score < parseFloat(minScoreFilter)) return false;
+      if (maxScoreFilter && score > parseFloat(maxScoreFilter)) return false;
+
+      return true;
+    });
+
+    filtered.sort((a, b) => {
+      if (sortBy === 'score') return b.score - a.score;
+      if (sortBy === 'experience') return b.cand.experienceYears - a.cand.experienceYears;
+      if (sortBy === 'cgpa')
+        return (b.cand.educationDetail.cgpa ?? -1) - (a.cand.educationDetail.cgpa ?? -1);
+      if (sortBy === 'gradYear')
+        return (b.cand.educationDetail.graduationYear ?? 0) - (a.cand.educationDetail.graduationYear ?? 0);
+      return b.cand.appliedAt.localeCompare(a.cand.appliedAt);
+    });
+
+    return filtered;
+  }, [
+    enrichedCandidates,
+    searchQuery,
+    stageFilter,
+    matchCatFilter,
+    expFilter,
+    minExp,
+    maxExp,
+    locationQuery,
+    remoteOnly,
+    minCgpa,
+    maxCgpa,
+    minTenth,
+    maxTenth,
+    minTwelfth,
+    maxTwelfth,
+    gradYearFilter,
+    selectedDegrees,
+    branchQuery,
+    collegeQuery,
+    techStack,
+    skillLogic,
+    hasInternshipOnly,
+    hasCertsOnly,
+    hasProjectsOnly,
+    minScoreFilter,
+    maxScoreFilter,
+    sortBy,
+  ]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredCandidates.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedRows = filteredCandidates.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) =>
@@ -45,83 +327,65 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
     );
   };
 
-  const toggleAll = () => {
-    if (selectedIds.length === filteredCandidates.length) {
-      setSelectedIds([]);
+  const toggleAllVisible = () => {
+    const visibleIds = paginatedRows.map((r) => r.cand.id);
+    const allChecked = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id));
+    if (allChecked) {
+      setSelectedIds((prev) => prev.filter((id) => !visibleIds.includes(id)));
     } else {
-      setSelectedIds(filteredCandidates.map((c) => c.id));
+      setSelectedIds((prev) => Array.from(new Set([...prev, ...visibleIds])));
     }
   };
 
-  const toggleDegree = (deg: string) => {
-    setSelectedDegrees((prev) =>
-      prev.includes(deg) ? prev.filter((d) => d !== deg) : [...prev, deg]
+  const handleExportCsv = () => {
+    exportRowsToCsv(
+      `hireswift_candidates_${new Date().toISOString().slice(0, 10)}.csv`,
+      [
+        'Name',
+        'Email',
+        'Location',
+        'Degree',
+        'Branch',
+        'College',
+        'CGPA',
+        '10th/12th',
+        'Grad Year',
+        'Experience (Yrs)',
+        'Skills',
+        'Match Score (%)',
+        'Stage',
+        'Duplicate Status',
+      ],
+      filteredCandidates.map(({ cand, score }) => [
+        cand.name,
+        cand.email,
+        cand.location,
+        cand.educationDetail.degree,
+        cand.educationDetail.branch,
+        cand.educationDetail.college,
+        cand.educationDetail.cgpa ?? 'Not Listed',
+        cand.tenthTwelfth,
+        cand.educationDetail.graduationYear ?? 'N/A',
+        cand.experienceYears,
+        cand.skills.join('; '),
+        score,
+        cand.status,
+        cand.duplicateStatus,
+      ])
     );
+    showToast(`Exported ${filteredCandidates.length} candidate(s) to CSV`);
   };
 
-  const filteredCandidates = CANDIDATES_DATA.filter((cand) => {
-    const q = searchQuery.trim().toLowerCase();
-    const matchesSearch =
-      !q ||
-      cand.name.toLowerCase().includes(q) ||
-      cand.email.toLowerCase().includes(q) ||
-      cand.skills.some((s) => s.toLowerCase().includes(q));
-
-    const matchesRole =
-      roleFilter === 'All Jobs (8 Active)' || cand.role === roleFilter;
-
-    const matchesScore =
-      scoreFilter === 'All Scores' ||
-      (scoreFilter === '90%+ Excellent' && cand.matchScore >= 90) ||
-      (scoreFilter === '80% - 89% Strong' &&
-        cand.matchScore >= 80 &&
-        cand.matchScore < 90) ||
-      (scoreFilter === '70% - 79% Good' &&
-        cand.matchScore >= 70 &&
-        cand.matchScore < 80) ||
-      (scoreFilter === '< 70% Flagged' && cand.matchScore < 70);
-
-    const matchesExp =
-      expFilter === 'All Experience' ||
-      (expFilter === '0 - 2 years' && cand.experienceYears <= 2) ||
-      (expFilter === '3 - 5 years' &&
-        cand.experienceYears >= 3 &&
-        cand.experienceYears <= 5) ||
-      (expFilter === '5+ years' && cand.experienceYears >= 5) ||
-      (expFilter === 'Leadership (8+ yrs)' && cand.experienceYears >= 8);
-
-    const matchesStage =
-      stageFilter === 'All Stages' ||
-      stageFilter.toLowerCase().startsWith(cand.status.toLowerCase());
-
-    return (
-      matchesSearch && matchesRole && matchesScore && matchesExp && matchesStage
-    );
-  });
-
-  const handleResetFilters = () => {
-    setSearchQuery('');
-    setRoleFilter('All Jobs (8 Active)');
-    setScoreFilter('All Scores');
-    setExpFilter('All Experience');
-    setStageFilter('All Stages');
-    setMinCgpa(7.5);
-    setTenthCutoff('80%+');
-    setTechStack(['Python', 'React', 'AWS', 'PyTorch', 'Docker']);
-    triggerToast('Precision filters reset to defaults');
-  };
+  const avgScore =
+    filteredCandidates.length > 0
+      ? Math.round(
+          (filteredCandidates.reduce((acc, r) => acc + r.score, 0) / filteredCandidates.length) * 10
+        ) / 10
+      : 0;
+  const duplicateAlerts = candidates.filter((c) => c.duplicateStatus !== 'Unique').length;
 
   return (
     <div className="flex flex-col w-full">
-      {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-xl bg-surface-container border border-primary-container/50 shadow-2xl text-xs font-medium text-on-surface flex items-center gap-2">
-          <span className="material-symbols-outlined text-[16px] text-emerald-400">
-            check_circle
-          </span>
-          <span>{toastMsg}</span>
-        </div>
-      )}
-
       {/* Top Command Banner */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-space-lg mb-space-xl">
         <div className="flex flex-col gap-1 max-w-2xl">
@@ -129,807 +393,929 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-high text-tertiary font-mono-code text-[11px] tracking-wide">
               CANDIDATE DIRECTORY
             </span>
+            {duplicateAlerts > 0 && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 font-mono-code text-[11px]">
+                {duplicateAlerts} Duplicate Review(s)
+              </span>
+            )}
           </div>
           <h1 className="font-heading font-extrabold text-headline-xl text-white tracking-tight">
             Candidates
           </h1>
           <p className="font-body-md text-body-md text-[#94A3B8]">
-            Manage, search, filter, and review all applicants across active roles with neural semantic scoring.
+            Search, filter by academic &amp; technical criteria, resolve duplicates, and manage hiring stages.
           </p>
         </div>
 
         <div className="flex items-center gap-space-md flex-wrap">
           <button
             type="button"
-            onClick={() => triggerToast('Exported 482 candidate records to CSV')}
-            className="flex items-center gap-space-xs px-space-lg py-2 rounded-xl bg-[#151E32] border border-[#263449] text-white font-label-md text-label-md hover:bg-[#1B2740] transition-all shadow-sm cursor-pointer"
+            onClick={handleExportCsv}
+            className="flex items-center gap-space-xs px-4 py-2 rounded-xl bg-[#151E32] border border-[#263449] text-white font-label-md text-label-md hover:bg-[#1B2740] transition-all shadow-sm cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[18px] text-[#94A3B8]">
-              download
-            </span>
-            <span>Export Candidates</span>
+            <span className="material-symbols-outlined text-[18px] text-[#94A3B8]">download</span>
+            <span>Export CSV</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              exportObjectToJson(
+                'hireswift_candidates.json',
+                filteredCandidates.map((f) => f.cand)
+              );
+              showToast(`Exported ${filteredCandidates.length} profiles as JSON`);
+            }}
+            className="flex items-center gap-space-xs px-4 py-2 rounded-xl bg-[#151E32] border border-[#263449] text-white font-label-md text-label-md hover:bg-[#1B2740] transition-all shadow-sm cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[18px] text-[#94A3B8]">code</span>
+            <span>Export JSON</span>
           </button>
           <button
             type="button"
             onClick={() => onNavigate('resume-upload')}
-            className="flex items-center gap-space-xs px-space-xl py-2 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-label-md text-label-md font-semibold hover:opacity-95 shadow-lg shadow-indigo-600/25 border border-white/15 transition-all cursor-pointer"
+            className="flex items-center gap-space-xs px-5 py-2 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-label-md text-label-md font-semibold hover:opacity-95 shadow-lg shadow-indigo-600/25 border border-white/15 transition-all cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[18px]">
-              upload_file
-            </span>
+            <span className="material-symbols-outlined text-[18px]">upload_file</span>
             <span>Upload Resumes</span>
           </button>
         </div>
       </div>
 
-      {/* Performance & Metric Tiles */}
+      {/* Live Metric Tiles */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-lg mb-space-xl tabular-nums">
-        <div className="relative overflow-hidden rounded-2xl glass-card p-space-lg shadow-sm">
-          <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-primary/5 blur-xl pointer-events-none" />
-          <div className="flex items-center justify-between mb-space-sm">
-            <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider">
-              Total Candidates
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
-              <span className="material-symbols-outlined text-[18px]">group</span>
-            </div>
-          </div>
-          <div className="flex items-baseline gap-space-sm">
-            <span className="font-headline-lg text-headline-lg font-bold text-on-surface">
-              482
-            </span>
-            <span className="font-mono-code text-mono-code text-tertiary flex items-center gap-0.5">
-              <span className="material-symbols-outlined text-[14px]">
-                arrow_upward
-              </span>
-              +14.2%
+        <div className="rounded-2xl glass-card p-5">
+          <span className="font-label-sm text-outline uppercase">Total Candidates</span>
+          <div className="flex items-baseline gap-2 mt-1">
+            <span className="font-headline-lg font-bold text-on-surface">{candidates.length}</span>
+            <span className="font-mono-code text-xs text-tertiary">
+              {filteredCandidates.length} matching filters
             </span>
           </div>
-          <span className="font-body-sm text-body-sm text-on-surface-variant block mt-1">
-            Aggregated across 8 open requisitions
-          </span>
         </div>
-
-        <div className="relative overflow-hidden rounded-2xl glass-card p-space-lg shadow-sm">
-          <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-tertiary/5 blur-xl pointer-events-none" />
-          <div className="flex items-center justify-between mb-space-sm">
-            <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider">
-              New Applicants
+        <div className="rounded-2xl glass-card p-5">
+          <span className="font-label-sm text-outline uppercase">Shortlisted</span>
+          <div className="flex items-baseline gap-2 mt-1">
+            <span className="font-headline-lg font-bold text-on-surface">
+              {candidates.filter((c) => c.status === 'Shortlisted').length}
             </span>
-            <div className="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-tertiary">
-              <span className="material-symbols-outlined text-[18px]">bolt</span>
-            </div>
-          </div>
-          <div className="flex items-baseline gap-space-sm">
-            <span className="font-headline-lg text-headline-lg font-bold text-on-surface">
-              38
-            </span>
-            <span className="px-1.5 py-0.5 rounded bg-primary-container/20 text-primary font-mono-code text-[11px] font-semibold">
-              Today
+            <span className="font-mono-code text-xs text-secondary">
+              {candidates.filter((c) => c.status === 'Interview').length} in Interview
             </span>
           </div>
-          <span className="font-body-sm text-body-sm text-on-surface-variant block mt-1">
-            Pending first-pass AI evaluation
-          </span>
         </div>
-
-        <div className="relative overflow-hidden rounded-2xl glass-card p-space-lg shadow-sm">
-          <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-secondary/5 blur-xl pointer-events-none" />
-          <div className="flex items-center justify-between mb-space-sm">
-            <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider">
-              Shortlisted
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary">
-              <span className="material-symbols-outlined text-[18px]">
-                verified
-              </span>
-            </div>
+        <div className="rounded-2xl glass-card p-5">
+          <span className="font-label-sm text-outline uppercase">Duplicate Alerts</span>
+          <div className="flex items-baseline gap-2 mt-1">
+            <span className="font-headline-lg font-bold text-amber-400">{duplicateAlerts}</span>
+            <span className="font-mono-code text-xs text-outline">Flagged for review</span>
           </div>
-          <div className="flex items-baseline gap-space-sm">
-            <span className="font-headline-lg text-headline-lg font-bold text-on-surface">
-              64
-            </span>
-            <span className="font-mono-code text-mono-code text-secondary">
-              13.2% yield
-            </span>
-          </div>
-          <span className="font-body-sm text-body-sm text-on-surface-variant block mt-1">
-            Ready for hiring lead sign-off
-          </span>
         </div>
-
-        <div className="relative overflow-hidden rounded-2xl glass-card p-space-lg shadow-sm">
-          <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-primary/5 blur-xl pointer-events-none" />
-          <div className="flex items-center justify-between mb-space-sm">
-            <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider">
-              Average Match Score
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
-              <span className="material-symbols-outlined text-[18px]">
-                psychology
-              </span>
-            </div>
+        <div className="rounded-2xl glass-card p-5">
+          <span className="font-label-sm text-outline uppercase">Filtered Avg Score</span>
+          <div className="flex items-baseline gap-2 mt-1">
+            <span className="font-headline-lg font-bold text-emerald-400">{avgScore}%</span>
+            <span className="font-mono-code text-xs text-primary">Weighted Rubric</span>
           </div>
-          <div className="flex items-baseline gap-space-sm">
-            <span className="font-headline-lg text-headline-lg font-bold text-on-surface">
-              84.6%
-            </span>
-            <span className="font-mono-code text-mono-code text-tertiary flex items-center gap-0.5">
-              <span className="material-symbols-outlined text-[14px]">
-                trending_up
-              </span>
-              +3.1 pt
-            </span>
-          </div>
-          <span className="font-body-sm text-body-sm text-on-surface-variant block mt-1">
-            High semantic alignment baseline
-          </span>
         </div>
       </div>
 
-      {/* Primary Workspace Content */}
-      <div className="relative flex flex-col xl:flex-row gap-space-xl items-start">
-        {/* Left Main Column */}
-        <div className="flex-1 w-full min-w-0 flex flex-col gap-space-lg">
-          {/* Search & Filters Toolbar */}
-          <div className="rounded-2xl glass-card p-space-md shadow-sm flex flex-col gap-space-md">
-            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-space-md">
-              <div className="relative flex-1">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-outline">
+      {/* Main Split Workspace */}
+      <div className="flex flex-col xl:flex-row gap-space-xl items-start">
+        {/* Left Main Content (Table + Top Toolbar) */}
+        <div className="flex-1 w-full flex flex-col gap-space-md min-w-0">
+          {/* Quick Toolbar */}
+          <div className="p-4 rounded-2xl glass-card shadow-sm flex flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="relative flex-1 min-w-[240px]">
+                <span className="material-symbols-outlined text-[18px] text-outline absolute left-3 top-2.5">
                   search
                 </span>
                 <input
-                  className="w-full h-10 pl-9 pr-4 rounded-lg bg-surface-container-highest text-on-surface placeholder:text-outline font-body-sm text-body-sm outline-none focus:bg-surface-container transition-all"
-                  placeholder="Search by candidate name, email, or skill keywords..."
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setPage(1);
+                  }}
+                  placeholder="Search name, email, college, skills, or role..."
+                  className="w-full h-10 pl-10 pr-4 rounded-xl bg-surface-container-highest text-on-surface text-xs outline-none border border-[#263449]"
                 />
               </div>
-              <div className="flex items-center gap-space-xs self-end md:self-auto">
-                <button
-                  type="button"
-                  onClick={() => setDrawerVisible((v) => !v)}
-                  className="flex items-center gap-space-xs px-3 h-10 rounded-lg bg-surface-container-high text-on-surface font-label-md text-label-md hover:bg-surface-bright transition-all cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[18px] text-primary">
-                    tune
+
+              <select
+                value={matchJobId}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setMatchJobId(val);
+                  if (val !== 'target') setSelectedJobId(val);
+                }}
+                className="h-10 px-3 rounded-xl bg-surface-container-highest text-on-surface text-xs outline-none border border-[#263449]"
+              >
+                <option value="target">Match vs Candidate Target Job</option>
+                {jobs.map((j) => (
+                  <option key={j.id} value={j.id}>
+                    Score vs: {j.title}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={stageFilter}
+                onChange={(e) => {
+                  setStageFilter(e.target.value);
+                  setPage(1);
+                }}
+                className="h-10 px-3 rounded-xl bg-surface-container-highest text-on-surface text-xs outline-none border border-[#263449]"
+              >
+                <option value="All Stages">All Stages</option>
+                <option value="Applied">Applied</option>
+                <option value="Shortlisted">Shortlisted</option>
+                <option value="Interview">Interview</option>
+                <option value="Offer">Offer</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                className="h-10 px-3 rounded-xl bg-surface-container-highest text-on-surface text-xs outline-none border border-[#263449]"
+              >
+                <option value="score">Sort: Match Score</option>
+                <option value="experience">Sort: Experience</option>
+                <option value="cgpa">Sort: CGPA</option>
+                <option value="gradYear">Sort: Graduation Year</option>
+                <option value="recent">Sort: Application Date</option>
+              </select>
+
+              <button
+                type="button"
+                onClick={() => setDrawerVisible((v) => !v)}
+                className="flex items-center gap-1.5 px-3.5 h-10 rounded-xl bg-primary-container/25 border border-primary/40 text-primary text-xs font-semibold cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[16px]">tune</span>
+                <span>Filters</span>
+                {activeFilterCount > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-[#8B5CF6] text-white text-[10px]">
+                    {activeFilterCount}
                   </span>
-                  <span>Advanced Filters</span>
-                  <span className="w-2 h-2 rounded-full bg-primary ml-1" />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleResetFilters}
-                  className="p-2 h-10 w-10 flex items-center justify-center rounded-lg bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-all cursor-pointer"
-                  title="Reset filters"
-                >
-                  <span className="material-symbols-outlined text-[18px]">
-                    refresh
-                  </span>
-                </button>
-              </div>
+                )}
+              </button>
             </div>
 
-            {/* Filter Selects Strip */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-space-sm pt-space-xs">
-              <div className="flex flex-col gap-1">
-                <label className="font-label-sm text-label-sm text-outline">
-                  Job Role
-                </label>
-                <div className="relative">
-                  <select
-                    value={roleFilter}
-                    onChange={(e) => setRoleFilter(e.target.value)}
-                    className="w-full h-9 px-2.5 rounded-lg bg-surface-container-highest text-on-surface font-body-sm text-body-sm appearance-none cursor-pointer outline-none"
+            {/* Bulk Actions Bar */}
+            {selectedIds.length > 0 && (
+              <div className="pt-2 border-t border-[#263449] flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xs font-medium text-primary">
+                  {selectedIds.length} candidate(s) selected
+                </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      bulkUpdateStage(selectedIds, 'Shortlisted');
+                      setSelectedIds([]);
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 text-xs font-semibold cursor-pointer"
                   >
-                    <option>All Jobs (8 Active)</option>
-                    <option>Senior Python Dev</option>
-                    <option>Full Stack Engineer</option>
-                    <option>Machine Learning Lead</option>
-                    <option>Data Analyst</option>
-                    <option>Backend Platform Dev</option>
-                  </select>
-                  <span className="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[16px] text-outline">
-                    expand_more
-                  </span>
+                    Bulk Shortlist
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      bulkUpdateStage(selectedIds, 'Interview');
+                      setSelectedIds([]);
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-blue-500/20 text-blue-300 text-xs font-semibold cursor-pointer"
+                  >
+                    Move to Interview
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      bulkUpdateStage(selectedIds, 'Rejected');
+                      setSelectedIds([]);
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-rose-500/20 text-rose-300 text-xs font-semibold cursor-pointer"
+                  >
+                    Reject
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('email-center')}
+                    className="px-3 py-1.5 rounded-lg bg-surface-container-high text-on-surface text-xs cursor-pointer"
+                  >
+                    Prepare Email
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedIds([])}
+                    className="px-2 py-1 text-xs text-outline hover:text-white cursor-pointer"
+                  >
+                    Clear Selection
+                  </button>
                 </div>
               </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="font-label-sm text-label-sm text-outline">
-                  Match Score
-                </label>
-                <div className="relative">
-                  <select
-                    value={scoreFilter}
-                    onChange={(e) => setScoreFilter(e.target.value)}
-                    className="w-full h-9 px-2.5 rounded-lg bg-surface-container-highest text-on-surface font-body-sm text-body-sm appearance-none cursor-pointer outline-none"
-                  >
-                    <option>All Scores</option>
-                    <option>90%+ Excellent</option>
-                    <option>80% - 89% Strong</option>
-                    <option>70% - 79% Good</option>
-                    <option>&lt; 70% Flagged</option>
-                  </select>
-                  <span className="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[16px] text-outline">
-                    expand_more
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="font-label-sm text-label-sm text-outline">
-                  Experience
-                </label>
-                <div className="relative">
-                  <select
-                    value={expFilter}
-                    onChange={(e) => setExpFilter(e.target.value)}
-                    className="w-full h-9 px-2.5 rounded-lg bg-surface-container-highest text-on-surface font-body-sm text-body-sm appearance-none cursor-pointer outline-none"
-                  >
-                    <option>All Experience</option>
-                    <option>0 - 2 years</option>
-                    <option>3 - 5 years</option>
-                    <option>5+ years</option>
-                    <option>Leadership (8+ yrs)</option>
-                  </select>
-                  <span className="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[16px] text-outline">
-                    expand_more
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="font-label-sm text-label-sm text-outline">
-                  Hiring Stage
-                </label>
-                <div className="relative">
-                  <select
-                    value={stageFilter}
-                    onChange={(e) => setStageFilter(e.target.value)}
-                    className="w-full h-9 px-2.5 rounded-lg bg-surface-container-highest text-on-surface font-body-sm text-body-sm appearance-none cursor-pointer outline-none"
-                  >
-                    <option>All Stages</option>
-                    <option>Applied (184)</option>
-                    <option>Screening (112)</option>
-                    <option>Shortlisted (64)</option>
-                    <option>Interview (42)</option>
-                    <option>Reviewing (24)</option>
-                  </select>
-                  <span className="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[16px] text-outline">
-                    expand_more
-                  </span>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
 
-          {/* Batch Actions Bar */}
-          <div className="rounded-2xl glass-card p-space-md shadow-md flex flex-wrap items-center justify-between gap-space-md">
-            <div className="flex items-center gap-space-md">
-              <div className="flex items-center gap-space-xs px-2.5 py-1 rounded-md bg-primary-container text-on-primary-container font-mono-code text-[11px] font-bold">
-                <span className="material-symbols-outlined text-[14px]">
-                  check_box
-                </span>
-                <span>{selectedIds.length} Selected</span>
+          {/* Candidate Table */}
+          <div className="rounded-2xl glass-card shadow-sm overflow-hidden">
+            {filteredCandidates.length === 0 ? (
+              <div className="p-12 text-center space-y-3">
+                <span className="material-symbols-outlined text-[40px] text-outline">search_off</span>
+                <h3 className="font-headline-sm text-on-surface font-semibold">
+                  No candidates match your active criteria
+                </h3>
+                <p className="text-xs text-on-surface-variant">
+                  {activeFilterCount > 0
+                    ? 'Note: Candidates with unavailable CGPA/10th/12th values are excluded when academic cutoffs are active.'
+                    : 'Upload resumes or import the sample dataset to populate candidates.'}
+                </p>
+                {activeFilterCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleResetFilters}
+                    className="px-4 py-2 rounded-xl bg-primary-container text-on-primary-container text-xs font-semibold cursor-pointer"
+                  >
+                    Clear All Filters
+                  </button>
+                )}
               </div>
-              <span className="font-body-sm text-body-sm text-on-surface-variant hidden sm:inline">
-                Bulk candidate pipeline operations
-              </span>
-            </div>
-            <div className="flex items-center gap-space-xs flex-wrap">
-              <button
-                type="button"
-                onClick={() =>
-                  triggerToast(`Shortlisted ${selectedIds.length} selected candidates`)
-                }
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-label-sm text-label-sm transition-all cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[16px] text-secondary">
-                  star
-                </span>
-                <span>Bulk Shortlist</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => onNavigate('email-center')}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-label-sm text-label-sm transition-all cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[16px] text-tertiary">
-                  mail
-                </span>
-                <span>Send Email</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => onNavigate('compare-candidates')}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-label-sm text-label-sm transition-all cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[16px] text-primary">
-                  compare_arrows
-                </span>
-                <span>Compare Candidates</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => triggerToast('Selected candidates exported to CSV')}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-surface-container-highest hover:bg-surface-bright text-outline hover:text-on-surface font-label-sm text-label-sm transition-all cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[16px]">
-                  file_download
-                </span>
-                <span>Export</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Candidate Data Table Container */}
-          <div className="rounded-2xl glass-card shadow-sm overflow-hidden flex flex-col">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse tabular-nums">
-                <thead>
-                  <tr className="bg-surface-container-high/60 text-outline font-label-sm text-label-sm uppercase tracking-wider">
-                    <th className="py-3 px-4 w-10">
-                      <input
-                        type="checkbox"
-                        checked={
-                          filteredCandidates.length > 0 &&
-                          selectedIds.length === filteredCandidates.length
-                        }
-                        onChange={toggleAll}
-                        className="w-4 h-4 rounded bg-surface-container border-none cursor-pointer accent-primary-container"
-                      />
-                    </th>
-                    <th className="py-3 px-4">Candidate</th>
-                    <th className="py-3 px-4">Location</th>
-                    <th className="py-3 px-4">Education &amp; CGPA</th>
-                    <th className="py-3 px-4">Exp</th>
-                    <th className="py-3 px-4">Primary Skills</th>
-                    <th className="py-3 px-4">Match Score</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-surface-container-high font-body-sm text-body-sm">
-                  {filteredCandidates.map((cand) => {
-                    const isSelected = selectedIds.includes(cand.id);
-                    const scoreStyle =
-                      cand.matchScore >= 89
-                        ? 'bg-tertiary-container/30 text-tertiary'
-                        : cand.matchScore >= 80
-                          ? 'bg-tertiary-container/20 text-tertiary-fixed'
-                          : 'bg-secondary-fixed/10 text-secondary-fixed-dim';
-                    const dotStyle =
-                      cand.matchScore >= 89
-                        ? 'bg-tertiary'
-                        : cand.matchScore >= 80
-                          ? 'bg-tertiary-fixed'
-                          : 'bg-secondary-fixed-dim';
-
-                    const statusBadge =
-                      cand.status === 'Shortlisted'
-                        ? 'bg-secondary-container/40 text-secondary'
-                        : cand.status === 'Interview'
-                          ? 'bg-primary-container/30 text-primary'
-                          : cand.status === 'Reviewing'
-                            ? 'bg-surface-container-high text-on-surface-variant'
-                            : cand.status === 'Screening'
-                              ? 'bg-tertiary-container/30 text-tertiary'
-                              : 'bg-surface-container-highest text-outline';
-
-                    return (
-                      <tr
-                        key={cand.id}
-                        className="hover:bg-surface-container/60 transition-colors group"
-                      >
-                        <td className="py-3.5 px-4">
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => toggleSelect(cand.id)}
-                            className="w-4 h-4 rounded cursor-pointer accent-primary-container"
-                          />
-                        </td>
-                        <td
-                          className="py-3.5 px-4 min-w-[200px] cursor-pointer"
-                          onClick={() => onSelectCandidate(cand)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`w-9 h-9 rounded-full flex items-center justify-center font-headline-sm text-headline-sm font-semibold ${cand.avatarTone}`}
-                            >
-                              {cand.initials}
-                            </div>
-                            <div className="flex flex-col">
-                              <span className="font-headline-sm text-headline-sm text-on-surface font-medium group-hover:text-primary transition-colors">
-                                {cand.name}
-                              </span>
-                              <span className="font-mono-code text-[11px] text-outline">
-                                {cand.email}
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4 text-on-surface-variant whitespace-nowrap">
-                          <div className="flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[15px] text-outline">
-                              location_on
-                            </span>
-                            <span>{cand.location}</span>
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4 whitespace-nowrap">
-                          <div className="flex flex-col">
-                            <span className="text-on-surface">{cand.education}</span>
-                            <span
-                              className={`font-mono-code text-[11px] ${
-                                parseFloat(cand.cgpa) >= 8.2
-                                  ? 'text-tertiary'
-                                  : 'text-on-surface-variant'
-                              }`}
-                            >
-                              {cand.cgpa}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4 whitespace-nowrap font-mono-code text-on-surface">
-                          {cand.experience}
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <div className="flex flex-wrap gap-1 max-w-[240px]">
-                            {cand.skills.map((skill) => (
-                              <span
-                                key={skill}
-                                className="px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-mono-code text-[10px]"
-                              >
-                                {skill}
-                              </span>
-                            ))}
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4 whitespace-nowrap">
-                          <div
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono-code text-[11px] font-bold ${scoreStyle}`}
-                          >
-                            <span className={`w-1.5 h-1.5 rounded-full ${dotStyle}`} />
-                            <span>{cand.matchLabel}</span>
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4 whitespace-nowrap">
-                          <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded-full font-label-sm text-label-sm ${statusBadge}`}
-                          >
-                            {cand.status}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                          <div className="flex items-center justify-end gap-1">
-                            <button
-                              type="button"
-                              onClick={() => onSelectCandidate(cand)}
-                              className="p-1.5 rounded-md hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface cursor-pointer"
-                              title="View Profile"
-                            >
-                              <span className="material-symbols-outlined text-[18px]">
-                                visibility
-                              </span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                triggerToast(`${cand.name} fast-tracked to Shortlisted`)
-                              }
-                              className="p-1.5 rounded-md hover:bg-surface-container-high text-primary hover:text-primary-fixed cursor-pointer"
-                              title="Fast Action"
-                            >
-                              <span className="material-symbols-outlined text-[18px]">
-                                verified
-                              </span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => onSelectCandidate(cand)}
-                              className="p-1.5 rounded-md hover:bg-surface-container-high text-outline hover:text-on-surface cursor-pointer"
-                              title="More Options"
-                            >
-                              <span className="material-symbols-outlined text-[18px]">
-                                more_vert
-                              </span>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-
-                  {filteredCandidates.length === 0 && (
-                    <tr>
-                      <td colSpan={9} className="py-12 text-center text-on-surface-variant">
-                        <p className="font-headline-sm text-on-surface mb-1">
-                          No candidates match the current filter criteria
-                        </p>
-                        <button
-                          type="button"
-                          onClick={handleResetFilters}
-                          className="text-xs text-primary hover:underline cursor-pointer"
-                        >
-                          Reset all filters
-                        </button>
-                      </td>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left font-body-sm text-body-sm tabular-nums">
+                  <thead>
+                    <tr className="bg-surface-container-lowest/60 text-outline font-label-sm text-label-sm uppercase tracking-wider">
+                      <th className="py-3 px-4 w-10">
+                        <input
+                          type="checkbox"
+                          checked={
+                            paginatedRows.length > 0 &&
+                            paginatedRows.every((r) => selectedIds.includes(r.cand.id))
+                          }
+                          onChange={toggleAllVisible}
+                          className="w-4 h-4 accent-[#8B5CF6]"
+                        />
+                      </th>
+                      <th className="py-3 px-3">Candidate</th>
+                      <th className="py-3 px-3">Qualification &amp; Academics</th>
+                      <th className="py-3 px-3">Experience</th>
+                      <th className="py-3 px-3">Primary Skills</th>
+                      <th className="py-3 px-3">Match Score</th>
+                      <th className="py-3 px-3">Stage</th>
+                      <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-[#263449]/60">
+                    {paginatedRows.map(({ cand, score, category }) => {
+                      const isCompared = compareIds.includes(cand.id);
+                      return (
+                        <tr
+                          key={cand.id}
+                          onClick={() => onSelectCandidate(cand)}
+                          className="hover:bg-surface-container/50 transition-colors cursor-pointer"
+                        >
+                          <td
+                            className="py-3.5 px-4"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.includes(cand.id)}
+                              onChange={() => toggleSelect(cand.id)}
+                              className="w-4 h-4 accent-[#8B5CF6]"
+                            />
+                          </td>
+                          <td className="py-3.5 px-3 min-w-[200px]">
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${cand.avatarTone}`}
+                              >
+                                {cand.initials}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="font-semibold text-on-surface truncate">
+                                    {cand.name}
+                                  </span>
+                                  {cand.duplicateStatus !== 'Unique' && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setDuplicateReviewCand(cand);
+                                      }}
+                                      className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono-code text-[10px] hover:bg-amber-500/30 cursor-pointer"
+                                    >
+                                      {cand.duplicateStatus}
+                                    </button>
+                                  )}
+                                </div>
+                                <div className="text-[11px] text-outline truncate">
+                                  {cand.email} · {cand.location}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-3 text-xs">
+                            <div className="text-on-surface font-medium">{cand.education}</div>
+                            <div className="font-mono-code text-[11px] text-tertiary">
+                              {cand.cgpa} · Class of {cand.educationDetail.graduationYear ?? 'N/A'}
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-3 font-mono-code text-xs text-on-surface-variant whitespace-nowrap">
+                            {cand.experience}
+                          </td>
+                          <td className="py-3.5 px-3 max-w-[210px]">
+                            <div className="flex flex-wrap gap-1">
+                              {cand.skills.slice(0, 3).map((s) => (
+                                <span
+                                  key={s}
+                                  className="px-2 py-0.5 rounded bg-surface-container-high font-mono-code text-[10px] text-on-surface-variant"
+                                >
+                                  {s}
+                                </span>
+                              ))}
+                              {cand.skills.length > 3 && (
+                                <span className="text-[10px] font-mono-code text-outline">
+                                  +{cand.skills.length - 3}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-3 whitespace-nowrap">
+                            <div className="flex flex-col">
+                              <span
+                                className={`font-mono-code text-xs font-bold ${
+                                  score >= 85
+                                    ? 'text-emerald-400'
+                                    : score >= 70
+                                      ? 'text-blue-400'
+                                      : 'text-amber-400'
+                                }`}
+                              >
+                                {score}%
+                              </span>
+                              <span className="text-[10px] text-outline">{category}</span>
+                            </div>
+                          </td>
+                          <td
+                            className="py-3.5 px-3 whitespace-nowrap"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <select
+                              value={cand.status}
+                              onChange={(e) =>
+                                moveCandidateStage(cand.id, e.target.value as HiringStage)
+                              }
+                              className="h-7 px-2 rounded-lg bg-surface-container-high border border-[#263449] text-[11px] text-on-surface outline-none cursor-pointer"
+                            >
+                              <option value="Applied">Applied</option>
+                              <option value="Shortlisted">Shortlisted</option>
+                              <option value="Interview">Interview</option>
+                              <option value="Offer">Offer</option>
+                              <option value="Rejected">Rejected</option>
+                            </select>
+                          </td>
+                          <td
+                            className="py-3.5 px-4 text-right whitespace-nowrap"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="inline-flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => toggleCompareCandidate(cand.id)}
+                                title={isCompared ? 'Remove from Compare' : 'Add to Compare'}
+                                className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                                  isCompared
+                                    ? 'bg-[#8B5CF6]/25 text-[#c3c0ff]'
+                                    : 'text-outline hover:text-white hover:bg-surface-container-high'
+                                }`}
+                              >
+                                <span className="material-symbols-outlined text-[16px]">
+                                  compare_arrows
+                                </span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => onSelectCandidate(cand)}
+                                title="View Profile"
+                                className="p-1.5 rounded-lg text-outline hover:text-white hover:bg-surface-container-high cursor-pointer"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">
+                                  visibility
+                                </span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => deleteCandidate(cand.id)}
+                                title="Delete Candidate"
+                                className="p-1.5 rounded-lg text-outline hover:text-rose-400 hover:bg-surface-container-high cursor-pointer"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">delete</span>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-            {/* Table Footer / Pagination */}
-            <div className="p-space-md bg-surface-container flex flex-col sm:flex-row items-center justify-between gap-space-md">
-              <div className="flex items-center gap-space-sm font-body-sm text-body-sm text-on-surface-variant">
+            {/* Pagination Footer */}
+            {filteredCandidates.length > 0 && (
+              <div className="px-4 py-3 border-t border-[#263449] bg-surface-container-low/40 flex items-center justify-between flex-wrap gap-3 text-xs text-on-surface-variant">
                 <span>
-                  Showing <span className="font-medium text-on-surface">1</span> to{' '}
-                  <span className="font-medium text-on-surface">
-                    {filteredCandidates.length}
-                  </span>{' '}
-                  of <span className="font-medium text-on-surface">482</span> candidates
+                  Showing {(currentPage - 1) * PAGE_SIZE + 1}–
+                  {Math.min(currentPage * PAGE_SIZE, filteredCandidates.length)} of{' '}
+                  {filteredCandidates.length} candidates
                 </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    disabled={currentPage <= 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    className="px-2.5 py-1 rounded-lg bg-surface-container-high disabled:opacity-40 cursor-pointer"
+                  >
+                    Previous
+                  </button>
+                  {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pNum) => (
+                    <button
+                      key={pNum}
+                      type="button"
+                      onClick={() => setPage(pNum)}
+                      className={`w-7 h-7 rounded-lg font-mono-code cursor-pointer ${
+                        pNum === currentPage
+                          ? 'bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-bold'
+                          : 'bg-surface-container-high text-on-surface-variant hover:text-white'
+                      }`}
+                    >
+                      {pNum}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    className="px-2.5 py-1 rounded-lg bg-surface-container-high disabled:opacity-40 cursor-pointer"
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-space-xs">
-                <button
-                  className="flex items-center justify-center p-1.5 rounded-lg bg-surface-container-high text-outline opacity-40 cursor-not-allowed"
-                  disabled
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-[18px]">
-                    chevron_left
-                  </span>
-                </button>
-                <button
-                  className="w-8 h-8 rounded-lg bg-primary-container text-on-primary-container font-mono-code text-mono-code font-bold cursor-pointer"
-                  type="button"
-                >
-                  1
-                </button>
-                <button
-                  className="w-8 h-8 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-mono-code text-mono-code transition-all cursor-pointer"
-                  type="button"
-                >
-                  2
-                </button>
-                <button
-                  className="w-8 h-8 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-mono-code text-mono-code transition-all cursor-pointer"
-                  type="button"
-                >
-                  3
-                </button>
-                <span className="px-1 font-mono-code text-outline">...</span>
-                <button
-                  className="w-8 h-8 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-mono-code text-mono-code transition-all cursor-pointer"
-                  type="button"
-                >
-                  41
-                </button>
-                <button
-                  className="flex items-center justify-center p-1.5 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface transition-all cursor-pointer"
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-[18px]">
-                    chevron_right
-                  </span>
-                </button>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
-        {/* Advanced Filter Slide-Out / Persistent Preview Panel */}
+        {/* Right Advanced Filtering Drawer */}
         {drawerVisible && (
-          <div className="w-full xl:w-80 shrink-0 rounded-2xl glass-card p-space-lg shadow-xl flex flex-col gap-space-lg transition-all duration-300">
-            <div className="flex items-center justify-between pb-space-sm">
+          <aside className="w-full xl:w-[340px] shrink-0 rounded-2xl glass-card p-5 flex flex-col gap-4 text-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-[#263449]">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary text-[20px]">
+                <span className="material-symbols-outlined text-[18px] text-[#8B5CF6]">
                   filter_alt
                 </span>
-                <span className="font-headline-sm text-headline-sm text-on-surface font-semibold">
+                <h3 className="font-headline-sm font-semibold text-on-surface">
                   Precision Filters
-                </span>
+                </h3>
+                {activeFilterCount > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-primary-container text-on-primary-container font-mono-code text-[10px]">
+                    {activeFilterCount}
+                  </span>
+                )}
               </div>
               <button
                 type="button"
                 onClick={handleResetFilters}
-                className="font-mono-code text-[11px] text-tertiary hover:underline cursor-pointer"
+                className="text-primary hover:underline cursor-pointer"
               >
-                Reset All
+                Clear All
               </button>
             </div>
 
-            {/* CGPA Threshold Slider */}
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between font-label-md text-label-md">
-                <span className="text-on-surface font-medium">Minimum CGPA</span>
-                <span className="font-mono-code text-[12px] px-2 py-0.5 rounded bg-primary-container/20 text-primary font-bold tabular-nums">
-                  {minCgpa.toFixed(1)} / 10
-                </span>
+            {/* Academic Filters */}
+            <div className="space-y-2.5">
+              <span className="font-label-sm text-outline uppercase tracking-wider block">
+                Academic Criteria
+              </span>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder="Min CGPA"
+                  value={minCgpa}
+                  onChange={(e) => {
+                    setMinCgpa(e.target.value);
+                    setPage(1);
+                  }}
+                  className="h-8 px-2.5 rounded-lg bg-surface-container-highest text-on-surface outline-none"
+                />
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder="Max CGPA"
+                  value={maxCgpa}
+                  onChange={(e) => {
+                    setMaxCgpa(e.target.value);
+                    setPage(1);
+                  }}
+                  className="h-8 px-2.5 rounded-lg bg-surface-container-highest text-on-surface outline-none"
+                />
+                <input
+                  type="number"
+                  placeholder="Min 10th %"
+                  value={minTenth}
+                  onChange={(e) => {
+                    setMinTenth(e.target.value);
+                    setPage(1);
+                  }}
+                  className="h-8 px-2.5 rounded-lg bg-surface-container-highest text-on-surface outline-none"
+                />
+                <input
+                  type="number"
+                  placeholder="Max 10th %"
+                  value={maxTenth}
+                  onChange={(e) => {
+                    setMaxTenth(e.target.value);
+                    setPage(1);
+                  }}
+                  className="h-8 px-2.5 rounded-lg bg-surface-container-highest text-on-surface outline-none"
+                />
+                <input
+                  type="number"
+                  placeholder="Min 12th %"
+                  value={minTwelfth}
+                  onChange={(e) => {
+                    setMinTwelfth(e.target.value);
+                    setPage(1);
+                  }}
+                  className="h-8 px-2.5 rounded-lg bg-surface-container-highest text-on-surface outline-none"
+                />
+                <input
+                  type="number"
+                  placeholder="Grad Year (2025)"
+                  value={gradYearFilter}
+                  onChange={(e) => {
+                    setGradYearFilter(e.target.value);
+                    setPage(1);
+                  }}
+                  className="h-8 px-2.5 rounded-lg bg-surface-container-highest text-on-surface outline-none"
+                />
               </div>
-              <input
-                type="range"
-                min="5.0"
-                max="10.0"
-                step="0.1"
-                value={minCgpa}
-                onChange={(e) => setMinCgpa(parseFloat(e.target.value))}
-                className="w-full h-1.5 bg-surface-container-highest rounded-lg appearance-none cursor-pointer accent-primary"
-              />
-              <div className="flex justify-between font-mono-code text-[10px] text-outline">
-                <span>5.0</span>
-                <span>7.5 (Standard)</span>
-                <span>10.0</span>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  placeholder="Branch (CS, IT...)"
+                  value={branchQuery}
+                  onChange={(e) => {
+                    setBranchQuery(e.target.value);
+                    setPage(1);
+                  }}
+                  className="h-8 px-2.5 rounded-lg bg-surface-container-highest text-on-surface outline-none"
+                />
+                <input
+                  type="text"
+                  placeholder="College name"
+                  value={collegeQuery}
+                  onChange={(e) => {
+                    setCollegeQuery(e.target.value);
+                    setPage(1);
+                  }}
+                  className="h-8 px-2.5 rounded-lg bg-surface-container-highest text-on-surface outline-none"
+                />
               </div>
-            </div>
-
-            {/* 10th / 12th Academic Cutoff */}
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between font-label-md text-label-md">
-                <span className="text-on-surface font-medium">10th / 12th Score</span>
-                <span className="font-mono-code text-[12px] px-2 py-0.5 rounded bg-surface-container-high text-tertiary font-bold">
-                  ≥ {tenthCutoff === 'Any' ? '0%' : tenthCutoff.replace('+', '')}
-                </span>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                {(['Any', '80%+', '90%+'] as const).map((opt) => (
+              <div className="flex flex-wrap gap-2 pt-1">
+                {['B.Tech', 'B.E.', 'M.Tech', 'MCA', 'B.Sc'].map((deg) => (
                   <button
-                    key={opt}
+                    key={deg}
                     type="button"
-                    onClick={() => setTenthCutoff(opt)}
-                    className={`py-1.5 px-2 rounded-lg font-mono-code text-[11px] text-center transition-colors cursor-pointer ${
-                      tenthCutoff === opt
-                        ? 'bg-primary-container text-on-primary-container font-bold'
-                        : 'bg-surface-container-high hover:bg-surface-bright text-on-surface-variant'
+                    onClick={() => toggleDegree(deg)}
+                    className={`px-2 py-1 rounded-md font-mono-code text-[10px] cursor-pointer border ${
+                      selectedDegrees.includes(deg)
+                        ? 'bg-primary-container text-white border-primary'
+                        : 'bg-surface-container-high text-outline border-transparent'
                     }`}
                   >
-                    {opt}
+                    {deg}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Degree Qualification */}
-            <div className="flex flex-col gap-2">
-              <label className="font-label-md text-label-md text-on-surface font-medium">
-                Degree Level
-              </label>
-              <div className="flex flex-col gap-1.5">
-                {[
-                  'B.Tech / B.E. (Computer Science)',
-                  'M.Tech / M.S.',
-                  'B.Sc / BCA / MCA',
-                  'Other Relevant STEM',
-                ].map((deg) => (
-                  <label
-                    key={deg}
-                    className="flex items-center gap-2 text-on-surface-variant hover:text-on-surface cursor-pointer text-body-sm font-body-sm"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedDegrees.includes(deg)}
-                      onChange={() => toggleDegree(deg)}
-                      className="w-4 h-4 rounded bg-surface-container-highest accent-primary-container"
-                    />
-                    <span>{deg}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Multi-select Skills Tags */}
-            <div className="flex flex-col gap-2">
+            {/* Technical Skills Multi-select with AND / OR toggle */}
+            <div className="space-y-2 pt-3 border-t border-[#263449]">
               <div className="flex items-center justify-between">
-                <label className="font-label-md text-label-md text-on-surface font-medium">
-                  Target Tech Stack
-                </label>
-                <span className="font-mono-code text-[10px] text-outline">
-                  {techStack.length} SELECTED
+                <span className="font-label-sm text-outline uppercase tracking-wider">
+                  Technical Skills
                 </span>
+                <button
+                  type="button"
+                  onClick={() => setSkillLogic((l) => (l === 'AND' ? 'OR' : 'AND'))}
+                  className="px-2 py-0.5 rounded bg-surface-container-high font-mono-code text-[10px] text-tertiary cursor-pointer"
+                >
+                  Match: {skillLogic}
+                </button>
               </div>
               <div className="flex flex-wrap gap-1.5">
-                {techStack.map((skill) => (
-                  <span
-                    key={skill}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-primary-container text-on-primary-container font-mono-code text-[11px] font-medium"
-                  >
-                    {skill}
+                {['Python', 'React', 'TypeScript', 'SQL', 'AWS', 'Docker', 'Java'].map((preset) => {
+                  const active = techStack.includes(preset);
+                  return (
                     <button
+                      key={preset}
                       type="button"
-                      onClick={() =>
-                        setTechStack((prev) => prev.filter((s) => s !== skill))
-                      }
-                      className="material-symbols-outlined text-[12px] cursor-pointer hover:opacity-75"
+                      onClick={() => {
+                        setPage(1);
+                        setTechStack((prev) =>
+                          active ? prev.filter((s) => s !== preset) : [...prev, preset]
+                        );
+                      }}
+                      className={`px-2 py-1 rounded font-mono-code text-[10px] cursor-pointer ${
+                        active
+                          ? 'bg-[#8B5CF6] text-white'
+                          : 'bg-surface-container-high text-on-surface-variant hover:text-white'
+                      }`}
                     >
-                      close
+                      {preset}
                     </button>
-                  </span>
-                ))}
-
+                  );
+                })}
+                {techStack
+                  .filter(
+                    (s) => !['Python', 'React', 'TypeScript', 'SQL', 'AWS', 'Docker', 'Java'].includes(s)
+                  )
+                  .map((custom) => (
+                    <button
+                      key={custom}
+                      type="button"
+                      onClick={() => setTechStack((prev) => prev.filter((s) => s !== custom))}
+                      className="px-2 py-1 rounded bg-[#8B5CF6] text-white font-mono-code text-[10px] cursor-pointer"
+                    >
+                      {custom} ×
+                    </button>
+                  ))}
                 {addingSkill ? (
                   <form
                     onSubmit={(e) => {
                       e.preventDefault();
                       if (newSkill.trim() && !techStack.includes(newSkill.trim())) {
                         setTechStack((prev) => [...prev, newSkill.trim()]);
+                        setPage(1);
                       }
                       setNewSkill('');
                       setAddingSkill(false);
                     }}
-                    className="inline-flex items-center gap-1"
                   >
                     <input
                       autoFocus
-                      type="text"
                       value={newSkill}
                       onChange={(e) => setNewSkill(e.target.value)}
-                      placeholder="Skill..."
-                      className="w-24 px-2 py-1 rounded bg-surface-container-highest text-xs text-on-surface outline-none"
+                      placeholder="Custom skill..."
+                      className="w-24 h-6 px-2 rounded bg-surface-container-highest text-on-surface text-[10px] outline-none"
                     />
                   </form>
                 ) : (
                   <button
                     type="button"
                     onClick={() => setAddingSkill(true)}
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded bg-surface-container-high hover:bg-surface-bright text-outline hover:text-on-surface font-mono-code text-[11px] cursor-pointer"
+                    className="px-2 py-1 rounded bg-surface-container text-outline hover:text-white font-mono-code text-[10px] cursor-pointer"
                   >
-                    <span className="material-symbols-outlined text-[14px]">add</span>{' '}
-                    Add Skill
+                    + Custom
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Semantic Matching Sensitivity */}
-            <div className="flex flex-col gap-2 pt-space-xs">
-              <label className="font-label-md text-label-md text-on-surface font-medium flex items-center gap-1">
-                <span>AI Embedding Strictness</span>
-                <span className="material-symbols-outlined text-[14px] text-outline">
-                  help
-                </span>
-              </label>
-              <div className="flex items-center justify-between p-2 rounded-lg bg-surface-container-high">
-                <div className="flex flex-col">
-                  <span className="font-body-sm text-body-sm text-on-surface font-medium">
-                    Dense Vector Threshold
-                  </span>
-                  <span className="font-mono-code text-[10px] text-outline">
-                    Cosine similarity &gt; 0.82
-                  </span>
-                </div>
-                <span className="font-mono-code text-[11px] text-tertiary font-bold">
-                  Strict
-                </span>
+            {/* Experience & Credentials */}
+            <div className="space-y-2.5 pt-3 border-t border-[#263449]">
+              <span className="font-label-sm text-outline uppercase tracking-wider block">
+                Experience &amp; Location
+              </span>
+              <select
+                value={expFilter}
+                onChange={(e) => {
+                  setExpFilter(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full h-8 px-2.5 rounded-lg bg-surface-container-highest text-on-surface outline-none"
+              >
+                <option value="All Experience">All Experience</option>
+                <option value="Fresher (0 yrs)">Fresher (0 yrs)</option>
+                <option value="0 - 2 years">0 - 2 years</option>
+                <option value="2 - 5 years">2 - 5 years</option>
+                <option value="5+ years">5+ years</option>
+              </select>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="number"
+                  step="0.5"
+                  placeholder="Min Exp (yrs)"
+                  value={minExp}
+                  onChange={(e) => {
+                    setMinExp(e.target.value);
+                    setPage(1);
+                  }}
+                  className="h-8 px-2.5 rounded-lg bg-surface-container-highest text-on-surface outline-none"
+                />
+                <input
+                  type="number"
+                  step="0.5"
+                  placeholder="Max Exp (yrs)"
+                  value={maxExp}
+                  onChange={(e) => {
+                    setMaxExp(e.target.value);
+                    setPage(1);
+                  }}
+                  className="h-8 px-2.5 rounded-lg bg-surface-container-highest text-on-surface outline-none"
+                />
+              </div>
+              <input
+                type="text"
+                placeholder="City / State / Country"
+                value={locationQuery}
+                onChange={(e) => {
+                  setLocationQuery(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full h-8 px-2.5 rounded-lg bg-surface-container-highest text-on-surface outline-none"
+              />
+              <div className="grid grid-cols-2 gap-2 pt-1 text-[11px] text-on-surface-variant">
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={remoteOnly}
+                    onChange={(e) => setRemoteOnly(e.target.checked)}
+                    className="accent-[#8B5CF6]"
+                  />
+                  <span>Remote Only</span>
+                </label>
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={hasInternshipOnly}
+                    onChange={(e) => setHasInternshipOnly(e.target.checked)}
+                    className="accent-[#8B5CF6]"
+                  />
+                  <span>Has Internship</span>
+                </label>
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={hasCertsOnly}
+                    onChange={(e) => setHasCertsOnly(e.target.checked)}
+                    className="accent-[#8B5CF6]"
+                  />
+                  <span>Certified</span>
+                </label>
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={hasProjectsOnly}
+                    onChange={(e) => setHasProjectsOnly(e.target.checked)}
+                    className="accent-[#8B5CF6]"
+                  />
+                  <span>Has Projects</span>
+                </label>
               </div>
             </div>
 
-            {/* Action Footer */}
-            <div className="mt-auto pt-space-md flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={() =>
-                  triggerToast(
-                    `Applied filters: CGPA ≥ ${minCgpa.toFixed(1)}, ${techStack.length} target skills`
-                  )
-                }
-                className="w-full py-2.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md font-semibold hover:opacity-95 shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[18px]">
-                  auto_awesome
-                </span>
-                <span>Apply {techStack.length + 1} Active Filters</span>
-              </button>
-              <span className="text-center font-mono-code text-[10px] text-outline">
-                Yield estimation: ~46 candidates
+            {/* Matching Score Filters */}
+            <div className="space-y-2 pt-3 border-t border-[#263449]">
+              <span className="font-label-sm text-outline uppercase tracking-wider block">
+                Match Score Filter
               </span>
+              <select
+                value={matchCatFilter}
+                onChange={(e) => {
+                  setMatchCatFilter(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full h-8 px-2.5 rounded-lg bg-surface-container-highest text-on-surface outline-none"
+              >
+                <option value="All Categories">All Match Categories</option>
+                <option value="Excellent Match">Excellent Match (90–100)</option>
+                <option value="Strong Match">Strong Match (80–89)</option>
+                <option value="Good Match">Good Match (70–79)</option>
+                <option value="Moderate Match">Moderate Match (60–69)</option>
+                <option value="Low Match">Low Match (40–59)</option>
+                <option value="Poor Match">Poor Match (0–39)</option>
+              </select>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="number"
+                  placeholder="Min Score %"
+                  value={minScoreFilter}
+                  onChange={(e) => {
+                    setMinScoreFilter(e.target.value);
+                    setPage(1);
+                  }}
+                  className="h-8 px-2.5 rounded-lg bg-surface-container-highest text-on-surface outline-none"
+                />
+                <input
+                  type="number"
+                  placeholder="Max Score %"
+                  value={maxScoreFilter}
+                  onChange={(e) => {
+                    setMaxScoreFilter(e.target.value);
+                    setPage(1);
+                  }}
+                  className="h-8 px-2.5 rounded-lg bg-surface-container-highest text-on-surface outline-none"
+                />
+              </div>
             </div>
-          </div>
+          </aside>
         )}
       </div>
+
+      {/* Duplicate Review Modal */}
+      {duplicateReviewCand && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div
+            className="fixed inset-0 bg-black/70 backdrop-blur-xs"
+            onClick={() => setDuplicateReviewCand(null)}
+          />
+          <div className="relative w-full max-w-lg rounded-2xl bg-[#111827] border border-[#263449] shadow-2xl p-6 z-10 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-headline-md text-white font-semibold flex items-center gap-2">
+                <span className="material-symbols-outlined text-amber-400">content_copy</span>
+                <span>Duplicate Profile Review</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setDuplicateReviewCand(null)}
+                className="text-outline hover:text-white cursor-pointer"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <p className="text-xs text-on-surface-variant">
+              <strong>{duplicateReviewCand.name}</strong> ({duplicateReviewCand.email}) is marked as{' '}
+              <span className="text-amber-300 font-semibold">
+                {duplicateReviewCand.duplicateStatus}
+              </span>
+              . Never auto-merged without recruiter review.
+            </p>
+            {(() => {
+              const target = candidates.find((c) => c.id === duplicateReviewCand.duplicateOfId);
+              if (!target) return null;
+              return (
+                <div className="p-3.5 rounded-xl bg-surface-container border border-[#263449] text-xs space-y-1">
+                  <div className="text-outline uppercase font-label-sm">Matched Existing Record</div>
+                  <div className="text-white font-semibold">{target.name}</div>
+                  <div className="text-on-surface-variant">
+                    {target.email} · {target.phone || 'No phone'} · {target.resumeFileName}
+                  </div>
+                </div>
+              );
+            })()}
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  updateCandidate({
+                    ...duplicateReviewCand,
+                    duplicateStatus: 'Unique',
+                    duplicateOfId: undefined,
+                  });
+                  setDuplicateReviewCand(null);
+                }}
+                className="px-3.5 py-2 rounded-lg bg-surface-container-high text-xs text-white cursor-pointer"
+              >
+                Keep as Unique
+              </button>
+              {duplicateReviewCand.duplicateOfId && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    mergeDuplicateCandidate(
+                      duplicateReviewCand,
+                      duplicateReviewCand.duplicateOfId!
+                    );
+                    deleteCandidate(duplicateReviewCand.id);
+                    setDuplicateReviewCand(null);
+                  }}
+                  className="px-3.5 py-2 rounded-lg bg-amber-500 text-black text-xs font-semibold cursor-pointer"
+                >
+                  Merge &amp; Remove Duplicate
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  deleteCandidate(duplicateReviewCand.id);
+                  setDuplicateReviewCand(null);
+                }}
+                className="px-3.5 py-2 rounded-lg bg-rose-600 text-white text-xs font-semibold cursor-pointer"
+              >
+                Delete Duplicate
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

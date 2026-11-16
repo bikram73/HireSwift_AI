@@ -1,16 +1,173 @@
-import React from 'react';
-import { CANDIDATES_DATA, CandidateProfile, WorkspaceRoute } from '../../data/atsData';
+import React, { useMemo } from 'react';
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import { useAts } from '../../context/AtsContext';
+import { CandidateProfile, WorkspaceRoute } from '../../data/atsData';
 
 interface DashboardViewProps {
   onNavigate: (route: WorkspaceRoute) => void;
   onSelectCandidate: (candidate: CandidateProfile) => void;
 }
 
+const CHART_COLORS = ['#4F46E5', '#8B5CF6', '#3B82F6', '#22C55E', '#EF4444'];
+
+const TooltipStyle = {
+  backgroundColor: '#111827',
+  border: '1px solid #263449',
+  borderRadius: '12px',
+  color: '#F8FAFC',
+  fontSize: '12px',
+};
+
 export const DashboardView: React.FC<DashboardViewProps> = ({
   onNavigate,
   onSelectCandidate,
 }) => {
-  const topMatching = CANDIDATES_DATA.slice(0, 4);
+  const {
+    candidates,
+    jobs,
+    activities,
+    selectedJob,
+    getMatchFor,
+    setStageFilterPreset,
+    setSelectedJobId,
+    importDemoDataset,
+  } = useAts();
+
+  const metrics = useMemo(() => {
+    const total = candidates.length;
+    const activeJobs = jobs.filter((j) => j.status === 'Active');
+    const urgentJobs = activeJobs.filter((j) => j.priority === 'Urgent').length;
+    const shortlisted = candidates.filter((c) => c.status === 'Shortlisted').length;
+    const interviews = candidates.filter((c) => c.status === 'Interview').length;
+    const offers = candidates.filter((c) => c.status === 'Offer').length;
+    const rejected = candidates.filter((c) => c.status === 'Rejected').length;
+    const applied = candidates.filter((c) => c.status === 'Applied').length;
+
+    const scores = candidates.map((c) => getMatchFor(c)?.overallScore ?? c.matchScore);
+    const avgScore =
+      scores.length > 0
+        ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10
+        : 0;
+
+    return {
+      total,
+      activeJobsCount: activeJobs.length,
+      urgentJobs,
+      shortlisted,
+      interviews,
+      offers,
+      rejected,
+      applied,
+      avgScore,
+    };
+  }, [candidates, jobs, getMatchFor]);
+
+  // Chart 1: Application Trends over appliedAt dates
+  const trendData = useMemo(() => {
+    const countsByDay = new Map<string, number>();
+    candidates.forEach((c) => {
+      const day = (c.appliedAt || '2026-11-15').slice(5, 10);
+      countsByDay.set(day, (countsByDay.get(day) ?? 0) + 1);
+    });
+    return Array.from(countsByDay.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, count]) => ({ date, applications: count }));
+  }, [candidates]);
+
+  // Chart 2 & 3: Pipeline Stage Distribution
+  const stageData = useMemo(
+    () => [
+      { stage: 'Applied', count: metrics.applied },
+      { stage: 'Shortlisted', count: metrics.shortlisted },
+      { stage: 'Interview', count: metrics.interviews },
+      { stage: 'Offer', count: metrics.offers },
+      { stage: 'Rejected', count: metrics.rejected },
+    ],
+    [metrics]
+  );
+
+  // Chart 4: Job-wise Applications
+  const jobDistData = useMemo(() => {
+    return jobs.map((job) => ({
+      name: job.title.length > 16 ? `${job.title.slice(0, 15)}…` : job.title,
+      applicants: candidates.filter((c) => c.targetJobId === job.id).length,
+    }));
+  }, [jobs, candidates]);
+
+  // Chart 5: Top In-Demand Skills across candidates & jobs
+  const skillsDistData = useMemo(() => {
+    const freq = new Map<string, number>();
+    jobs.forEach((j) =>
+      [...j.requiredSkills, ...j.preferredSkills].forEach((s) =>
+        freq.set(s, (freq.get(s) ?? 0) + 2)
+      )
+    );
+    candidates.forEach((c) =>
+      c.skills.forEach((s) => freq.set(s, (freq.get(s) ?? 0) + 1))
+    );
+    const maxVal = Math.max(1, ...Array.from(freq.values()));
+    return Array.from(freq.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
+      .map(([skill, count]) => ({
+        skill,
+        count,
+        pct: Math.round((count / maxVal) * 100),
+      }));
+  }, [candidates, jobs]);
+
+  // Match Category Distribution
+  const matchDistData = useMemo(() => {
+    const buckets = [
+      { label: '90-100', count: 0 },
+      { label: '80-89', count: 0 },
+      { label: '70-79', count: 0 },
+      { label: '60-69', count: 0 },
+      { label: '<60', count: 0 },
+    ];
+    candidates.forEach((c) => {
+      const s = getMatchFor(c)?.overallScore ?? c.matchScore;
+      if (s >= 90) buckets[0].count += 1;
+      else if (s >= 80) buckets[1].count += 1;
+      else if (s >= 70) buckets[2].count += 1;
+      else if (s >= 60) buckets[3].count += 1;
+      else buckets[4].count += 1;
+    });
+    return buckets;
+  }, [candidates, getMatchFor]);
+
+  const topMatching = useMemo(() => {
+    return [...candidates]
+      .filter((c) => c.status !== 'Rejected')
+      .map((c) => ({
+        cand: c,
+        score: getMatchFor(c)?.overallScore ?? c.matchScore,
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5);
+  }, [candidates, getMatchFor]);
+
+  const navigateWithStage = (stage: string) => {
+    setStageFilterPreset(stage);
+    onNavigate('candidates');
+  };
+
+  const highFitCount = candidates.filter(
+    (c) => (getMatchFor(c)?.overallScore ?? c.matchScore) >= 85
+  ).length;
 
   return (
     <div className="flex flex-col w-full">
@@ -26,7 +183,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             Good Morning, <span className="gradient-hero-text">Recruiter</span>
           </h1>
           <p className="font-body-md text-body-md text-[#94A3B8] mt-0.5">
-            Here&apos;s what&apos;s happening with your hiring activities today.
+            Live overview of candidate screening, job openings, and hiring progress.
           </p>
         </div>
 
@@ -49,6 +206,37 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Empty State Banner when session is cleared */}
+      {candidates.length === 0 && (
+        <div className="rounded-2xl glass-card p-8 mb-space-xl text-center space-y-4 border border-[#8B5CF6]/40">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-primary-container/20 flex items-center justify-center text-primary">
+            <span className="material-symbols-outlined text-[30px]">folder_open</span>
+          </div>
+          <h2 className="font-headline-md text-on-surface font-semibold">
+            No candidates in current workspace session
+          </h2>
+          <p className="font-body-sm text-on-surface-variant max-w-lg mx-auto">
+            Upload PDF or DOCX resumes to parse profiles with Gemini AI, or load the sample recruitment dataset to explore filtering, matching, and pipeline workflows.
+          </p>
+          <div className="flex items-center justify-center gap-3 flex-wrap pt-2">
+            <button
+              type="button"
+              onClick={() => onNavigate('resume-upload')}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white text-xs font-semibold cursor-pointer"
+            >
+              Upload Resumes
+            </button>
+            <button
+              type="button"
+              onClick={importDemoDataset}
+              className="px-4 py-2.5 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs font-semibold hover:bg-[#1B2740] cursor-pointer"
+            >
+              Import Demo Dataset (30 Candidates, 6 Jobs)
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Hero Spotlight / AI Engine Banner */}
       <div className="relative overflow-hidden rounded-2xl glass-card p-space-lg mb-space-xl shadow-xl">
@@ -73,10 +261,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </span>
               </div>
               <p className="font-headline-sm text-headline-sm text-on-surface">
-                148 candidates evaluated with 94% matching accuracy
+                {metrics.total} candidates evaluated across {jobs.length} jobs · {metrics.avgScore}% avg alignment
               </p>
               <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
-                Semantic profile matching identified 19 top-fit candidates for priority roles across backend and data engineering.
+                {highFitCount} strong-fit applicants scored ≥ 85% for {selectedJob?.title || 'active roles'}.
               </p>
             </div>
           </div>
@@ -87,17 +275,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               onClick={() => onNavigate('ai-matching')}
               className="px-3.5 py-2 bg-[#1B2740] hover:bg-[#263449] border border-[#263449] text-white rounded-xl font-label-md text-label-md transition-colors flex items-center gap-1 cursor-pointer"
             >
-              <span>View Matches</span>
+              <span>Explore AI Matching</span>
               <span className="material-symbols-outlined text-[16px]">chevron_right</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* 8 Statistics Cards (4x2 grid) */}
+      {/* 8 Interactive Dynamic Statistics Cards (4x2 grid) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md mb-space-xl tabular-nums">
-        <div className="p-5 rounded-2xl glass-card hover:border-[#4F46E5]/50 transition-all shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
+        <button
+          type="button"
+          onClick={() => navigateWithStage('All Stages')}
+          className="text-left p-5 rounded-2xl glass-card hover:border-[#4F46E5]/60 transition-all shadow-sm flex flex-col justify-between cursor-pointer"
+        >
+          <div className="flex items-center justify-between mb-3 w-full">
             <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
               Total Candidates
             </span>
@@ -105,39 +297,45 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span className="material-symbols-outlined text-[18px]">group</span>
             </div>
           </div>
-          <div className="flex items-baseline justify-between">
-            <span className="font-headline-lg text-headline-lg text-on-surface">482</span>
-            <span className="font-mono-code text-label-sm text-tertiary flex items-center gap-0.5">
-              <span className="material-symbols-outlined text-[14px]">trending_up</span>+14% mo
-            </span>
+          <div className="flex items-baseline justify-between w-full">
+            <span className="font-headline-lg text-headline-lg text-on-surface">{metrics.total}</span>
+            <span className="font-mono-code text-label-sm text-tertiary">Active Session</span>
           </div>
           <div className="w-full bg-surface-container-highest h-1 rounded-full mt-3 overflow-hidden">
-            <div className="bg-primary-container h-full w-[72%]" />
+            <div className="bg-primary-container h-full w-[78%]" />
           </div>
-        </div>
+        </button>
 
-        <div className="p-5 rounded-2xl glass-card hover:border-[#4F46E5]/50 transition-all shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
+        <button
+          type="button"
+          onClick={() => onNavigate('job-management')}
+          className="text-left p-5 rounded-2xl glass-card hover:border-[#4F46E5]/60 transition-all shadow-sm flex flex-col justify-between cursor-pointer"
+        >
+          <div className="flex items-center justify-between mb-3 w-full">
             <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
-              Active Jobs
+              Total Job Openings
             </span>
             <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-tertiary">
               <span className="material-symbols-outlined text-[18px]">work</span>
             </div>
           </div>
-          <div className="flex items-baseline justify-between">
-            <span className="font-headline-lg text-headline-lg text-on-surface">12</span>
+          <div className="flex items-baseline justify-between w-full">
+            <span className="font-headline-lg text-headline-lg text-on-surface">{jobs.length}</span>
             <span className="px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-mono-code text-label-sm">
-              4 urgent
+              {metrics.activeJobsCount} active · {metrics.urgentJobs} urgent
             </span>
           </div>
           <div className="w-full bg-surface-container-highest h-1 rounded-full mt-3 overflow-hidden">
-            <div className="bg-tertiary-container h-full w-[60%]" />
+            <div className="bg-tertiary-container h-full w-[65%]" />
           </div>
-        </div>
+        </button>
 
-        <div className="p-5 rounded-2xl glass-card hover:border-[#4F46E5]/50 transition-all shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
+        <button
+          type="button"
+          onClick={() => navigateWithStage('Applied')}
+          className="text-left p-5 rounded-2xl glass-card hover:border-[#4F46E5]/60 transition-all shadow-sm flex flex-col justify-between cursor-pointer"
+        >
+          <div className="flex items-center justify-between mb-3 w-full">
             <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
               Applications Received
             </span>
@@ -145,57 +343,80 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span className="material-symbols-outlined text-[18px]">description</span>
             </div>
           </div>
-          <div className="flex items-baseline justify-between">
-            <span className="font-headline-lg text-headline-lg text-on-surface">1,280</span>
-            <span className="font-mono-code text-label-sm text-tertiary flex items-center gap-0.5">
-              <span className="material-symbols-outlined text-[14px]">north_east</span>+28% wk
+          <div className="flex items-baseline justify-between w-full">
+            <span className="font-headline-lg text-headline-lg text-on-surface">{metrics.total}</span>
+            <span className="font-mono-code text-label-sm text-tertiary">
+              {metrics.applied} new
             </span>
           </div>
           <div className="w-full bg-surface-container-highest h-1 rounded-full mt-3 overflow-hidden">
             <div className="bg-secondary h-full w-[85%]" />
           </div>
-        </div>
+        </button>
 
-        <div className="p-5 rounded-2xl glass-card hover:border-[#4F46E5]/50 transition-all shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
+        <button
+          type="button"
+          onClick={() => navigateWithStage('Shortlisted')}
+          className="text-left p-5 rounded-2xl glass-card hover:border-[#4F46E5]/60 transition-all shadow-sm flex flex-col justify-between cursor-pointer"
+        >
+          <div className="flex items-center justify-between mb-3 w-full">
             <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
-              Shortlisted
+              Shortlisted Candidates
             </span>
             <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary-fixed">
               <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
             </div>
           </div>
-          <div className="flex items-baseline justify-between">
-            <span className="font-headline-lg text-headline-lg text-on-surface">64</span>
-            <span className="font-mono-code text-label-sm text-on-surface-variant">5 pending review</span>
+          <div className="flex items-baseline justify-between w-full">
+            <span className="font-headline-lg text-headline-lg text-on-surface">
+              {metrics.shortlisted}
+            </span>
+            <span className="font-mono-code text-label-sm text-on-surface-variant">
+              {metrics.total ? Math.round((metrics.shortlisted / metrics.total) * 100) : 0}% rate
+            </span>
           </div>
           <div className="w-full bg-surface-container-highest h-1 rounded-full mt-3 overflow-hidden">
-            <div className="bg-primary-fixed h-full w-[45%]" />
+            <div
+              className="bg-primary-fixed h-full"
+              style={{
+                width: `${metrics.total ? Math.round((metrics.shortlisted / metrics.total) * 100) : 0}%`,
+              }}
+            />
           </div>
-        </div>
+        </button>
 
-        <div className="p-5 rounded-2xl glass-card hover:border-[#4F46E5]/50 transition-all shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
+        <button
+          type="button"
+          onClick={() => navigateWithStage('Interview')}
+          className="text-left p-5 rounded-2xl glass-card hover:border-[#4F46E5]/60 transition-all shadow-sm flex flex-col justify-between cursor-pointer"
+        >
+          <div className="flex items-center justify-between mb-3 w-full">
             <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
-              Interviews Scheduled
+              Interview Candidates
             </span>
             <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-tertiary-fixed-dim">
               <span className="material-symbols-outlined text-[18px]">calendar_today</span>
             </div>
           </div>
-          <div className="flex items-baseline justify-between">
-            <span className="font-headline-lg text-headline-lg text-on-surface">18</span>
+          <div className="flex items-baseline justify-between w-full">
+            <span className="font-headline-lg text-headline-lg text-on-surface">
+              {metrics.interviews}
+            </span>
             <span className="px-2 py-0.5 rounded-full bg-tertiary-container text-on-tertiary-container font-mono-code text-label-sm">
-              Today: 4
+              In Progress
             </span>
           </div>
           <div className="w-full bg-surface-container-highest h-1 rounded-full mt-3 overflow-hidden">
             <div className="bg-tertiary h-full w-[55%]" />
           </div>
-        </div>
+        </button>
 
-        <div className="p-5 rounded-2xl glass-card hover:border-[#4F46E5]/50 transition-all shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
+        <button
+          type="button"
+          onClick={() => navigateWithStage('Offer')}
+          className="text-left p-5 rounded-2xl glass-card hover:border-[#4F46E5]/60 transition-all shadow-sm flex flex-col justify-between cursor-pointer"
+        >
+          <div className="flex items-center justify-between mb-3 w-full">
             <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
               Offers Released
             </span>
@@ -203,17 +424,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span className="material-symbols-outlined text-[18px]">check_circle</span>
             </div>
           </div>
-          <div className="flex items-baseline justify-between">
-            <span className="font-headline-lg text-headline-lg text-on-surface">6</span>
-            <span className="font-mono-code text-label-sm text-tertiary">4 accepted</span>
+          <div className="flex items-baseline justify-between w-full">
+            <span className="font-headline-lg text-headline-lg text-on-surface">
+              {metrics.offers}
+            </span>
+            <span className="font-mono-code text-label-sm text-tertiary">Finalists</span>
           </div>
           <div className="w-full bg-surface-container-highest h-1 rounded-full mt-3 overflow-hidden">
             <div className="bg-secondary-container h-full w-[66%]" />
           </div>
-        </div>
+        </button>
 
-        <div className="p-5 rounded-2xl glass-card hover:border-[#4F46E5]/50 transition-all shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
+        <button
+          type="button"
+          onClick={() => navigateWithStage('Rejected')}
+          className="text-left p-5 rounded-2xl glass-card hover:border-[#4F46E5]/60 transition-all shadow-sm flex flex-col justify-between cursor-pointer"
+        >
+          <div className="flex items-center justify-between mb-3 w-full">
             <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
               Rejected Candidates
             </span>
@@ -221,17 +448,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span className="material-symbols-outlined text-[18px]">cancel</span>
             </div>
           </div>
-          <div className="flex items-baseline justify-between">
-            <span className="font-headline-lg text-headline-lg text-on-surface">142</span>
-            <span className="font-mono-code text-label-sm text-on-surface-variant">Auto feedback</span>
+          <div className="flex items-baseline justify-between w-full">
+            <span className="font-headline-lg text-headline-lg text-on-surface">
+              {metrics.rejected}
+            </span>
+            <span className="font-mono-code text-label-sm text-on-surface-variant">Retained in archive</span>
           </div>
           <div className="w-full bg-surface-container-highest h-1 rounded-full mt-3 overflow-hidden">
             <div className="bg-error h-full w-[30%]" />
           </div>
-        </div>
+        </button>
 
-        <div className="p-5 rounded-2xl glass-card hover:border-[#4F46E5]/50 transition-all shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
+        <button
+          type="button"
+          onClick={() => onNavigate('candidate-ranking')}
+          className="text-left p-5 rounded-2xl glass-card hover:border-[#4F46E5]/60 transition-all shadow-sm flex flex-col justify-between cursor-pointer"
+        >
+          <div className="flex items-center justify-between mb-3 w-full">
             <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
               Average Match Score
             </span>
@@ -239,21 +472,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span className="material-symbols-outlined text-[18px]">psychology</span>
             </div>
           </div>
-          <div className="flex items-baseline justify-between">
-            <span className="font-headline-lg text-headline-lg text-on-surface">84.6%</span>
+          <div className="flex items-baseline justify-between w-full">
+            <span className="font-headline-lg text-headline-lg text-on-surface">
+              {metrics.avgScore}%
+            </span>
             <span className="px-2 py-0.5 rounded-full bg-surface-container-highest text-tertiary font-mono-code text-label-sm">
-              Top Tier
+              Weighted
             </span>
           </div>
           <div className="w-full bg-surface-container-highest h-1 rounded-full mt-3 overflow-hidden">
-            <div className="bg-primary-container h-full w-[84%]" />
+            <div className="bg-primary-container h-full" style={{ width: `${metrics.avgScore}%` }} />
           </div>
-        </div>
+        </button>
       </div>
 
-      {/* Charts Section (2x2 Grid) */}
+      {/* Charts Section (Recharts, driven strictly by live data) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-space-lg mb-space-xl">
-        {/* Chart 1: Application Trends */}
+        {/* Chart 1: Application Trends (Recharts AreaChart) */}
         <div className="p-space-lg rounded-2xl glass-card shadow-sm flex flex-col">
           <div className="flex items-center justify-between mb-space-md">
             <div>
@@ -261,196 +496,197 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 Application Trends
               </h2>
               <p className="font-body-sm text-body-sm text-on-surface-variant">
-                Inflow volume across active requisition boards
+                Candidate applications grouped by intake date
               </p>
             </div>
-            <div className="flex items-center gap-space-xs font-mono-code text-label-sm bg-surface-container px-2 py-1 rounded-lg">
-              <span className="w-2 h-2 rounded-full bg-primary-container" />
-              <span className="text-on-surface">Past 30 Days</span>
-            </div>
+            <span className="font-mono-code text-label-sm bg-surface-container px-2.5 py-1 rounded-lg text-tertiary">
+              {candidates.length} Total
+            </span>
           </div>
-          <div className="relative w-full h-56 pt-2">
-            <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 500 200">
-              <defs>
-                <linearGradient id="trendGradient" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stopColor="#4f46e5" stopOpacity="0.45" />
-                  <stop offset="70%" stopColor="#8b5cf6" stopOpacity="0.1" />
-                  <stop offset="100%" stopColor="#4f46e5" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              <line stroke="#2f3446" strokeDasharray="3 3" strokeWidth="1" x1="0" x2="500" y1="40" y2="40" />
-              <line stroke="#2f3446" strokeDasharray="3 3" strokeWidth="1" x1="0" x2="500" y1="90" y2="90" />
-              <line stroke="#2f3446" strokeDasharray="3 3" strokeWidth="1" x1="0" x2="500" y1="140" y2="140" />
-              <path
-                d="M 0 170 Q 70 140 120 110 T 240 80 T 360 40 T 500 25 L 500 190 L 0 190 Z"
-                fill="url(#trendGradient)"
-              />
-              <path
-                d="M 0 170 Q 70 140 120 110 T 240 80 T 360 40 T 500 25"
-                fill="none"
-                stroke="#c3c0ff"
-                strokeLinecap="round"
-                strokeWidth="3"
-              />
-              <circle cx="120" cy="110" fill="#4f46e5" r="4" stroke="#dee1f9" strokeWidth="2" />
-              <circle cx="240" cy="80" fill="#4f46e5" r="4" stroke="#dee1f9" strokeWidth="2" />
-              <circle cx="360" cy="40" fill="#4f46e5" r="4" stroke="#dee1f9" strokeWidth="2" />
-              <circle cx="500" cy="25" fill="#c3c0ff" r="5" stroke="#4f46e5" strokeWidth="2" />
-            </svg>
-          </div>
-          <div className="flex items-center justify-between text-on-surface-variant font-mono-code text-label-sm pt-3">
-            <span>Oct 01</span>
-            <span>Oct 08</span>
-            <span>Oct 15</span>
-            <span>Oct 22</span>
-            <span>Oct 29</span>
-            <span>Nov 05</span>
-          </div>
-        </div>
-
-        {/* Chart 2: Recruitment Funnel */}
-        <div className="p-space-lg rounded-2xl glass-card shadow-sm flex flex-col justify-between tabular-nums">
-          <div className="flex items-center justify-between mb-space-md">
-            <div>
-              <h2 className="font-headline-md text-headline-md text-on-surface">
-                Recruitment Funnel
-              </h2>
-              <p className="font-body-sm text-body-sm text-on-surface-variant">
-                Conversion stages through hiring workflow
-              </p>
-            </div>
-            <span className="font-mono-code text-label-sm text-tertiary">9.3% Overall Yield</span>
-          </div>
-          <div className="flex flex-col gap-3 py-1">
-            {[
-              { label: 'Applied', count: '1,280', pct: '(100%)', width: '100%', dot: 'bg-primary', bar: 'bg-primary-container' },
-              { label: 'Shortlisted', count: '340', pct: '(26.5%)', width: '26.5%', dot: 'bg-secondary', bar: 'bg-secondary-container' },
-              { label: 'Interview', count: '84', pct: '(6.5%)', width: '6.5%', dot: 'bg-tertiary', bar: 'bg-tertiary-container' },
-              { label: 'Offer', count: '18', pct: '(1.4%)', width: '3.2%', dot: 'bg-tertiary-fixed', bar: 'bg-primary' },
-              { label: 'Hired', count: '12', pct: '(0.9%)', width: '2%', dot: 'bg-inverse-primary', bar: 'bg-inverse-primary', bold: true },
-            ].map((stage) => (
-              <div key={stage.label}>
-                <div className="flex justify-between font-label-md text-label-md text-on-surface mb-1">
-                  <span className="flex items-center gap-1.5">
-                    <span className={`w-1.5 h-1.5 rounded-full ${stage.dot}`} />
-                    {stage.label}
-                  </span>
-                  <span className={`font-mono-code ${stage.bold ? 'text-tertiary font-bold' : 'text-on-surface-variant'}`}>
-                    {stage.count} <span className="text-outline text-label-sm">{stage.pct}</span>
-                  </span>
-                </div>
-                <div className="w-full bg-surface-container-highest h-3 rounded-full overflow-hidden">
-                  <div
-                    className={`${stage.bar} h-full rounded-full transition-all duration-500`}
-                    style={{ width: stage.width }}
+          <div className="w-full h-56">
+            {trendData.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-xs text-outline">
+                No application timeline data available.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={trendData}>
+                  <defs>
+                    <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.5} />
+                      <stop offset="95%" stopColor="#4F46E5" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#263449" />
+                  <XAxis dataKey="date" stroke="#94A3B8" fontSize={11} />
+                  <YAxis stroke="#94A3B8" fontSize={11} allowDecimals={false} />
+                  <Tooltip contentStyle={TooltipStyle} />
+                  <Area
+                    type="monotone"
+                    dataKey="applications"
+                    stroke="#8B5CF6"
+                    strokeWidth={2.5}
+                    fill="url(#areaGrad)"
                   />
-                </div>
-              </div>
-            ))}
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
-        {/* Chart 3: Stage Distribution Donut Chart */}
+        {/* Chart 2: Hiring Funnel & Stage Distribution */}
         <div className="p-space-lg rounded-2xl glass-card shadow-sm flex flex-col justify-between tabular-nums">
           <div className="flex items-center justify-between mb-space-md">
             <div>
               <h2 className="font-headline-md text-headline-md text-on-surface">
-                Stage Distribution
+                Recruitment Pipeline Funnel
               </h2>
               <p className="font-body-sm text-body-sm text-on-surface-variant">
-                Candidate inventory categorized by status
+                Live candidate distribution across all 5 hiring stages
               </p>
             </div>
-            <span className="font-mono-code text-label-sm text-on-surface-variant">482 Active</span>
+            <button
+              type="button"
+              onClick={() => onNavigate('hiring-pipeline')}
+              className="font-mono-code text-label-sm text-tertiary hover:underline cursor-pointer"
+            >
+              Open Kanban →
+            </button>
           </div>
-          <div className="flex flex-col sm:flex-row items-center justify-around gap-space-lg">
-            <div className="relative w-44 h-44 flex items-center justify-center">
-              <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" fill="none" r="38" stroke="#25293a" strokeWidth="12" />
-                <circle cx="50" cy="50" fill="none" r="38" stroke="#4f46e5" strokeDasharray="107 238" strokeDashoffset="0" strokeWidth="12" />
-                <circle cx="50" cy="50" fill="none" r="38" stroke="#571bc1" strokeDasharray="60 238" strokeDashoffset="-107" strokeWidth="12" />
-                <circle cx="50" cy="50" fill="none" r="38" stroke="#adc6ff" strokeDasharray="36 238" strokeDashoffset="-167" strokeWidth="12" />
-                <circle cx="50" cy="50" fill="none" r="38" stroke="#d0bcff" strokeDasharray="24 238" strokeDashoffset="-203" strokeWidth="12" />
-                <circle cx="50" cy="50" fill="none" r="38" stroke="#c3c0ff" strokeDasharray="11 238" strokeDashoffset="-227" strokeWidth="12" />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span className="font-headline-md text-headline-md text-on-surface">482</span>
-                <span className="font-mono-code text-label-sm text-on-surface-variant">Candidates</span>
+          <div className="w-full h-56">
+            {candidates.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-xs text-outline">
+                No pipeline candidates yet.
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2 font-body-sm text-body-sm">
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-sm bg-primary-container" />
-                <span className="text-on-surface">
-                  Sourced <span className="font-mono-code text-on-surface-variant">216</span>
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-sm bg-secondary-container" />
-                <span className="text-on-surface">
-                  Screening <span className="font-mono-code text-on-surface-variant">120</span>
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-sm bg-tertiary" />
-                <span className="text-on-surface">
-                  Interview <span className="font-mono-code text-on-surface-variant">72</span>
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-sm bg-secondary" />
-                <span className="text-on-surface">
-                  Offer <span className="font-mono-code text-on-surface-variant">48</span>
-                </span>
-              </div>
-              <div className="flex items-center gap-2 col-span-2">
-                <span className="w-3 h-3 rounded-sm bg-primary" />
-                <span className="text-on-surface">
-                  Hired <span className="font-mono-code text-tertiary">26</span>
-                </span>
-              </div>
-            </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={stageData} layout="vertical" margin={{ left: 12, right: 16 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#263449" />
+                  <XAxis type="number" stroke="#94A3B8" fontSize={11} allowDecimals={false} />
+                  <YAxis dataKey="stage" type="category" stroke="#F8FAFC" fontSize={11} width={75} />
+                  <Tooltip contentStyle={TooltipStyle} />
+                  <Bar dataKey="count" radius={[0, 6, 6, 0]}>
+                    {stageData.map((_, index) => (
+                      <Cell key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
-        {/* Chart 4: Top In-Demand Skills */}
+        {/* Chart 3: Stage Donut + Match Distribution */}
         <div className="p-space-lg rounded-2xl glass-card shadow-sm flex flex-col justify-between tabular-nums">
           <div className="flex items-center justify-between mb-space-md">
             <div>
               <h2 className="font-headline-md text-headline-md text-on-surface">
-                Top In-Demand Skills
+                Stage &amp; Score Distribution
               </h2>
               <p className="font-body-sm text-body-sm text-on-surface-variant">
-                Aggregated from active technical job openings
+                Proportion by hiring status &amp; score tier
               </p>
             </div>
-            <span className="font-mono-code text-label-sm text-tertiary">Weighted AI Index</span>
+            <span className="font-mono-code text-label-sm text-on-surface-variant">
+              {metrics.total} Candidates
+            </span>
           </div>
-          <div className="flex flex-col gap-3 py-1">
-            {[
-              { name: 'Python', val: '88%', textClass: 'text-primary', barClass: 'bg-primary-container' },
-              { name: 'React / Next.js', val: '82%', textClass: 'text-secondary', barClass: 'bg-secondary-container' },
-              { name: 'AWS / Cloud Architecture', val: '74%', textClass: 'text-tertiary', barClass: 'bg-tertiary-container' },
-              { name: 'AI / ML Infrastructure', val: '69%', textClass: 'text-primary-fixed', barClass: 'bg-primary-fixed' },
-              { name: 'Node.js / Express', val: '61%', textClass: 'text-on-surface-variant', barClass: 'bg-surface-variant' },
-            ].map((skill) => (
-              <div key={skill.name}>
-                <div className="flex justify-between font-label-md text-label-md text-on-surface mb-1">
-                  <span>{skill.name}</span>
-                  <span className={`font-mono-code ${skill.textClass}`}>{skill.val}</span>
-                </div>
-                <div className="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
-                  <div className={`${skill.barClass} h-full rounded-full`} style={{ width: skill.val }} />
-                </div>
+          {candidates.length === 0 ? (
+            <div className="h-52 flex items-center justify-center text-xs text-outline">
+              No candidate records to visualize.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={stageData.filter((s) => s.count > 0)}
+                      dataKey="count"
+                      nameKey="stage"
+                      innerRadius={45}
+                      outerRadius={72}
+                      paddingAngle={3}
+                    >
+                      {stageData
+                        .filter((s) => s.count > 0)
+                        .map((_, index) => (
+                          <Cell key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                        ))}
+                    </Pie>
+                    <Tooltip contentStyle={TooltipStyle} />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-            ))}
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={matchDistData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#263449" />
+                    <XAxis dataKey="label" stroke="#94A3B8" fontSize={10} />
+                    <YAxis stroke="#94A3B8" fontSize={10} allowDecimals={false} />
+                    <Tooltip contentStyle={TooltipStyle} />
+                    <Bar dataKey="count" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Chart 4: Job-wise Applications + Top Skills */}
+        <div className="p-space-lg rounded-2xl glass-card shadow-sm flex flex-col justify-between tabular-nums">
+          <div className="flex items-center justify-between mb-space-md">
+            <div>
+              <h2 className="font-headline-md text-headline-md text-on-surface">
+                Job-wise Applications &amp; Top Skills
+              </h2>
+              <p className="font-body-sm text-body-sm text-on-surface-variant">
+                Applicant volume per opening and highest-frequency skills
+              </p>
+            </div>
+            <span className="font-mono-code text-label-sm text-tertiary">Live Index</span>
           </div>
+          {jobs.length === 0 ? (
+            <div className="h-48 flex items-center justify-center text-xs text-outline">
+              Create a job opening to inspect applicant distribution.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={jobDistData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#263449" />
+                    <XAxis dataKey="name" stroke="#94A3B8" fontSize={10} hide />
+                    <YAxis stroke="#94A3B8" fontSize={10} allowDecimals={false} />
+                    <Tooltip contentStyle={TooltipStyle} />
+                    <Bar dataKey="applicants" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex flex-col gap-2.5">
+                {skillsDistData.map((skill) => (
+                  <div key={skill.skill}>
+                    <div className="flex justify-between font-label-sm text-xs text-on-surface mb-1">
+                      <span>{skill.skill}</span>
+                      <span className="font-mono-code text-tertiary">{skill.count} mentions</span>
+                    </div>
+                    <div className="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden">
+                      <div
+                        className="bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] h-full rounded-full"
+                        style={{ width: `${skill.pct}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Bottom Section: 2-Column Split */}
+      {/* Bottom Section: Top Matching Candidates + Recent Job Openings & Activity */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-space-lg">
-        {/* Left Column: Top Matching Candidates Table */}
+        {/* Left Column: Top Matching Candidates */}
         <div className="xl:col-span-2 p-space-lg rounded-2xl glass-card shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-space-md">
@@ -461,7 +697,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     Top Matching Candidates
                   </h2>
                   <p className="font-body-sm text-body-sm text-on-surface-variant">
-                    Ranked via semantic profile scoring
+                    Highest-scoring active profiles ranked by weighted suitability
                   </p>
                 </div>
               </div>
@@ -475,46 +711,30 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left tabular-nums">
-                <thead>
-                  <tr className="bg-surface-container-lowest/50 text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
-                    <th className="py-2.5 px-3 rounded-l-lg">Candidate</th>
-                    <th className="py-2.5 px-3">Job Role</th>
-                    <th className="py-2.5 px-3">Match Score</th>
-                    <th className="py-2.5 px-3">Experience</th>
-                    <th className="py-2.5 px-3">Status</th>
-                    <th className="py-2.5 px-3 text-right rounded-r-lg">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-surface-container">
-                  {topMatching.map((cand, index) => {
-                    const avatarStyles = [
-                      'bg-primary-container text-on-primary-container',
-                      'bg-secondary-container text-on-secondary-container',
-                      'bg-tertiary-container text-on-tertiary-container',
-                      'bg-surface-variant text-on-surface',
-                    ];
-                    const roleTitles = [
-                      'Python Developer',
-                      'Full Stack Developer',
-                      'AI/ML Engineer',
-                      'Data Analyst',
-                    ];
-                    const scoreColors = [
-                      'text-tertiary bg-tertiary',
-                      'text-secondary bg-secondary',
-                      'text-tertiary-fixed-dim bg-tertiary-fixed-dim',
-                      'text-on-surface-variant bg-on-surface-variant',
-                    ];
-                    const [textC, dotC] = scoreColors[index].split(' ');
-
-                    return (
+            {topMatching.length === 0 ? (
+              <div className="py-10 text-center text-xs text-outline">
+                No active candidates available to rank.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left tabular-nums">
+                  <thead>
+                    <tr className="bg-surface-container-lowest/50 text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+                      <th className="py-2.5 px-3 rounded-l-lg">Candidate</th>
+                      <th className="py-2.5 px-3">Role</th>
+                      <th className="py-2.5 px-3">Match Score</th>
+                      <th className="py-2.5 px-3">Experience</th>
+                      <th className="py-2.5 px-3">Stage</th>
+                      <th className="py-2.5 px-3 text-right rounded-r-lg">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-surface-container">
+                    {topMatching.map(({ cand, score }) => (
                       <tr key={cand.id} className="hover:bg-surface-container/40 transition-colors">
                         <td className="py-3 px-3">
                           <div className="flex items-center gap-3">
                             <div
-                              className={`w-8 h-8 rounded-full font-headline-sm text-label-md flex items-center justify-center shrink-0 ${avatarStyles[index]}`}
+                              className={`w-8 h-8 rounded-full font-headline-sm text-label-md flex items-center justify-center shrink-0 ${cand.avatarTone}`}
                             >
                               {cand.initials}
                             </div>
@@ -528,63 +748,72 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             </div>
                           </div>
                         </td>
+                        <td className="py-3 px-3 text-xs text-on-surface">{cand.role}</td>
                         <td className="py-3 px-3">
-                          <span className="font-body-sm text-body-sm text-on-surface">
-                            {roleTitles[index]}
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 font-mono-code text-label-sm font-semibold">
+                            {score}% Match
                           </span>
                         </td>
-                        <td className="py-3 px-3">
-                          <span
-                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-highest font-mono-code text-label-sm font-semibold ${textC}`}
-                          >
-                            <span className={`w-1.5 h-1.5 rounded-full ${dotC}`} />
-                            {cand.matchScore}% Match
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 font-mono-code text-body-sm text-on-surface-variant">
+                        <td className="py-3 px-3 font-mono-code text-xs text-on-surface-variant">
                           {cand.experience}
                         </td>
                         <td className="py-3 px-3">
-                          <span className="px-2 py-0.5 rounded bg-surface-container text-primary font-label-sm text-label-sm">
-                            Shortlisted
+                          <span className="px-2 py-0.5 rounded bg-surface-container text-primary font-label-sm text-xs">
+                            {cand.status}
                           </span>
                         </td>
                         <td className="py-3 px-3 text-right">
                           <button
                             type="button"
                             onClick={() => onSelectCandidate(cand)}
-                            className="px-3 py-1 bg-surface-container-high hover:bg-primary-container hover:text-on-primary-container text-on-surface rounded-lg font-label-md text-label-md transition-colors cursor-pointer"
+                            className="px-3 py-1 bg-surface-container-high hover:bg-primary-container hover:text-on-primary-container text-on-surface rounded-lg text-xs transition-colors cursor-pointer"
                           >
                             Review
                           </button>
                         </td>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
-          <div className="mt-4 pt-3 flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
-            <span>Showing 4 of 64 shortlisted profiles</span>
-            <div className="flex gap-1">
-              <button
-                className="px-2 py-1 rounded bg-surface-container hover:bg-surface-variant transition-colors text-on-surface disabled:opacity-40"
-                disabled
-                type="button"
-              >
-                <span className="material-symbols-outlined text-[14px]">chevron_left</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => onNavigate('candidates')}
-                className="px-2 py-1 rounded bg-surface-container hover:bg-surface-variant transition-colors text-on-surface cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-              </button>
+          {/* Recent Job Openings Mini Strip */}
+          {jobs.length > 0 && (
+            <div className="mt-5 pt-4 border-t border-[#263449]">
+              <div className="flex items-center justify-between mb-2.5">
+                <span className="font-label-sm text-outline uppercase tracking-wider">
+                  Recent Job Openings
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('job-management')}
+                  className="text-xs text-primary hover:underline cursor-pointer"
+                >
+                  Manage All Jobs
+                </button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                {jobs.slice(0, 3).map((job) => (
+                  <button
+                    key={job.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedJobId(job.id);
+                      onNavigate('job-details');
+                    }}
+                    className="text-left p-3 rounded-xl bg-surface-container hover:bg-surface-container-high border border-[#263449] transition-colors cursor-pointer"
+                  >
+                    <p className="text-xs font-semibold text-on-surface truncate">{job.title}</p>
+                    <p className="text-[11px] text-outline truncate mt-0.5">
+                      {candidates.filter((c) => c.targetJobId === job.id).length} applicants · {job.status}
+                    </p>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Right Column: Recent Hiring Activity Timeline */}
@@ -598,97 +827,51 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     Recent Activity
                   </h2>
                   <p className="font-body-sm text-body-sm text-on-surface-variant">
-                    Latest recruitment updates across your team
+                    Updates as candidates are uploaded, edited, or moved
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-surface-container-highest">
-              <div className="relative">
-                <div className="absolute -left-6 top-1 w-5 h-5 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center ring-4 ring-surface-container-low">
-                  <span className="material-symbols-outlined text-[12px]">upload</span>
-                </div>
-                <div>
-                  <p className="font-body-sm text-body-sm text-on-surface font-medium leading-tight">
-                    New resume uploaded{' '}
-                    <span className="font-mono-code text-[11px] text-primary">
-                      (Rahul_Sharma_CV.pdf)
-                    </span>
-                  </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">
-                      10m ago
-                    </span>
-                    <span className="text-outline">•</span>
-                    <span className="font-label-sm text-label-sm text-tertiary">
-                      Parsed Successfully
-                    </span>
-                  </div>
-                </div>
+            {activities.length === 0 ? (
+              <div className="py-10 text-center text-xs text-outline">
+                No recent recruitment activity recorded in this session.
               </div>
-
-              <div className="relative">
-                <div className="absolute -left-6 top-1 w-5 h-5 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center ring-4 ring-surface-container-low">
-                  <span className="material-symbols-outlined text-[12px]">auto_awesome</span>
-                </div>
-                <div>
-                  <p className="font-body-sm text-body-sm text-on-surface font-medium leading-tight">
-                    Arjun Kumar shortlisted for{' '}
-                    <span className="text-tertiary font-medium">AI/ML Engineer</span>
-                  </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">
-                      42m ago
-                    </span>
-                    <span className="text-outline">•</span>
-                    <span className="font-mono-code text-label-sm text-secondary">86% Score</span>
+            ) : (
+              <div className="relative pl-6 space-y-5 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-surface-container-highest">
+                {activities.slice(0, 5).map((act) => (
+                  <div key={act.id} className="relative">
+                    <div className="absolute -left-6 top-1 w-5 h-5 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center ring-4 ring-surface-container-low">
+                      <span className="material-symbols-outlined text-[12px]">
+                        {act.type === 'upload'
+                          ? 'upload'
+                          : act.type === 'shortlist'
+                            ? 'auto_awesome'
+                            : act.type === 'interview'
+                              ? 'calendar_today'
+                              : act.type === 'job'
+                                ? 'work'
+                                : 'bolt'}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-body-sm text-body-sm text-on-surface font-medium leading-tight">
+                        {act.title}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <span className="font-label-sm text-[11px] text-on-surface-variant">
+                          {act.time}
+                        </span>
+                        <span className="text-outline">•</span>
+                        <span className="font-label-sm text-[11px] text-tertiary">
+                          {act.detail}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
-
-              <div className="relative">
-                <div className="absolute -left-6 top-1 w-5 h-5 rounded-full bg-tertiary-container text-on-tertiary-container flex items-center justify-center ring-4 ring-surface-container-low">
-                  <span className="material-symbols-outlined text-[12px]">calendar_today</span>
-                </div>
-                <div>
-                  <p className="font-body-sm text-body-sm text-on-surface font-medium leading-tight">
-                    Interview scheduled with{' '}
-                    <span className="text-on-surface font-medium">Priya Verma</span>
-                  </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">
-                      2h ago
-                    </span>
-                    <span className="text-outline">•</span>
-                    <span className="font-label-sm text-label-sm text-on-surface">
-                      Technical Round 1
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative">
-                <div className="absolute -left-6 top-1 w-5 h-5 rounded-full bg-surface-bright text-on-surface flex items-center justify-center ring-4 ring-surface-container-low">
-                  <span className="material-symbols-outlined text-[12px]">work</span>
-                </div>
-                <div>
-                  <p className="font-body-sm text-body-sm text-on-surface font-medium leading-tight">
-                    New job created:{' '}
-                    <span className="text-on-surface font-medium">Senior DevOps Engineer</span>
-                  </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">
-                      4h ago
-                    </span>
-                    <span className="text-outline">•</span>
-                    <span className="px-1.5 py-0.2 rounded bg-surface-container text-error font-mono-code text-[10px]">
-                      Urgent
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
 
           <div className="mt-4 pt-3 flex items-center justify-end">

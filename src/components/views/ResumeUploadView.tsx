@@ -1,95 +1,482 @@
-import React, { useState } from 'react';
-import {
-  INITIAL_QUEUE_FILES,
-  QueuedResumeFile,
-  CANDIDATES_DATA,
-  CandidateProfile,
-  WorkspaceRoute,
-} from '../../data/atsData';
+import React, { useRef, useState } from 'react';
+import { useAts } from '../../context/AtsContext';
+import { CandidateProfile, QueuedResumeFile, WorkspaceRoute } from '../../data/atsData';
+import { computeMatchResult, detectDuplicates, exportRowsToCsv } from '../../utils/atsEngine';
+import { DocumentValidationError, validateAndExtractResume } from '../../utils/fileExtractor';
 
 interface ResumeUploadViewProps {
   onNavigate: (route: WorkspaceRoute) => void;
   onSelectCandidate: (candidate: CandidateProfile) => void;
 }
 
+interface ParsedApiResponse {
+  parsed?: {
+    personal_information?: {
+      full_name?: string | null;
+      email?: string | null;
+      phone?: string | null;
+      location?: string | null;
+      linkedin_url?: string | null;
+      github_url?: string | null;
+      portfolio_url?: string | null;
+    };
+    education?: {
+      tenth_school?: string | null;
+      tenth_percentage?: number | null;
+      tenth_year?: number | null;
+      twelfth_school?: string | null;
+      twelfth_percentage?: number | null;
+      twelfth_year?: number | null;
+      diploma_details?: string | null;
+      diploma_score?: string | null;
+      degree?: string | null;
+      branch?: string | null;
+      college?: string | null;
+      cgpa?: number | null;
+      graduation_year?: number | null;
+      postgraduate_details?: string | null;
+    };
+    experience?: {
+      total_years?: number | null;
+      current_title?: string | null;
+      previous_titles?: string[];
+      previous_companies?: string[];
+      internships?: Array<{ role: string; company: string; duration: string; description: string }>;
+      work_history?: Array<{ role: string; company: string; duration: string; description: string }>;
+    };
+    skills?: {
+      programming_languages?: string[];
+      frameworks?: string[];
+      libraries?: string[];
+      databases?: string[];
+      cloud_technologies?: string[];
+      developer_tools?: string[];
+      ai_ml_technologies?: string[];
+      other_skills?: string[];
+    };
+    projects?: Array<{ name: string; description: string; technologies: string[] }>;
+    certifications?: string[];
+    achievements?: string[];
+    soft_skills?: string[];
+    languages_known?: string[];
+    resume_summary?: string | null;
+    key_strengths?: string[];
+    missing_fields?: string[];
+    confidence?: {
+      name?: number;
+      email?: number;
+      education?: number;
+      skills?: number;
+    };
+  };
+  source?: string;
+}
+
 export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
   onNavigate,
   onSelectCandidate,
 }) => {
-  const [files, setFiles] = useState<QueuedResumeFile[]>(INITIAL_QUEUE_FILES);
-  const [isDragging, setIsDragging] = useState(false);
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const {
+    candidates,
+    jobs,
+    selectedJobId,
+    maxFileSizeMb,
+    scoringWeights,
+    addCandidate,
+    mergeDuplicateCandidate,
+    showToast,
+  } = useAts();
 
-  const showToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 2600);
-  };
+  const [files, setFiles] = useState<QueuedResumeFile[]>([]);
+  const [targetJobId, setTargetJobId] = useState<string>(selectedJobId || jobs[0]?.id || '');
+  const [isDragging, setIsDragging] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [batchSummary, setBatchSummary] = useState<{
+    total: number;
+    parsed: number;
+    duplicates: number;
+    failed: number;
+  } | null>(null);
+  const [resolveTarget, setResolveTarget] = useState<QueuedResumeFile | null>(null);
+
+  // Keep a mutable pool reference so simultaneous files in the same batch detect intra-batch duplicates
+  const runningPoolRef = useRef<CandidateProfile[]>(candidates);
+  runningPoolRef.current = candidates;
 
   const handleFilesAdded = (fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return;
     const added: QueuedResumeFile[] = Array.from(fileList).map((f, idx) => {
-      const ext = f.name.toLowerCase().endsWith('.docx') ? 'DOCX' : 'PDF';
+      const lower = f.name.toLowerCase();
+      const ext: QueuedResumeFile['type'] = lower.endsWith('.docx')
+        ? 'DOCX'
+        : lower.endsWith('.pdf')
+          ? 'PDF'
+          : 'OTHER';
       const mb = (f.size / (1024 * 1024)).toFixed(2);
       return {
-        id: `q-${Date.now()}-${idx}`,
-        docId: `#DOC-${8930 + idx}`,
+        id: `q-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 6)}`,
+        docId: `#DOC-${Math.floor(1000 + Math.random() * 8999)}`,
         fileName: f.name,
-        hashOrNote: 'Queued for AI parsing',
+        hashOrNote: 'Ready in queue',
         type: ext,
-        size: f.size > 1024 * 1024 ? `${mb} MB` : `${Math.max(1, Math.round(f.size / 1024))} KB`,
+        size:
+          f.size >= 1024 * 1024
+            ? `${mb} MB`
+            : `${Math.max(0, Math.round(f.size / 1024))} KB`,
+        sizeBytes: f.size,
         uploadProgress: 100,
         parsingStatus: 'waiting',
+        fileRef: f,
       };
     });
     setFiles((prev) => [...added, ...prev]);
-    showToast(`Added ${added.length} file(s) to parsing queue`);
+    setBatchSummary(null);
+    showToast(`Added ${added.length} document(s) to queue`);
   };
 
-  const handleStartParsing = () => {
+  const buildCandidateFromParsed = (
+    item: QueuedResumeFile,
+    extractedText: string,
+    sha256Hash: string,
+    objectUrl: string,
+    data: NonNullable<ParsedApiResponse['parsed']>
+  ): CandidateProfile => {
+    const pInfo = data.personal_information ?? {};
+    const edu = data.education ?? {};
+    const exp = data.experience ?? {};
+    const sk = data.skills ?? {};
+
+    const fullName =
+      pInfo.full_name?.trim() ||
+      item.fileName.replace(/\.(pdf|docx)$/i, '').replace(/[_-]+/g, ' ').trim() ||
+      'Candidate Profile';
+    const parts = fullName.split(/\s+/);
+    const initials = ((parts[0]?.[0] ?? 'C') + (parts[1]?.[0] ?? '')).toUpperCase();
+
+    const allSkills = Array.from(
+      new Set([
+        ...(sk.programming_languages ?? []),
+        ...(sk.frameworks ?? []),
+        ...(sk.libraries ?? []),
+        ...(sk.databases ?? []),
+        ...(sk.cloud_technologies ?? []),
+        ...(sk.developer_tools ?? []),
+        ...(sk.ai_ml_technologies ?? []),
+        ...(sk.other_skills ?? []),
+      ])
+    ).filter(Boolean);
+
+    const totalExp = typeof exp.total_years === 'number' && !Number.isNaN(exp.total_years) ? exp.total_years : 0;
+    const cgpaVal = typeof edu.cgpa === 'number' && !Number.isNaN(edu.cgpa) ? edu.cgpa : null;
+    const tenthVal =
+      typeof edu.tenth_percentage === 'number' && !Number.isNaN(edu.tenth_percentage)
+        ? edu.tenth_percentage
+        : null;
+    const twelfthVal =
+      typeof edu.twelfth_percentage === 'number' && !Number.isNaN(edu.twelfth_percentage)
+        ? edu.twelfth_percentage
+        : null;
+
+    const assignedJob = jobs.find((j) => j.id === targetJobId) ?? jobs[0];
+    const id = `cand-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const draft: CandidateProfile = {
+      id,
+      initials,
+      name: fullName,
+      email: pInfo.email?.trim() || `${fullName.toLowerCase().replace(/\s+/g, '.')}@unavailable.local`,
+      phone: pInfo.phone ?? null,
+      location: pInfo.location || 'Not Specified',
+      remoteAvailable: /remote/i.test(extractedText),
+      linkedinUrl: pInfo.linkedin_url ?? null,
+      githubUrl: pInfo.github_url ?? null,
+      portfolioUrl: pInfo.portfolio_url ?? null,
+      educationDetail: {
+        tenthSchool: edu.tenth_school ?? null,
+        tenthPercentage: tenthVal,
+        tenthYear: edu.tenth_year ?? null,
+        twelfthSchool: edu.twelfth_school ?? null,
+        twelfthPercentage: twelfthVal,
+        twelfthYear: edu.twelfth_year ?? null,
+        diplomaDetails: edu.diploma_details ?? null,
+        diplomaScore: edu.diploma_score ?? null,
+        degree: edu.degree || 'Degree Not Listed',
+        branch: edu.branch || 'General',
+        college: edu.college || 'Institution Not Listed',
+        cgpa: cgpaVal,
+        cgpaScale: '10.0',
+        graduationYear: edu.graduation_year ?? null,
+        postgraduateDetails: edu.postgraduate_details ?? null,
+      },
+      education: `${edu.degree || 'Degree Not Listed'} ${edu.branch ? `(${edu.branch})` : ''}`.trim(),
+      cgpa: cgpaVal !== null ? `${cgpaVal.toFixed(1)} CGPA` : 'Not Listed',
+      tenthTwelfth:
+        tenthVal !== null && twelfthVal !== null
+          ? `${tenthVal}% / ${twelfthVal}%`
+          : tenthVal !== null
+            ? `${tenthVal}% / N/A`
+            : 'Not Listed',
+      experience: totalExp === 0 ? 'Fresher (0 yrs)' : `${totalExp.toFixed(1)} yrs`,
+      experienceYears: totalExp,
+      role: exp.current_title || assignedJob?.title || 'Applicant',
+      currentTitle: exp.current_title ?? null,
+      previousTitles: exp.previous_titles ?? [],
+      previousCompanies: exp.previous_companies ?? [],
+      workHistory: exp.work_history ?? [],
+      internships: exp.internships ?? [],
+      skills: allSkills.length > 0 ? allSkills : ['Communication'],
+      categorizedSkills: {
+        programmingLanguages: sk.programming_languages ?? [],
+        frameworks: sk.frameworks ?? [],
+        libraries: sk.libraries ?? [],
+        databases: sk.databases ?? [],
+        cloud: sk.cloud_technologies ?? [],
+        tools: sk.developer_tools ?? [],
+        aiMl: sk.ai_ml_technologies ?? [],
+        other: sk.other_skills ?? [],
+      },
+      projects: data.projects ?? [],
+      certifications: data.certifications ?? [],
+      achievements: data.achievements ?? [],
+      softSkills: data.soft_skills ?? [],
+      languagesKnown: data.languages_known ?? [],
+      keyStrengths: data.key_strengths ?? allSkills.slice(0, 3),
+      missingFields: data.missing_fields ?? [],
+      confidence: {
+        name: data.confidence?.name ?? 0.9,
+        email: data.confidence?.email ?? (pInfo.email ? 0.95 : 0.2),
+        education: data.confidence?.education ?? (cgpaVal !== null ? 0.9 : 0.5),
+        skills: data.confidence?.skills ?? (allSkills.length > 0 ? 0.9 : 0.4),
+      },
+      matchScore: 70,
+      matchLabel: '70% Good',
+      status: 'Applied', // Always default to Applied per spec
+      targetJobId: assignedJob?.id || '',
+      avatarTone: 'bg-indigo-500/25 text-indigo-300',
+      summary:
+        data.resume_summary ||
+        `Extracted profile from ${item.fileName}. Stage initialized to Applied.`,
+      resumeFileName: item.fileName,
+      resumeFileType: item.type === 'DOCX' ? 'DOCX' : 'PDF',
+      resumeHash: sha256Hash,
+      resumeObjectUrl: objectUrl,
+      resumeTextPreview: extractedText,
+      processingStatus: (data.missing_fields?.length ?? 0) > 2 ? 'needs-review' : 'parsed',
+      duplicateStatus: 'Unique',
+      appliedAt: new Date().toISOString(),
+      radar: {
+        communication: 80,
+        problemSolving: 82,
+        culturalFit: 79,
+        technicalSkills: 84,
+        architecture: totalExp > 1 ? 82 : 72,
+      },
+      highlights: (data.key_strengths ?? allSkills.slice(0, 3)).map((s) => `Extracted strength: ${s}`),
+      timeline: [
+        {
+          time: 'Just now',
+          event: 'Resume Parsed via AI Engine',
+          detail: `${item.fileName} converted to structured profile`,
+        },
+      ],
+    };
+
+    if (assignedJob) {
+      const m = computeMatchResult(draft, assignedJob, scoringWeights);
+      draft.matchScore = m.overallScore;
+      draft.matchLabel = `${m.overallScore}% ${m.category.replace(' Match', '')}`;
+    }
+
+    return draft;
+  };
+
+  const processSingleQueueItem = async (
+    item: QueuedResumeFile
+  ): Promise<'parsed' | 'duplicate' | 'failed'> => {
     setFiles((prev) =>
       prev.map((f) =>
-        f.parsingStatus === 'waiting' || f.parsingStatus === 'processing'
-          ? {
-              ...f,
-              parsingStatus: 'parsed',
-              hashOrNote: 'Profile built successfully',
-            }
+        f.id === item.id
+          ? { ...f, parsingStatus: 'processing', parsingProgress: 35, hashOrNote: 'Validating & reading document...' }
           : f
       )
     );
-    showToast('AI Resume Parsing completed across active queue');
+
+    try {
+      if (!item.fileRef) {
+        throw new DocumentValidationError(
+          'Missing file reference',
+          'File payload is no longer attached.',
+          'Re-upload the file from your computer.'
+        );
+      }
+
+      const payload = await validateAndExtractResume(item.fileRef, maxFileSizeMb);
+
+      setFiles((prev) =>
+        prev.map((f) =>
+          f.id === item.id
+            ? {
+                ...f,
+                parsingProgress: 70,
+                hashOrNote: payload.isScannedPdfFallback
+                  ? `Scanned PDF detected · Sending to Gemini OCR...`
+                  : `Hash ${payload.sha256Hash.slice(0, 10)}… · Extracting entities...`,
+              }
+            : f
+        )
+      );
+
+      const res = await fetch('/api/resumes/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileName: payload.fileName,
+          mimeType: payload.mimeType,
+          extractedText: payload.extractedText,
+          base64Pdf: payload.base64Pdf,
+        }),
+      });
+
+      if (!res.ok) {
+        const errBody = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new DocumentValidationError(
+          'AI extraction failed',
+          errBody.error || `Parser returned HTTP ${res.status}`,
+          'Click Retry or check that the file contains readable resume content.'
+        );
+      }
+
+      const json = (await res.json()) as ParsedApiResponse;
+      if (!json.parsed) {
+        throw new Error('Malformed JSON returned by parser.');
+      }
+
+      const cand = buildCandidateFromParsed(
+        item,
+        payload.extractedText || `[Scanned PDF: ${payload.fileName}]`,
+        payload.sha256Hash,
+        payload.objectUrl,
+        json.parsed
+      );
+
+      const dupCheck = detectDuplicates(
+        {
+          name: cand.name,
+          email: cand.email,
+          phone: cand.phone,
+          resumeHash: cand.resumeHash,
+          college: cand.educationDetail.college,
+          skills: cand.skills,
+        },
+        runningPoolRef.current
+      );
+
+      if (dupCheck.status !== 'Unique' && dupCheck.matchedCandidate) {
+        cand.duplicateStatus = dupCheck.status;
+        cand.duplicateOfId = dupCheck.matchedCandidate.id;
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.id === item.id
+              ? {
+                  ...f,
+                  parsingStatus: 'duplicate',
+                  parsingProgress: 100,
+                  duplicateMatch: `${dupCheck.matchedCandidate?.name} · ${dupCheck.reason}`,
+                  duplicateCandidateId: dupCheck.matchedCandidate?.id,
+                  parsedCandidateDraft: cand,
+                  hashOrNote: dupCheck.reason || 'Potential duplicate detected',
+                }
+              : f
+          )
+        );
+        return 'duplicate';
+      }
+
+      runningPoolRef.current = [cand, ...runningPoolRef.current];
+      addCandidate(cand);
+
+      setFiles((prev) =>
+        prev.map((f) =>
+          f.id === item.id
+            ? {
+                ...f,
+                parsingStatus: 'parsed',
+                parsingProgress: 100,
+                parsedCandidateDraft: cand,
+                hashOrNote: `${cand.name} · ${cand.matchScore}% match (${json.source === 'gemini-ai' ? 'Gemini AI' : 'Parser'})`,
+              }
+            : f
+        )
+      );
+      return 'parsed';
+    } catch (err) {
+      const isDocErr = err instanceof DocumentValidationError;
+      const reason = isDocErr
+        ? err.reason
+        : err instanceof Error
+          ? err.message
+          : 'Unexpected error reading document.';
+      const action = isDocErr ? err.action : 'Verify the file is valid PDF/DOCX and click Retry.';
+
+      setFiles((prev) =>
+        prev.map((f) =>
+          f.id === item.id
+            ? {
+                ...f,
+                parsingStatus: 'failed',
+                parsingProgress: 0,
+                hashOrNote: action,
+                errorDetail: reason,
+                errorAction: action,
+              }
+            : f
+        )
+      );
+      return 'failed';
+    }
   };
 
-  const handleRetryFailed = () => {
-    setFiles((prev) =>
-      prev.map((f) =>
-        f.parsingStatus === 'failed'
-          ? {
-              ...f,
-              parsingStatus: 'parsed',
-              hashOrNote: 'Document recovered successfully',
-              errorDetail: undefined,
-            }
-          : f
-      )
+  const handleStartParsing = async () => {
+    const queue = files.filter(
+      (f) => f.parsingStatus === 'waiting' || f.parsingStatus === 'failed'
     );
-    showToast('Recovered failed resume file');
+    if (queue.length === 0) {
+      showToast('Add PDF or DOCX files first to begin parsing.', 'info');
+      return;
+    }
+
+    setIsProcessing(true);
+    let parsed = 0;
+    let duplicates = 0;
+    let failed = 0;
+
+    // Process with bounded concurrency (2) so errors stay isolated per document
+    const concurrency = 2;
+    let cursor = 0;
+
+    const worker = async () => {
+      while (cursor < queue.length) {
+        const nextItem = queue[cursor++];
+        const outcome = await processSingleQueueItem(nextItem);
+        if (outcome === 'parsed') parsed++;
+        else if (outcome === 'duplicate') duplicates++;
+        else failed++;
+      }
+    };
+
+    await Promise.all(
+      Array.from({ length: Math.min(concurrency, queue.length) }, () => worker())
+    );
+
+    setIsProcessing(false);
+    setBatchSummary({ total: queue.length, parsed, duplicates, failed });
+    showToast(
+      `Batch complete: ${parsed} parsed, ${duplicates} duplicate(s), ${failed} failed`,
+      failed > 0 ? 'warning' : 'success'
+    );
   };
 
-  const handleResolveDuplicate = (id: string) => {
-    setFiles((prev) =>
-      prev.map((f) =>
-        f.id === id
-          ? {
-              ...f,
-              parsingStatus: 'parsed',
-              hashOrNote: 'Merged with existing candidate profile',
-              duplicateMatch: undefined,
-            }
-          : f
-      )
-    );
-    showToast('Duplicate candidate profile merged cleanly');
+  const handleRetrySingle = async (item: QueuedResumeFile) => {
+    await processSingleQueueItem(item);
   };
 
   const handleRemoveFile = (id: string) => {
@@ -100,25 +487,26 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
     setFiles((prev) =>
       prev.filter((f) => f.parsingStatus === 'processing' || f.parsingStatus === 'waiting')
     );
-    showToast('Cleared completed and flagged rows');
+    showToast('Cleared completed and flagged queue items', 'info');
+  };
+
+  const handleExportSummary = () => {
+    exportRowsToCsv(
+      'hireswift_upload_summary.csv',
+      ['File Name', 'Type', 'Size', 'Status', 'Candidate / Note'],
+      files.map((f) => [f.fileName, f.type, f.size, f.parsingStatus, f.hashOrNote])
+    );
+    showToast('Downloaded hireswift_upload_summary.csv');
   };
 
   const parsedCount = files.filter((f) => f.parsingStatus === 'parsed').length;
   const duplicateCount = files.filter((f) => f.parsingStatus === 'duplicate').length;
   const failedCount = files.filter((f) => f.parsingStatus === 'failed').length;
-  const overallPct = files.length > 0 ? Math.min(100, Math.round(((parsedCount + 1.5) / files.length) * 100)) : 100;
+  const finishedCount = parsedCount + duplicateCount + failedCount;
+  const overallPct = files.length > 0 ? Math.round((finishedCount / files.length) * 100) : 0;
 
   return (
     <div className="flex flex-col w-full">
-      {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-xl bg-surface-container border border-primary-container/50 shadow-2xl text-xs font-medium text-on-surface flex items-center gap-2">
-          <span className="material-symbols-outlined text-[16px] text-emerald-400">
-            auto_awesome
-          </span>
-          <span>{toastMsg}</span>
-        </div>
-      )}
-
       {/* Top Command Context Bar */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md mb-space-xl">
         <div className="flex flex-col gap-1">
@@ -129,19 +517,24 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
             Resume Upload
           </h1>
           <p className="font-body-md text-body-md text-[#94A3B8]">
-            Upload multiple resumes and let AI extract candidate information automatically.
+            Upload multiple PDF or DOCX resumes for real text extraction, Gemini AI parsing, and duplicate checks.
           </p>
         </div>
 
         <div className="flex items-center gap-space-sm flex-wrap">
-          <div className="flex items-center gap-space-xs px-space-md py-1.5 rounded-lg bg-surface-container-high text-on-surface font-body-sm text-body-sm shadow-sm">
-            <span className="material-symbols-outlined text-[16px] text-tertiary">
-              folder_zip
-            </span>
-            <span>
-              Auto-assign to:{' '}
-              <strong className="text-primary font-medium">Q3 Senior Eng Batch</strong>
-            </span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-surface-container-high text-xs shadow-sm">
+            <span className="text-outline">Target Job:</span>
+            <select
+              value={targetJobId}
+              onChange={(e) => setTargetJobId(e.target.value)}
+              className="bg-transparent text-primary font-semibold outline-none cursor-pointer"
+            >
+              {jobs.map((j) => (
+                <option key={j.id} value={j.id} className="bg-[#111827] text-white">
+                  {j.title}
+                </option>
+              ))}
+            </select>
           </div>
           <button
             type="button"
@@ -149,24 +542,36 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
             className="flex items-center gap-space-xs px-3 py-1.5 rounded-lg bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors font-label-md text-label-md shadow-sm cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px]">tune</span>
-            <span>Parser Config</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => showToast('Google Drive batch connector synced (14 new files)')}
-            className="flex items-center gap-space-xs px-3 py-1.5 rounded-lg bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors font-label-md text-label-md shadow-sm cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[16px]">cloud_sync</span>
-            <span>Drive Connect</span>
+            <span>Limit: {maxFileSizeMb} MB</span>
           </button>
         </div>
       </div>
 
-      {/* Primary Ingestion & Diagnostics Grid */}
+      {batchSummary && (
+        <div className="mb-6 p-4 rounded-2xl glass-card border border-emerald-500/30 flex items-center justify-between flex-wrap gap-3 text-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="material-symbols-outlined text-emerald-400">task_alt</span>
+            <span className="text-on-surface">
+              Batch processed <strong>{batchSummary.total}</strong> document(s):{' '}
+              <span className="text-emerald-300 font-semibold">{batchSummary.parsed} added</span>,{' '}
+              <span className="text-amber-300 font-semibold">{batchSummary.duplicates} duplicate(s)</span>,{' '}
+              <span className="text-rose-400 font-semibold">{batchSummary.failed} failed</span>.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => onNavigate('candidates')}
+            className="px-3 py-1.5 rounded-lg bg-primary-container text-on-primary-container font-semibold cursor-pointer"
+          >
+            View Candidate List →
+          </button>
+        </div>
+      )}
+
+      {/* Primary Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-space-xl items-start">
-        {/* Left Column: Upload Zone & Queue Ledger (8 Cols Desktop) */}
+        {/* Left Column: Drop Zone + Queue */}
         <div className="xl:col-span-8 flex flex-col gap-space-xl min-w-0">
-          {/* Upload Zone */}
           <div
             onDragEnter={(e) => {
               e.preventDefault();
@@ -189,589 +594,355 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
               isDragging ? 'ring-2 ring-[#8B5CF6] bg-[#1B2740]/80' : ''
             }`}
           >
-            <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-primary-container/10 blur-3xl pointer-events-none group-hover:bg-primary-container/20 transition-all" />
-            <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-secondary-container/10 blur-3xl pointer-events-none group-hover:bg-secondary-container/20 transition-all" />
-
             <div className="relative z-10 flex flex-col items-center text-center">
-              <div className="relative mb-space-md">
-                <div className="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center text-primary group-hover:scale-105 group-hover:bg-primary-container group-hover:text-on-primary-container transition-all duration-300 shadow-lg">
-                  <span className="material-symbols-outlined text-[34px]">
-                    cloud_upload
-                  </span>
-                </div>
-                <div className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary shadow">
-                  <span className="material-symbols-outlined text-[14px]">
-                    auto_awesome
-                  </span>
-                </div>
+              <div className="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center text-primary mb-4">
+                <span className="material-symbols-outlined text-[34px]">cloud_upload</span>
               </div>
-
               <h3 className="font-headline-sm text-headline-sm text-on-surface font-semibold mb-1">
                 Drag and drop resumes here, or browse files
               </h3>
-              <p className="font-body-sm text-body-sm text-on-surface-variant max-w-md mb-space-lg">
-                Supported formats: PDF, DOCX • Up to 10 MB per file • Multi-file upload supported
+              <p className="font-body-sm text-body-sm text-on-surface-variant max-w-md mb-5">
+                Supported formats: PDF, DOCX • Up to {maxFileSizeMb} MB per file • Multi-file queue
               </p>
 
-              <div className="flex items-center gap-space-md flex-wrap justify-center">
-                <label className="inline-flex items-center gap-space-xs px-5 py-2.5 rounded-lg bg-primary-container text-on-primary-container font-label-md text-label-md font-medium hover:bg-secondary-container transition-all shadow-md cursor-pointer hover:shadow-primary-container/25">
-                  <span className="material-symbols-outlined text-[18px]">
-                    add_circle
-                  </span>
-                  <span>Browse Files from Computer</span>
-                  <input
-                    accept=".pdf,.docx"
-                    className="hidden"
-                    multiple
-                    type="file"
-                    onChange={(e) => handleFilesAdded(e.target.files)}
-                  />
-                </label>
-                <span className="font-mono-code text-[11px] text-outline uppercase tracking-wider hidden sm:inline">
-                  Or paste direct URLs
-                </span>
-              </div>
+              <label className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-label-md font-semibold hover:opacity-95 shadow-lg cursor-pointer">
+                <span className="material-symbols-outlined text-[18px]">add_circle</span>
+                <span>Browse Files from Computer</span>
+                <input
+                  accept=".pdf,.docx"
+                  className="hidden"
+                  multiple
+                  type="file"
+                  onChange={(e) => {
+                    handleFilesAdded(e.target.files);
+                    e.target.value = '';
+                  }}
+                />
+              </label>
 
-              <div className="mt-space-lg pt-space-md flex flex-wrap items-center justify-center gap-space-sm text-on-surface-variant font-mono-code text-[11px]">
-                <span className="flex items-center gap-1 bg-surface-container px-2 py-1 rounded">
-                  <span className="material-symbols-outlined text-[14px] text-tertiary">
-                    check
-                  </span>{' '}
-                  OCR Enriched
-                </span>
-                <span className="flex items-center gap-1 bg-surface-container px-2 py-1 rounded">
-                  <span className="material-symbols-outlined text-[14px] text-tertiary">
-                    check
-                  </span>{' '}
-                  Entity Recognition
-                </span>
-                <span className="flex items-center gap-1 bg-surface-container px-2 py-1 rounded">
-                  <span className="material-symbols-outlined text-[14px] text-tertiary">
-                    check
-                  </span>{' '}
-                  Deduplication Active
-                </span>
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5 text-on-surface-variant font-mono-code text-[11px]">
+                <span className="bg-surface-container px-2.5 py-1 rounded">✓ PDF.js + Gemini OCR</span>
+                <span className="bg-surface-container px-2.5 py-1 rounded">✓ Mammoth DOCX Parser</span>
+                <span className="bg-surface-container px-2.5 py-1 rounded">✓ SHA-256 Deduplication</span>
               </div>
             </div>
           </div>
 
-          {/* Upload Queue Ledger Table */}
+          {/* Queue Table */}
           <div className="rounded-2xl glass-card shadow-sm overflow-hidden flex flex-col">
             <div className="p-space-lg bg-surface-container flex flex-wrap items-center justify-between gap-space-md">
-              <div className="flex items-center gap-space-md">
-                <div className="flex items-center gap-space-xs">
-                  <h2 className="font-headline-sm text-headline-sm text-on-surface font-semibold">
-                    Files in Queue
-                  </h2>
-                  <span className="px-2 py-0.5 rounded-full bg-surface-bright text-on-surface font-mono-code text-mono-code tabular-nums">
-                    {files.length} Files
-                  </span>
-                </div>
-                <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-container/15 text-primary text-[11px] font-mono-code">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
-                  <span>Queue Active</span>
-                </div>
+              <div className="flex items-center gap-3">
+                <h2 className="font-headline-sm text-headline-sm text-on-surface font-semibold">
+                  Upload Queue
+                </h2>
+                <span className="px-2.5 py-0.5 rounded-full bg-surface-bright text-on-surface font-mono-code text-xs">
+                  {files.length} Files
+                </span>
               </div>
-              <div className="flex items-center gap-space-sm">
-                <button
-                  type="button"
-                  onClick={() => setFiles(INITIAL_QUEUE_FILES)}
-                  className="text-on-surface-variant hover:text-on-surface p-1.5 rounded-lg hover:bg-surface-container-high transition-colors cursor-pointer"
-                  title="Reset Demo Queue"
-                >
-                  <span className="material-symbols-outlined text-[18px]">
-                    filter_list
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleClearInactive}
-                  className="text-on-surface-variant hover:text-error p-1.5 rounded-lg hover:bg-surface-container-high transition-colors font-label-sm text-label-sm flex items-center gap-1 cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[16px]">
-                    clear_all
-                  </span>
-                  <span className="hidden md:inline">Clear Inactive</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleClearInactive}
+                className="text-on-surface-variant hover:text-error px-2.5 py-1 rounded-lg hover:bg-surface-container-high font-label-sm text-xs flex items-center gap-1 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[16px]">clear_all</span>
+                <span>Clear Completed</span>
+              </button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left font-body-sm text-body-sm text-on-surface tabular-nums">
-                <thead>
-                  <tr className="bg-surface-container-lowest/60 text-outline font-label-sm text-label-sm uppercase tracking-wider">
-                    <th className="py-3 px-4">File Name</th>
-                    <th className="py-3 px-3">Type</th>
-                    <th className="py-3 px-3">Size</th>
-                    <th className="py-3 px-4">Upload Status</th>
-                    <th className="py-3 px-4">AI Parsing Status</th>
-                    <th className="py-3 px-4 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y-0">
-                  {files.map((file, idx) => (
-                    <tr
-                      key={file.id}
-                      className={`hover:bg-surface-container/50 transition-colors ${
-                        idx % 2 === 1 ? 'bg-surface-container-low/40' : ''
-                      }`}
-                    >
-                      <td className="py-3.5 px-4 font-medium text-on-surface flex items-center gap-2.5 min-w-[220px]">
-                        <span
-                          className={`material-symbols-outlined text-[20px] ${
-                            file.type === 'DOCX'
-                              ? 'text-tertiary-container'
-                              : 'text-error'
-                          }`}
-                        >
-                          {file.type === 'DOCX' ? 'description' : 'picture_as_pdf'}
-                        </span>
-                        <div className="flex flex-col min-w-0">
-                          <span className="truncate font-semibold">{file.fileName}</span>
-                          <span
-                            className={`font-mono-code text-[10px] truncate ${
-                              file.parsingStatus === 'failed'
-                                ? 'text-error'
-                                : 'text-on-surface-variant'
-                            }`}
-                          >
-                            {file.hashOrNote}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-3">
-                        <span className="font-mono-code text-mono-code px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant">
-                          {file.type}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-3 font-mono-code text-mono-code text-on-surface-variant whitespace-nowrap">
-                        {file.size}
-                      </td>
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <span className="material-symbols-outlined text-[16px] text-tertiary">
-                            check_circle
-                          </span>
-                          <span className="font-mono-code text-[12px] text-on-surface">
-                            {file.uploadProgress}%
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        {file.parsingStatus === 'parsed' && (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-300 font-label-sm text-label-sm font-medium whitespace-nowrap">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                            <span>Successfully Parsed</span>
-                          </span>
-                        )}
-
-                        {file.parsingStatus === 'processing' && (
-                          <div className="flex flex-col gap-1.5 min-w-[180px]">
-                            <div className="flex items-center justify-between font-mono-code text-[11px]">
-                              <span className="text-primary font-medium flex items-center gap-1">
-                                <span className="material-symbols-outlined text-[12px] animate-spin">
-                                  refresh
-                                </span>
-                                Processing Entities
-                              </span>
-                              <span className="text-tertiary font-bold">
-                                {file.parsingProgress ?? 78}%
-                              </span>
-                            </div>
-                            <div className="w-full h-1.5 rounded-full bg-surface-container-highest overflow-hidden">
-                              <div
-                                className="h-full rounded-full bg-gradient-to-r from-primary-container to-secondary-container transition-all duration-500"
-                                style={{ width: `${file.parsingProgress ?? 78}%` }}
-                              />
-                            </div>
-                          </div>
-                        )}
-
-                        {file.parsingStatus === 'duplicate' && (
-                          <div className="flex flex-col gap-0.5">
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-300 font-label-sm text-label-sm font-medium w-fit">
-                              <span className="material-symbols-outlined text-[13px]">
-                                warning
-                              </span>
-                              <span>Duplicate Detected</span>
-                            </span>
-                            <span className="font-mono-code text-[10px] text-amber-200/80">
-                              {file.duplicateMatch}
-                            </span>
-                          </div>
-                        )}
-
-                        {file.parsingStatus === 'failed' && (
-                          <div className="flex flex-col gap-0.5">
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-error-container/40 text-error font-label-sm text-label-sm font-medium w-fit">
-                              <span className="material-symbols-outlined text-[13px]">
-                                error
-                              </span>
-                              <span>Parsing Failed</span>
-                            </span>
-                            <span className="font-mono-code text-[10px] text-error/90">
-                              {file.errorDetail}
-                            </span>
-                          </div>
-                        )}
-
-                        {file.parsingStatus === 'waiting' && (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-medium whitespace-nowrap">
-                            <span className="w-1.5 h-1.5 rounded-full bg-outline" />
-                            <span>Waiting in Queue</span>
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                        {file.parsingStatus === 'parsed' && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              onSelectCandidate(
-                                CANDIDATES_DATA[idx % CANDIDATES_DATA.length]
-                              )
-                            }
-                            className="text-tertiary hover:text-on-surface font-label-md text-label-md inline-flex items-center gap-1 hover:underline cursor-pointer"
-                          >
-                            <span>View Details</span>
-                            <span className="material-symbols-outlined text-[14px]">
-                              arrow_forward
-                            </span>
-                          </button>
-                        )}
-                        {file.parsingStatus === 'processing' && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveFile(file.id)}
-                            className="text-on-surface-variant hover:text-error font-label-md text-label-md transition-colors cursor-pointer"
-                          >
-                            Cancel
-                          </button>
-                        )}
-                        {file.parsingStatus === 'duplicate' && (
-                          <button
-                            type="button"
-                            onClick={() => handleResolveDuplicate(file.id)}
-                            className="px-2.5 py-1 rounded bg-amber-500/20 text-amber-200 hover:bg-amber-500/30 font-label-md text-label-md transition-colors cursor-pointer"
-                          >
-                            Resolve
-                          </button>
-                        )}
-                        {file.parsingStatus === 'failed' && (
-                          <button
-                            type="button"
-                            onClick={handleRetryFailed}
-                            className="px-2.5 py-1 rounded bg-surface-container-high text-primary hover:bg-surface-container-highest font-label-md text-label-md inline-flex items-center gap-1 transition-colors cursor-pointer"
-                          >
-                            <span className="material-symbols-outlined text-[13px]">
-                              refresh
-                            </span>
-                            <span>Retry</span>
-                          </button>
-                        )}
-                        {file.parsingStatus === 'waiting' && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveFile(file.id)}
-                            className="text-on-surface-variant hover:text-error font-label-md text-label-md transition-colors cursor-pointer"
-                          >
-                            Remove
-                          </button>
-                        )}
-                      </td>
+            {files.length === 0 ? (
+              <div className="p-10 text-center text-xs text-outline">
+                No files queued yet. Drop PDF or DOCX resumes above to begin automated extraction.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left font-body-sm text-body-sm tabular-nums">
+                  <thead>
+                    <tr className="bg-surface-container-lowest/60 text-outline font-label-sm text-label-sm uppercase tracking-wider">
+                      <th className="py-3 px-4">File Name</th>
+                      <th className="py-3 px-3">Type</th>
+                      <th className="py-3 px-3">Size</th>
+                      <th className="py-3 px-4">Processing Status</th>
+                      <th className="py-3 px-4 text-right">Action</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="p-space-md bg-surface-container/60 flex items-center justify-between text-on-surface-variant font-mono-code text-mono-code">
-              <div className="flex items-center gap-4">
-                <span>Parallel Processing Active</span>
+                  </thead>
+                  <tbody className="divide-y divide-[#263449]/60">
+                    {files.map((file) => (
+                      <tr key={file.id} className="hover:bg-surface-container/50 transition-colors">
+                        <td className="py-3.5 px-4 min-w-[220px]">
+                          <div className="flex items-center gap-2.5">
+                            <span
+                              className={`material-symbols-outlined text-[20px] ${
+                                file.type === 'DOCX' ? 'text-blue-400' : 'text-rose-400'
+                              }`}
+                            >
+                              {file.type === 'DOCX' ? 'description' : 'picture_as_pdf'}
+                            </span>
+                            <div className="min-w-0">
+                              <div className="font-semibold text-on-surface truncate">
+                                {file.fileName}
+                              </div>
+                              <div
+                                className={`font-mono-code text-[10px] truncate ${
+                                  file.parsingStatus === 'failed'
+                                    ? 'text-rose-400'
+                                    : 'text-on-surface-variant'
+                                }`}
+                              >
+                                {file.errorDetail || file.hashOrNote}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-3">
+                          <span className="font-mono-code text-xs px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant">
+                            {file.type}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-3 font-mono-code text-xs text-on-surface-variant whitespace-nowrap">
+                          {file.size}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          {file.parsingStatus === 'parsed' && (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 text-xs font-medium">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                              Successfully Parsed
+                            </span>
+                          )}
+                          {file.parsingStatus === 'processing' && (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-container/25 text-primary text-xs font-medium">
+                              <span className="material-symbols-outlined text-[13px] animate-spin">
+                                refresh
+                              </span>
+                              Processing ({file.parsingProgress ?? 50}%)
+                            </span>
+                          )}
+                          {file.parsingStatus === 'duplicate' && (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-300 text-xs font-medium">
+                              Duplicate Detected
+                            </span>
+                          )}
+                          {file.parsingStatus === 'failed' && (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-300 text-xs font-medium">
+                              Failed
+                            </span>
+                          )}
+                          {file.parsingStatus === 'waiting' && (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant text-xs">
+                              Pending
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                          {file.parsingStatus === 'parsed' && file.parsedCandidateDraft && (
+                            <button
+                              type="button"
+                              onClick={() => onSelectCandidate(file.parsedCandidateDraft!)}
+                              className="text-tertiary hover:underline text-xs font-medium cursor-pointer"
+                            >
+                              View Profile →
+                            </button>
+                          )}
+                          {file.parsingStatus === 'duplicate' && (
+                            <button
+                              type="button"
+                              onClick={() => setResolveTarget(file)}
+                              className="px-2.5 py-1 rounded bg-amber-500/20 text-amber-200 hover:bg-amber-500/30 text-xs font-semibold cursor-pointer"
+                            >
+                              Resolve Duplicate
+                            </button>
+                          )}
+                          {file.parsingStatus === 'failed' && (
+                            <button
+                              type="button"
+                              onClick={() => handleRetrySingle(file)}
+                              className="px-2.5 py-1 rounded bg-surface-container-high text-primary hover:bg-surface-bright text-xs cursor-pointer"
+                            >
+                              Retry
+                            </button>
+                          )}
+                          {file.parsingStatus === 'waiting' && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveFile(file.id)}
+                              className="text-outline hover:text-rose-400 text-xs cursor-pointer"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <span className="text-tertiary font-medium">
-                {files.filter((f) => f.parsingStatus === 'processing').length} In-flight,{' '}
-                {files.filter((f) => f.parsingStatus === 'waiting').length} Pending
-              </span>
-            </div>
-          </div>
-
-          {/* Quick Feature Callout: Auto-Skill Mapping */}
-          <div className="rounded-2xl glass-card p-space-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md shadow-sm">
-            <div className="flex items-center gap-space-md">
-              <div className="w-10 h-10 rounded-lg bg-primary-container/20 flex items-center justify-center text-primary">
-                <span className="material-symbols-outlined text-[22px]">hub</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-headline-sm text-headline-sm text-on-surface font-semibold">
-                  Semantic Taxonomy Normalization
-                </span>
-                <span className="font-body-sm text-body-sm text-on-surface-variant">
-                  Resumes are automatically normalized against 42,000+ standardized technical competencies.
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center gap-space-xs font-mono-code text-mono-code text-tertiary whitespace-nowrap bg-surface-container-high px-3 py-1.5 rounded-lg">
-              <span className="material-symbols-outlined text-[14px]">
-                verified
-              </span>
-              <span>STANDARDIZED SKILLS</span>
-            </div>
+            )}
           </div>
         </div>
 
-        {/* Right Column: AI Processing Intelligence Panel & Diagnostics (4 Cols Desktop) */}
+        {/* Right Column: AI Processing Intelligence */}
         <div className="xl:col-span-4 flex flex-col gap-space-xl">
-          <div className="rounded-2xl glass-card p-space-lg shadow-md flex flex-col gap-space-lg relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-secondary-container/15 blur-2xl pointer-events-none" />
-
-            <div className="flex items-start justify-between relative z-10">
-              <div className="flex flex-col">
+          <div className="rounded-2xl glass-card p-space-lg shadow-md flex flex-col gap-5">
+            <div className="flex items-start justify-between">
+              <div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="font-mono-code text-mono-code text-tertiary tracking-wide uppercase">
+                  <span className="font-mono-code text-xs text-tertiary uppercase">
                     AI Parser Ready
                   </span>
                 </div>
-                <h3 className="font-headline-md text-headline-md text-on-surface mt-1">
+                <h3 className="font-headline-md text-on-surface font-semibold mt-1">
                   Parsing Intelligence
                 </h3>
               </div>
               <span className="px-2.5 py-1 rounded-full bg-primary-container text-on-primary-container font-mono-code text-[11px] font-bold">
-                AI PARSER
+                Gemini AI
               </span>
             </div>
 
-            <div className="p-space-md rounded-lg bg-surface-container flex items-center justify-between">
-              <div className="flex items-center gap-space-sm">
-                <span className="material-symbols-outlined text-primary text-[20px]">
-                  psychology
-                </span>
-                <div className="flex flex-col">
-                  <span className="font-label-sm text-label-sm text-outline uppercase">
-                    Active Parser Model
-                  </span>
-                  <span className="font-body-md text-body-md text-on-surface font-semibold">
-                    Gemini 1.5 ATS Parser
-                  </span>
-                </div>
+            <div className="space-y-2 tabular-nums">
+              <div className="flex justify-between text-xs">
+                <span className="text-on-surface-variant">Batch Progress</span>
+                <span className="font-mono-code text-white font-bold">{overallPct}%</span>
               </div>
-              <span className="font-mono-code text-[11px] text-tertiary bg-surface-container-high px-2 py-0.5 rounded">
-                Active
-              </span>
-            </div>
-
-            <div className="flex flex-col gap-space-xs tabular-nums">
-              <div className="flex items-center justify-between font-body-sm text-body-sm">
-                <span className="text-on-surface-variant font-medium">
-                  Batch Overall Progress
-                </span>
-                <span className="font-mono-code text-on-surface font-bold text-headline-sm">
-                  {overallPct}%
-                </span>
-              </div>
-              <div className="w-full h-3 rounded-full bg-surface-container-highest overflow-hidden p-0.5">
+              <div className="w-full h-2.5 rounded-full bg-surface-container-highest overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-primary-container via-secondary-container to-secondary transition-all duration-700 shadow-sm"
+                  className="h-full rounded-full bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] transition-all duration-500"
                   style={{ width: `${overallPct}%` }}
                 />
               </div>
-              <div className="flex items-center justify-between font-mono-code text-[11px] text-outline mt-1">
-                <span>Matching extracted skills &amp; experience</span>
-                <span>{overallPct === 100 ? 'Complete' : '4.5s remaining'}</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 tabular-nums text-xs">
+              <div className="p-3.5 rounded-xl bg-surface-container">
+                <span className="text-outline block">Queued / Total</span>
+                <span className="font-headline-lg font-bold text-white">{files.length}</span>
+              </div>
+              <div className="p-3.5 rounded-xl bg-surface-container">
+                <span className="text-emerald-300 block">Parsed</span>
+                <span className="font-headline-lg font-bold text-emerald-400">{parsedCount}</span>
+              </div>
+              <div className="p-3.5 rounded-xl bg-surface-container">
+                <span className="text-amber-300 block">Duplicates</span>
+                <span className="font-headline-lg font-bold text-amber-400">{duplicateCount}</span>
+              </div>
+              <div className="p-3.5 rounded-xl bg-surface-container">
+                <span className="text-rose-300 block">Failed</span>
+                <span className="font-headline-lg font-bold text-rose-400">{failedCount}</span>
               </div>
             </div>
 
-            {/* High-Density Metric Grid */}
-            <div className="grid grid-cols-2 gap-space-sm tabular-nums">
-              <div className="p-space-md rounded-lg bg-surface-container flex flex-col justify-between">
-                <span className="font-label-sm text-label-sm text-on-surface-variant">
-                  Total Uploaded
-                </span>
-                <div className="flex items-baseline gap-2 mt-2">
-                  <span className="font-headline-lg text-headline-lg font-bold text-on-surface">
-                    {files.length}
-                  </span>
-                  <span className="font-mono-code text-[11px] text-outline">
-                    resumes
-                  </span>
-                </div>
-                <div className="mt-2 flex items-center gap-1 text-[11px] font-mono-code text-tertiary">
-                  <span className="material-symbols-outlined text-[13px]">
-                    inbox
-                  </span>
-                  <span>100% Ingested</span>
-                </div>
-              </div>
-
-              <div className="p-space-md rounded-lg bg-surface-container flex flex-col justify-between">
-                <span className="font-label-sm text-label-sm text-emerald-300">
-                  Successfully Parsed
-                </span>
-                <div className="flex items-baseline gap-2 mt-2">
-                  <span className="font-headline-lg text-headline-lg font-bold text-emerald-400">
-                    {parsedCount}
-                  </span>
-                  <span className="font-mono-code text-[11px] text-outline">
-                    profiles
-                  </span>
-                </div>
-                <div className="mt-2 flex items-center gap-1 text-[11px] font-mono-code text-emerald-400">
-                  <span className="material-symbols-outlined text-[13px]">
-                    verified
-                  </span>
-                  <span>Profiles Built</span>
-                </div>
-              </div>
-
-              <div className="p-space-md rounded-lg bg-surface-container flex flex-col justify-between">
-                <span className="font-label-sm text-label-sm text-amber-300">
-                  Duplicates Flagged
-                </span>
-                <div className="flex items-baseline gap-2 mt-2">
-                  <span className="font-headline-lg text-headline-lg font-bold text-amber-400">
-                    {duplicateCount}
-                  </span>
-                  <span className="font-mono-code text-[11px] text-outline">
-                    conflict
-                  </span>
-                </div>
-                <div className="mt-2 flex items-center gap-1 text-[11px] font-mono-code text-amber-300">
-                  <span className="material-symbols-outlined text-[13px]">
-                    content_copy
-                  </span>
-                  <span>Requires Merge</span>
-                </div>
-              </div>
-
-              <div className="p-space-md rounded-lg bg-surface-container flex flex-col justify-between">
-                <span className="font-label-sm text-label-sm text-error">
-                  Parsing Failures
-                </span>
-                <div className="flex items-baseline gap-2 mt-2">
-                  <span className="font-headline-lg text-headline-lg font-bold text-error">
-                    {failedCount}
-                  </span>
-                  <span className="font-mono-code text-[11px] text-outline">
-                    unreadable
-                  </span>
-                </div>
-                <div className="mt-2 flex items-center gap-1 text-[11px] font-mono-code text-error">
-                  <span className="material-symbols-outlined text-[13px]">
-                    broken_image
-                  </span>
-                  <span>Unreadable File</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Processing Speed Sparkline */}
-            <div className="p-space-md rounded-lg bg-surface-container-high/60 flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <span className="font-label-sm text-label-sm text-on-surface-variant">
-                  Processing Speed
-                </span>
-                <span className="font-mono-code text-[11px] text-primary">
-                  Fast Batch Mode
-                </span>
-              </div>
-              <div className="h-10 w-full flex items-end">
-                <svg className="w-full h-full text-primary" fill="none" viewBox="0 0 280 40">
-                  <path
-                    d="M0 32 L35 24 L70 28 L105 14 L140 18 L175 6 L210 12 L245 4 L280 16"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                  />
-                  <path
-                    d="M0 32 L35 24 L70 28 L105 14 L140 18 L175 6 L210 12 L245 4 L280 16 L280 40 L0 40 Z"
-                    fill="currentColor"
-                    fillOpacity="0.1"
-                  />
-                </svg>
-              </div>
-            </div>
-
-            {/* Primary CTA */}
             <button
               type="button"
+              disabled={isProcessing}
               onClick={handleStartParsing}
-              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-headline-sm text-headline-sm font-semibold flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 border border-white/15 hover:opacity-95 active:scale-[0.99] transition-all cursor-pointer"
+              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 border border-white/15 hover:opacity-95 disabled:opacity-60 cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[20px]">
-                auto_awesome
+              <span className={`material-symbols-outlined text-[20px] ${isProcessing ? 'animate-spin' : ''}`}>
+                {isProcessing ? 'refresh' : 'auto_awesome'}
               </span>
-              <span>Start AI Resume Parsing</span>
+              <span>{isProcessing ? 'Parsing Resumes...' : 'Start AI Resume Parsing'}</span>
             </button>
           </div>
 
-          {/* Downstream Operations */}
-          <div className="rounded-2xl glass-card p-space-lg shadow-sm flex flex-col gap-space-md">
-            <h4 className="font-label-sm text-label-sm text-outline uppercase tracking-wider">
-              Downstream Operations
+          <div className="rounded-2xl glass-card p-5 space-y-2.5">
+            <h4 className="font-label-sm text-outline uppercase tracking-wider">
+              Downstream Actions
             </h4>
-            <div className="flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={() => onNavigate('candidates')}
-                className="w-full py-2.5 px-3.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-body-sm text-body-sm font-medium flex items-center justify-between transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className="material-symbols-outlined text-[18px] text-tertiary">
-                    badge
-                  </span>
-                  <span>View Parsed Candidates</span>
-                </div>
-                <span className="px-2 py-0.5 rounded bg-surface-bright font-mono-code text-[11px] text-tertiary font-bold">
-                  {parsedCount} Ready
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleRetryFailed}
-                className="w-full py-2.5 px-3.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-body-sm text-body-sm font-medium flex items-center justify-between transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className="material-symbols-outlined text-[18px] text-primary">
-                    restart_alt
-                  </span>
-                  <span>Retry Failed Files</span>
-                </div>
-                <span className="px-2 py-0.5 rounded bg-surface-bright font-mono-code text-[11px] text-error font-bold">
-                  {failedCount} Item
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => showToast('Downloaded extraction_summary.csv')}
-                className="w-full py-2.5 px-3.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-body-sm text-body-sm font-medium flex items-center justify-between transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className="material-symbols-outlined text-[18px] text-on-surface-variant">
-                    download_for_offline
-                  </span>
-                  <span>Download Extraction Summary (CSV)</span>
-                </div>
-                <span className="material-symbols-outlined text-[16px] text-outline">
-                  file_download
-                </span>
-              </button>
-            </div>
-
-            <div className="mt-2 pt-3 flex items-start gap-2 text-on-surface-variant font-mono-code text-[10px] leading-relaxed">
-              <span className="material-symbols-outlined text-[14px] text-tertiary shrink-0 mt-0.5">
-                lock
-              </span>
-              <span>
-                Encrypted resume processing with privacy protection enabled by default.
-              </span>
-            </div>
+            <button
+              type="button"
+              onClick={() => onNavigate('candidates')}
+              className="w-full py-2.5 px-3.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-xs text-on-surface flex items-center justify-between cursor-pointer"
+            >
+              <span>View Candidate List</span>
+              <span className="font-mono-code text-tertiary">{candidates.length} Total</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleExportSummary}
+              disabled={files.length === 0}
+              className="w-full py-2.5 px-3.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-xs text-on-surface flex items-center justify-between disabled:opacity-40 cursor-pointer"
+            >
+              <span>Download Upload Summary (CSV)</span>
+              <span className="material-symbols-outlined text-[16px] text-outline">download</span>
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Duplicate Resolution Modal */}
+      {resolveTarget && resolveTarget.parsedCandidateDraft && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div
+            className="fixed inset-0 bg-black/70 backdrop-blur-xs"
+            onClick={() => setResolveTarget(null)}
+          />
+          <div className="relative w-full max-w-lg rounded-2xl bg-[#111827] border border-[#263449] shadow-2xl p-6 z-10 space-y-4">
+            <h3 className="font-headline-md text-white font-semibold flex items-center gap-2">
+              <span className="material-symbols-outlined text-amber-400">warning</span>
+              <span>Duplicate Resume Detected</span>
+            </h3>
+            <p className="text-xs text-on-surface-variant">
+              <strong>{resolveTarget.parsedCandidateDraft.name}</strong> ({resolveTarget.fileName}) matched an existing candidate: <span className="text-amber-300">{resolveTarget.duplicateMatch}</span>.
+            </p>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setFiles((prev) => prev.filter((f) => f.id !== resolveTarget.id));
+                  setResolveTarget(null);
+                  showToast('Skipped duplicate resume upload', 'info');
+                }}
+                className="px-3.5 py-2 rounded-lg bg-surface-container-high text-xs text-white cursor-pointer"
+              >
+                Skip Duplicate
+              </button>
+              {resolveTarget.duplicateCandidateId && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    mergeDuplicateCandidate(
+                      resolveTarget.parsedCandidateDraft!,
+                      resolveTarget.duplicateCandidateId!
+                    );
+                    setFiles((prev) =>
+                      prev.map((f) =>
+                        f.id === resolveTarget.id
+                          ? { ...f, parsingStatus: 'parsed', hashOrNote: 'Merged cleanly into existing profile' }
+                          : f
+                      )
+                    );
+                    setResolveTarget(null);
+                  }}
+                  className="px-3.5 py-2 rounded-lg bg-amber-500 text-black text-xs font-semibold cursor-pointer"
+                >
+                  Merge Details
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  const uniqueDraft: CandidateProfile = {
+                    ...resolveTarget.parsedCandidateDraft!,
+                    duplicateStatus: 'Requires Review',
+                  };
+                  addCandidate(uniqueDraft);
+                  setFiles((prev) =>
+                    prev.map((f) =>
+                      f.id === resolveTarget.id
+                        ? { ...f, parsingStatus: 'parsed', hashOrNote: 'Added for manual review' }
+                        : f
+                    )
+                  );
+                  setResolveTarget(null);
+                }}
+                className="px-3.5 py-2 rounded-lg bg-primary-container text-white text-xs font-semibold cursor-pointer"
+              >
+                Add as New Record
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

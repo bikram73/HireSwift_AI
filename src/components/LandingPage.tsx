@@ -94,7 +94,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
           <div className="flex justify-center mb-6">
             <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-[#151E32]/90 border border-[#263449] shadow-inner text-xs sm:text-sm font-medium text-[#F8FAFC]">
               <span className="inline-flex items-center justify-center w-2 h-2 rounded-full bg-[#8B5CF6] animate-pulse" />
-              <span>Powered by Gemini 1.5 Pro ATS Parser</span>
+              <span>Powered by Gemini AI ATS Parser</span>
               <span className="text-[#263449]">•</span>
               <span className="text-[#8B5CF6] font-semibold">99.4% Extraction Accuracy</span>
             </div>
@@ -432,7 +432,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
               </div>
               <h3 className="text-lg font-bold text-white mb-2">Neural JD Alignment</h3>
               <p className="text-sm text-[#94A3B8]">
-                Gemini 1.5 Pro compares applicant technical histories against your role&apos;s specific tech stack, assigning a clear % fit score with itemized reasoning.
+                Gemini AI compares applicant technical histories against your role&apos;s specific tech stack, assigning a clear % fit score with itemized reasoning.
               </p>
             </div>
 

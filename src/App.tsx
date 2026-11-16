@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { AtsProvider } from './context/AtsContext';
 import { CandidateDrawer } from './components/CandidateDrawer';
 import { LandingPage } from './components/LandingPage';
 import { WorkspaceShell } from './components/WorkspaceShell';
@@ -22,6 +23,7 @@ import {
   CandidateRankingView,
   CompareCandidatesView,
   HiringPipelineView,
+  JobDetailsView,
   JobManagementView,
 } from './components/views/TalentWorkflowViews';
 import { CandidateProfile, WorkspaceRoute } from './data/atsData';
@@ -31,6 +33,7 @@ const VALID_ROUTES: WorkspaceRoute[] = [
   'candidates',
   'resume-upload',
   'job-management',
+  'job-details',
   'ai-matching',
   'candidate-ranking',
   'hiring-pipeline',
@@ -50,7 +53,7 @@ function parseHashState(): { mode: 'landing' | 'workspace'; route: WorkspaceRout
   return { mode: 'landing', route: 'dashboard' };
 }
 
-export default function App() {
+function AppContent() {
   const initial = parseHashState();
   const [mode, setMode] = useState<'landing' | 'workspace'>(initial.mode);
   const [activeRoute, setActiveRoute] = useState<WorkspaceRoute>(initial.route);
@@ -118,6 +121,13 @@ export default function App() {
         );
       case 'job-management':
         return <JobManagementView onNavigate={navigateWorkspace} />;
+      case 'job-details':
+        return (
+          <JobDetailsView
+            onNavigate={navigateWorkspace}
+            onSelectCandidate={setSelectedCandidate}
+          />
+        );
       case 'ai-matching':
         return (
           <AIMatchingView
@@ -172,6 +182,7 @@ export default function App() {
         activeRoute={activeRoute}
         onNavigate={navigateWorkspace}
         onGoLanding={goLanding}
+        onSelectCandidate={setSelectedCandidate}
       >
         {renderWorkspaceView()}
       </WorkspaceShell>
@@ -182,5 +193,13 @@ export default function App() {
         onScheduleEmail={() => navigateWorkspace('email-center')}
       />
     </>
+  );
+}
+
+export default function App() {
+  return (
+    <AtsProvider>
+      <AppContent />
+    </AtsProvider>
   );
 }

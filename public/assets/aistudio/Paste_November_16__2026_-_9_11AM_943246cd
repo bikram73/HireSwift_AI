@@ -1,0 +1,2451 @@
+# 🚀 PROJECT REQUIREMENTS DOCUMENT (PRD)
+# HireSwift AI – Smart Applicant Tracking System (ATS)
+
+**Project Name:** HireSwift AI  
+**Project Type:** AI-Powered Applicant Tracking System  
+**Problem Statement:** PS1 – HireSwift, a Smart ATS for Small Teams  
+**Development Platform:** Google AI Studio  
+**AI Model:** Google Gemini API  
+**Frontend:** React + TypeScript  
+**Styling:** Tailwind CSS  
+**Backend:** Python + Flask  
+**Resume Processing:** PDF.js / PyMuPDF and Mammoth.js  
+**Data Management:** In-memory application state and browser local storage  
+**Database:** Not Required  
+**Authentication:** Not Required  
+
+---
+
+# 📑 TABLE OF CONTENTS
+
+1. Project Overview
+2. Problem Statement
+3. Project Objectives
+4. Proposed Solution
+5. Target Users
+6. Core Features and Functional Requirements
+7. Detailed Module Specifications
+8. AI Integration and Intelligence
+9. Resume Parsing Requirements
+10. Job Description Management
+11. AI Resume-JD Matching Engine
+12. Advanced Candidate Filtering
+13. Candidate Ranking System
+14. Duplicate Resume Detection
+15. Recruitment Pipeline Management
+16. Recruiter Dashboard and Analytics
+17. Side-by-Side Candidate Comparison
+18. Bulk Email Functionality
+19. Skill Gap Analysis
+20. User Interface and UX Requirements
+21. Application Pages and Navigation
+22. Technical Architecture
+23. Technology Stack
+24. Data Structures and Application State
+25. Backend API Specifications
+26. AI Prompt Engineering Requirements
+27. Data Management and Storage Strategy
+28. Error Handling and Validation
+29. Performance and Scalability Requirements
+30. Security and Privacy Requirements
+31. Accessibility and Responsiveness
+32. Sample Dataset and Test Scenarios
+33. End-to-End User Workflow
+34. Testing and Quality Assurance
+35. Acceptance Criteria
+36. Deployment Requirements
+37. Expected Final Deliverables
+38. Development Phases
+39. Important Development Constraints
+
+---
+
+# 1. PROJECT OVERVIEW
+
+HireSwift AI is an intelligent Applicant Tracking System designed to simplify and accelerate recruitment for small businesses, startups, and growing organizations.
+
+The platform will allow recruiters to upload multiple candidate resumes, automatically extract relevant information, create job descriptions, evaluate candidate suitability using AI, rank applicants, filter candidates using academic and professional criteria, and manage candidates throughout the recruitment lifecycle.
+
+The system will combine traditional recruitment management with AI-powered resume understanding and explainable candidate matching.
+
+The application must provide a complete recruitment workflow through a modern, responsive, professional dashboard.
+
+The main objective is to reduce manual resume screening, improve candidate discovery, minimize repetitive recruitment tasks, and help recruiters make structured and informed hiring decisions.
+
+**Core Product Vision:**
+
+Build a lightweight, intelligent, and easy-to-use recruitment platform that enables small teams to manage their entire hiring process from a single application.
+
+# 2. PROBLEM STATEMENT
+
+Small companies and startups frequently receive hundreds of applications for individual job openings.
+
+Recruiters often face the following problems:
+
+- Manually reviewing large numbers of resumes.
+- Difficulty identifying candidates with relevant skills.
+- Inconsistent resume screening processes.
+- Time-consuming comparison of candidate qualifications.
+- Difficulty filtering applicants by academic performance.
+- Missing qualified candidates because of manual screening.
+- Lack of structured candidate tracking.
+- Difficulty identifying duplicate applications.
+- Lack of visibility into recruitment progress.
+- Delays in communicating with shortlisted candidates.
+
+Traditional recruitment methods do not provide an efficient way to manage large applicant pools with limited HR resources.
+
+HireSwift AI aims to solve these problems through intelligent resume parsing, automated candidate matching, advanced filtering, candidate ranking, and recruitment pipeline management.
+
+# 3. PROJECT OBJECTIVES
+
+The application must achieve the following objectives:
+
+1. Allow recruiters to upload multiple PDF and DOCX resumes simultaneously.
+2. Extract candidate information automatically using document processing and AI.
+3. Convert unstructured resume content into structured candidate profiles.
+4. Allow recruiters to create and manage multiple job descriptions.
+5. Match resumes with relevant job descriptions using AI.
+6. Generate candidate matching scores between 0 and 100.
+7. Provide transparent explanations for candidate matching scores.
+8. Support academic, technical, and professional candidate filtering.
+9. Automatically rank candidates according to job suitability.
+10. Detect duplicate resumes and duplicate candidate profiles.
+11. Manage candidates through a complete recruitment pipeline.
+12. Provide recruiter analytics and hiring insights.
+13. Compare multiple candidates side by side.
+14. Generate skill-gap insights.
+15. Support bulk email preparation for shortlisted candidates.
+16. Provide exportable recruitment reports.
+17. Maintain a responsive and professional user experience.
+
+# 4. PROPOSED SOLUTION
+
+HireSwift AI will provide a centralized recruitment workspace containing the following major modules:
+
+- Recruiter Dashboard
+- Bulk Resume Upload
+- AI Resume Parser
+- Candidate Management
+- Job Description Management
+- AI Resume-JD Matching
+- Candidate Ranking
+- Advanced Candidate Filtering
+- Duplicate Detection
+- Recruitment Pipeline
+- Candidate Comparison
+- AI Skill Gap Analysis
+- Email Communication
+- Recruitment Analytics
+- Reports and Export
+
+The application must work without database integration and without authentication.
+
+All application functionality must be available immediately after opening the application.
+
+No login, registration, password management, or database setup should be implemented.
+
+# 5. TARGET USERS
+
+## Primary Users
+
+**Small Business Recruiters**
+
+Recruiters managing a limited number of job openings and large numbers of applicants.
+
+**Startup Founders**
+
+Founders who manage recruitment without a dedicated HR department.
+
+**HR Managers**
+
+HR professionals responsible for candidate screening, interviewing, and hiring.
+
+**Recruitment Teams**
+
+Small recruitment teams that need structured candidate management and evaluation.
+
+# 6. CORE FEATURES AND FUNCTIONAL REQUIREMENTS
+
+The application must include the following mandatory features.
+
+| Feature | Priority | Requirement |
+|---|---|---|
+| Bulk Resume Upload | Critical | Upload multiple PDF/DOCX files |
+| Resume Parsing | Critical | Extract structured candidate details |
+| Job Description Management | Critical | Create and manage JDs |
+| AI Resume Matching | Critical | Generate matching scores |
+| Candidate Filtering | Critical | Filter by academic and professional criteria |
+| Candidate Ranking | Critical | Rank suitable candidates |
+| Recruitment Pipeline | Critical | Manage candidate hiring stages |
+| Recruiter Dashboard | Critical | Display hiring statistics |
+| Candidate Comparison | High | Compare candidate profiles |
+| Duplicate Detection | High | Identify duplicate applicants |
+| Skill Gap Analysis | High | Identify missing skills |
+| Bulk Email | Medium | Prepare bulk candidate emails |
+| Export Reports | High | Export candidate and hiring data |
+
+# 7. DETAILED MODULE SPECIFICATIONS
+
+## 7.1 Recruiter Dashboard
+
+Create a centralized dashboard displaying recruitment information.
+
+### Dashboard Statistics
+
+Display the following cards:
+
+- Total Candidates
+- Total Job Openings
+- Applications Received
+- Shortlisted Candidates
+- Interview Candidates
+- Offers Released
+- Rejected Candidates
+- Average Candidate Match Score
+
+### Dashboard Visualizations
+
+Include:
+
+1. Candidate application trend chart.
+2. Recruitment pipeline funnel.
+3. Candidate distribution by hiring stage.
+4. Job-wise application distribution.
+5. Skills distribution chart.
+6. Top-performing candidate ranking.
+7. Recent candidate activity.
+8. Recent job openings.
+
+### Dashboard Functionality
+
+- Statistics must update dynamically.
+- Charts must reflect the current application data.
+- Selecting a statistic card should navigate to the corresponding candidate list.
+- Recent activity should update whenever a candidate is uploaded, shortlisted, rejected, or moved to another stage.
+- Provide quick-action buttons for uploading resumes and creating job descriptions.
+
+Do not use static hardcoded dashboard statistics when actual application data is available.
+
+## 7.2 Bulk Resume Upload Module
+
+Create a dedicated resume upload interface.
+
+### Supported File Formats
+
+- PDF
+- DOCX
+
+### Upload Requirements
+
+- Support multiple file selection.
+- Support drag-and-drop uploads.
+- Display uploaded filenames.
+- Display file sizes and file types.
+- Show individual processing status.
+- Show upload progress.
+- Provide processing progress indicators.
+- Allow users to remove files before processing.
+- Allow users to retry failed documents.
+- Display a summary after processing.
+
+### Processing Status
+
+Each uploaded document should have one of these statuses:
+
+- Pending
+- Processing
+- Successfully Parsed
+- Duplicate Detected
+- Failed
+
+### Upload Validation
+
+Validate:
+
+- Supported file extensions.
+- MIME type.
+- File size.
+- Empty documents.
+- Password-protected documents.
+- Corrupted documents.
+- Unreadable documents.
+
+Use a configurable maximum file size of 10 MB per resume.
+
+### Bulk Processing
+
+When multiple resumes are uploaded:
+
+1. Create a temporary processing queue.
+2. Process each resume independently.
+3. Extract document text.
+4. Send extracted text to the Gemini API.
+5. Receive structured JSON.
+6. Validate extracted fields.
+7. Create a candidate profile.
+8. Check for duplicates.
+9. Add successfully parsed candidates to the candidate list.
+10. Display the processing summary.
+
+One failed resume must not interrupt the remaining upload queue.
+
+## 7.3 AI Resume Parsing Module
+
+The resume parser is one of the most important components of HireSwift AI.
+
+The system must extract information from unstructured resumes and convert it into structured candidate profiles.
+
+### Required Candidate Fields
+
+**Personal Information**
+
+- Candidate ID (temporary session identifier).
+- Full Name.
+- Email Address.
+- Phone Number.
+- Current Location.
+- LinkedIn URL.
+- GitHub URL.
+- Portfolio URL.
+
+**Educational Information**
+
+- 10th School Name.
+- 10th Percentage.
+- 10th Passing Year.
+- 12th School or College Name.
+- 12th Percentage.
+- 12th Passing Year.
+- Diploma Details.
+- Diploma Percentage or CGPA.
+- Undergraduate Degree.
+- Undergraduate Branch.
+- Undergraduate Institution.
+- Undergraduate CGPA.
+- Graduation Year.
+- Postgraduate Details.
+- Additional Education.
+
+**Professional Information**
+
+- Total Years of Experience.
+- Current Job Title.
+- Previous Job Titles.
+- Previous Companies.
+- Employment History.
+- Internship Experience.
+- Project Experience.
+
+**Technical Information**
+
+- Programming Languages.
+- Frameworks.
+- Libraries.
+- Databases.
+- Cloud Technologies.
+- Developer Tools.
+- AI and ML Technologies.
+- Other Technical Skills.
+
+**Additional Information**
+
+- Certifications.
+- Achievements.
+- Soft Skills.
+- Languages Known.
+- Resume Summary.
+- Key Strengths.
+
+### Extraction Rules
+
+1. Extract only information supported by the resume.
+2. Never invent missing academic percentages.
+3. Never assume a candidate has professional experience based on projects alone.
+4. If a field is missing, return null.
+5. Distinguish between CGPA and percentage.
+6. Preserve the original value and grading scale.
+7. Do not convert CGPA into percentage without an explicitly provided conversion rule.
+8. Identify internships separately from full-time experience.
+9. Extract multiple educational qualifications where available.
+10. Provide an extraction confidence indicator for important fields.
+
+### Structured JSON Output
+
+The AI parser must return valid structured JSON.
+
+Example:
+
+{
+  "personal_information": {
+    "full_name": "Rahul Sharma",
+    "email": "rahul@example.com",
+    "phone": "+91XXXXXXXXXX",
+    "location": "Bengaluru, India"
+  },
+  "education": {
+    "tenth_percentage": 88.5,
+    "twelfth_percentage": 85.2,
+    "degree": "B.E.",
+    "branch": "Computer Science",
+    "college": "ABC Institute",
+    "cgpa": 8.4,
+    "graduation_year": 2025
+  },
+  "experience": {
+    "total_years": 1.0,
+    "internships": [],
+    "work_history": []
+  },
+  "skills": {
+    "programming_languages": ["Python", "Java"],
+    "frameworks": ["React", "Flask"],
+    "databases": ["MySQL"],
+    "tools": ["Git", "Docker"],
+    "other_skills": []
+  },
+  "projects": [],
+  "certifications": [],
+  "achievements": [],
+  "resume_summary": "Computer Science graduate with experience in software development.",
+  "missing_fields": [],
+  "confidence": {
+    "name": 0.99,
+    "email": 0.99,
+    "education": 0.95,
+    "skills": 0.92
+  }
+}
+
+The values above are illustrative. Actual values must come from the uploaded resume.
+
+### Manual Correction
+
+Recruiters must be able to:
+
+- Open candidate profiles.
+- Edit extracted information.
+- Correct incorrect fields.
+- Add missing information.
+- Save corrections to the current application state.
+- Recalculate candidate matching after corrections.
+
+## 7.4 Candidate Management Module
+
+Create a dedicated candidate management section.
+
+### Candidate List
+
+Display candidates in a searchable and sortable table.
+
+Columns:
+
+- Candidate Name.
+- Email.
+- Location.
+- Highest Qualification.
+- CGPA.
+- Graduation Year.
+- Experience.
+- Primary Skills.
+- Current Job Match Score.
+- Hiring Stage.
+- Resume Processing Status.
+- Actions.
+
+### Candidate Actions
+
+- View Profile.
+- Edit Candidate.
+- View Original Resume.
+- Match Against Job.
+- Add to Comparison.
+- Shortlist.
+- Move to Interview.
+- Reject.
+- Delete Candidate.
+- Export Profile.
+
+### Candidate Profile Page
+
+Display:
+
+1. Personal details.
+2. Education history.
+3. Technical skills.
+4. Work experience.
+5. Internship experience.
+6. Projects.
+7. Certifications.
+8. Achievements.
+9. Resume summary.
+10. Job matching results.
+11. Skill gaps.
+12. Recruitment activity history.
+
+Include a preview or download option for the original resume during the active session.
+
+# 8. JOB DESCRIPTION MANAGEMENT
+
+Create a dedicated Job Management module.
+
+### Job Creation
+
+Recruiters should be able to:
+
+- Create new job openings.
+- Enter job title.
+- Enter company or department.
+- Add job description.
+- Specify required qualifications.
+- Specify preferred qualifications.
+- Add required skills.
+- Add optional skills.
+- Specify minimum experience.
+- Specify maximum experience.
+- Specify minimum CGPA.
+- Specify eligible graduation years.
+- Specify job location.
+- Select employment type.
+- Define job status.
+
+### Employment Types
+
+- Full-Time.
+- Part-Time.
+- Internship.
+- Contract.
+- Remote.
+- Hybrid.
+- On-Site.
+
+### Job Status
+
+- Active.
+- Paused.
+- Closed.
+- Draft.
+
+### AI Job Description Analyzer
+
+When a recruiter enters a job description, Gemini must extract:
+
+- Job title.
+- Required technical skills.
+- Preferred technical skills.
+- Educational qualifications.
+- Experience requirements.
+- Academic requirements.
+- Responsibilities.
+- Required certifications.
+- Location requirements.
+- Important keywords.
+
+Display the extracted requirements and allow recruiters to edit them before matching candidates.
+
+### Multiple Job Descriptions
+
+The system must support multiple independent job openings.
+
+Each job must have its own:
+
+- Candidate matching results.
+- Ranking.
+- Application count.
+- Recruitment pipeline.
+- Skill requirements.
+- Recruitment statistics.
+
+Candidates should be matchable against multiple jobs.
+
+# 9. AI RESUME-JD MATCHING ENGINE
+
+This is the central intelligence feature of HireSwift AI.
+
+The system must evaluate the suitability of a candidate against a specific job description.
+
+### Matching Process
+
+1. Retrieve the candidate's structured resume profile.
+2. Retrieve the selected job requirements.
+3. Normalize skills and related technologies.
+4. Compare required and preferred skills.
+5. Evaluate academic qualifications.
+6. Evaluate relevant work experience.
+7. Evaluate relevant projects and internships.
+8. Evaluate certifications where relevant.
+9. Calculate the matching score.
+10. Generate an AI explanation.
+11. Identify missing skills.
+12. Identify candidate strengths.
+13. Save the result in the active application state.
+
+### Recommended Matching Score
+
+Use a transparent weighted scoring system.
+
+| Matching Category | Weight |
+|---|---:|
+| Technical Skills | 35% |
+| Relevant Experience | 20% |
+| Education and Qualifications | 15% |
+| Projects and Practical Work | 15% |
+| Certifications | 5% |
+| Job Responsibilities Alignment | 10% |
+| Total | 100% |
+
+The weights must be configurable.
+
+### Matching Calculation
+
+Each category receives a score from 0 to 100.
+
+Final Match Score:
+
+Final Score =
+
+(Skills Score × 0.35) +
+
+(Experience Score × 0.20) +
+
+(Education Score × 0.15) +
+
+(Projects Score × 0.15) +
+
+(Certifications Score × 0.05) +
+
+(Responsibilities Score × 0.10)
+
+Round the final result to the nearest integer.
+
+### Matching Score Categories
+
+| Score | Category | Interpretation |
+|---|---|---|
+| 90–100 | Excellent Match | Very strong alignment |
+| 80–89 | Strong Match | Strong alignment |
+| 70–79 | Good Match | Good alignment |
+| 60–69 | Moderate Match | Some requirements missing |
+| 40–59 | Low Match | Significant gaps |
+| 0–39 | Poor Match | Limited alignment |
+
+These categories are screening indicators, not automatic hiring decisions.
+
+### Important Scoring Rules
+
+- Missing information must not automatically be treated as zero.
+- Unavailable fields should be marked as unknown.
+- Required qualifications and preferred qualifications must be differentiated.
+- Skills must be compared using normalized skill names.
+- Related technologies should not be treated as identical without an explicit equivalence rule.
+- Experience must distinguish professional employment from internships and academic projects.
+- Academic marks should only influence scoring when relevant to the job.
+- Matching scores must be deterministic for identical inputs and scoring configurations.
+- AI-generated explanations must be grounded in extracted candidate and job data.
+
+### AI Matching Explanation
+
+For each candidate, display:
+
+- Overall match score.
+- Technical skill alignment.
+- Experience alignment.
+- Education alignment.
+- Project relevance.
+- Strongest matching areas.
+- Missing requirements.
+- Potential concerns.
+- AI Decision Rationale.
+
+# 10. ADVANCED CANDIDATE FILTERING
+
+Implement a comprehensive filtering system.
+
+### Academic Filters
+
+- Minimum 10th percentage.
+- Maximum 10th percentage.
+- Minimum 12th percentage.
+- Maximum 12th percentage.
+- Minimum CGPA.
+- Maximum CGPA.
+- Degree.
+- Branch.
+- College.
+- Graduation year.
+
+### Technical Filters
+
+- Programming languages.
+- Frameworks.
+- Libraries.
+- Databases.
+- Cloud technologies.
+- AI/ML technologies.
+- Development tools.
+- Custom skills.
+
+### Professional Filters
+
+- Minimum years of experience.
+- Maximum years of experience.
+- Internship experience.
+- Full-time experience.
+- Previous job title.
+- Certifications.
+- Projects.
+
+### Location Filters
+
+- Country.
+- State.
+- City.
+- Remote availability.
+
+### Recruitment Filters
+
+- Applied.
+- Shortlisted.
+- Interview.
+- Offer.
+- Rejected.
+
+### Matching Filters
+
+- Minimum AI score.
+- Maximum AI score.
+- Excellent match.
+- Strong match.
+- Good match.
+- Moderate match.
+- Low match.
+- Poor match.
+
+### Filtering Behavior
+
+- Multiple filters must work together using AND logic by default.
+- Multiple selected skills should support configurable AND/OR matching.
+- Filters must update candidate results immediately.
+- Provide Clear All Filters.
+- Show active filter counts.
+- Display the number of matching candidates.
+- Allow sorting by score, experience, CGPA, graduation year, and application date.
+- Support combinations of academic, professional, location, and technical filters.
+
+### Missing Data Handling
+
+Missing academic information must not be interpreted as zero.
+
+For example, when filtering candidates with CGPA above 8.0, candidates whose CGPA is unavailable should be excluded from that filtered result but remain available when the filter is removed.
+
+# 11. CANDIDATE RANKING SYSTEM
+
+Create a ranking module for each job opening.
+
+### Ranking Criteria
+
+- AI match score.
+- Required skill coverage.
+- Relevant experience.
+- Education alignment.
+- Project relevance.
+
+### Ranking Features
+
+- Highest-to-lowest score sorting.
+- Lowest-to-highest score sorting.
+- Tie-breaking using relevant skill coverage.
+- Top 5 candidates.
+- Top 10 candidates.
+- Top 20 candidates.
+- Export ranked candidates.
+- View ranking explanations.
+
+Ranking must be job-specific.
+
+A candidate with a high score for one job should not automatically receive the same ranking for another job.
+
+# 12. DUPLICATE RESUME DETECTION
+
+Implement duplicate candidate detection.
+
+### Detection Methods
+
+**Method 1: Email Matching**
+
+Compare normalized email addresses.
+
+**Method 2: Phone Matching**
+
+Compare normalized phone numbers.
+
+**Method 3: Resume Fingerprinting**
+
+Generate a document fingerprint using file content hashing.
+
+**Method 4: Profile Similarity**
+
+Compare candidate names, education, employment history, and skill combinations.
+
+### Duplicate Detection Workflow
+
+1. Resume is uploaded.
+2. Extract candidate information.
+3. Compare against existing candidates.
+4. Identify exact duplicates.
+5. Identify potential duplicates.
+6. Display duplicate warnings.
+7. Allow recruiters to review the results.
+8. Allow recruiters to skip or manually merge duplicate profiles.
+
+Never automatically merge two candidates based only on similar names.
+
+### Duplicate Status
+
+- Unique.
+- Exact Duplicate.
+- Potential Duplicate.
+- Requires Review.
+
+# 13. RECRUITMENT PIPELINE MANAGEMENT
+
+Implement a visual recruitment pipeline.
+
+### Required Stages
+
+1. Applied.
+2. Shortlisted.
+3. Interview.
+4. Offer.
+5. Rejected.
+
+### Pipeline Interface
+
+Use a Kanban-style board with separate columns for each recruitment stage.
+
+### Functional Requirements
+
+- Drag-and-drop candidate movement.
+- Manual stage updates.
+- Candidate stage history.
+- Stage-specific candidate counts.
+- Candidate notes.
+- Interview scheduling information.
+- Offer status.
+- Rejection reason.
+- Activity timestamps.
+
+### Pipeline Rules
+
+- Every candidate must have a current hiring stage.
+- Default stage for newly uploaded candidates must be Applied.
+- Candidates can be moved between stages.
+- Rejected candidates must be visible in a separate section.
+- Rejected candidates should not be deleted automatically.
+- Stage updates must immediately update dashboard statistics.
+- Maintain the pipeline independently for each job application.
+
+# 14. RECRUITER DASHBOARD AND ANALYTICS
+
+Create a complete recruitment analytics experience.
+
+### Key Metrics
+
+- Total candidates.
+- Active jobs.
+- Applications per job.
+- Shortlisted percentage.
+- Interview conversion rate.
+- Offer conversion rate.
+- Rejection rate.
+- Average matching score.
+- Average time between application and shortlisting.
+
+### Charts
+
+Use Recharts.
+
+**Chart 1: Application Trends**
+
+Display candidate application counts over time.
+
+**Chart 2: Hiring Funnel**
+
+Display the distribution of candidates across recruitment stages.
+
+**Chart 3: Skill Distribution**
+
+Display the most frequently occurring skills.
+
+**Chart 4: Job-wise Applications**
+
+Compare application counts for individual job openings.
+
+**Chart 5: Candidate Match Distribution**
+
+Display candidates by match score category.
+
+### Analytics Rules
+
+- Charts must use actual current application data.
+- Empty states must be displayed when data is unavailable.
+- Do not generate misleading analytics from invented statistics.
+- All metrics must recalculate after data changes.
+
+# 15. SIDE-BY-SIDE CANDIDATE COMPARISON
+
+Implement a candidate comparison interface.
+
+Recruiters should be able to select between two and four candidates.
+
+### Comparison Fields
+
+| Category | Information |
+|---|---|
+| Personal | Name and location |
+| Education | Degree and college |
+| Academics | 10th, 12th and CGPA |
+| Experience | Total relevant experience |
+| Technical | Skills and technologies |
+| Projects | Project experience |
+| Certifications | Relevant certifications |
+| Job Matching | AI match score |
+| Skill Coverage | Required skill coverage |
+| Skill Gaps | Missing skills |
+| Pipeline | Current hiring stage |
+
+### Comparison Functionality
+
+- Display candidates side by side.
+- Highlight shared skills.
+- Highlight unique skills.
+- Highlight missing requirements.
+- Compare education.
+- Compare professional experience.
+- Compare job-specific match scores.
+- Allow recruiters to open individual candidate profiles.
+
+Do not automatically declare a candidate the best hire solely based on the numerical score.
+
+# 16. AI SKILL GAP ANALYSIS
+
+Implement an AI-powered skill gap analysis module.
+
+### Analysis Process
+
+1. Read job requirements.
+2. Read candidate technical skills.
+3. Identify matched skills.
+4. Identify missing required skills.
+5. Identify missing preferred skills.
+6. Identify relevant transferable skills.
+7. Generate improvement recommendations.
+
+### Output Example
+
+Candidate: Rahul Sharma
+
+Job: Python Developer
+
+Matched Skills:
+- Python
+- Flask
+- SQL
+- Git
+
+Missing Required Skills:
+- Docker
+
+Missing Preferred Skills:
+- AWS
+- Kubernetes
+
+Recommendations:
+- Learn Docker fundamentals.
+- Gain practical cloud deployment experience.
+- Build a containerized Flask application.
+
+The system must distinguish mandatory skill gaps from optional skill gaps.
+
+# 17. BULK EMAIL FUNCTIONALITY
+
+Implement a recruiter email communication module.
+
+### Requirements
+
+- Select multiple shortlisted candidates.
+- Prepare a common email.
+- Add dynamic candidate names.
+- Add job title.
+- Add recruiter message.
+- Preview each personalized email.
+- Validate recipient email addresses.
+- Allow individual editing.
+- Track draft, prepared, and sent status where supported.
+
+### Email Integration
+
+Use an optional email provider integration such as EmailJS or a suitable email API.
+
+If no provider is configured:
+
+- Generate personalized email drafts.
+- Allow copying the content.
+- Allow opening the user's default email application using a mailto link.
+- Clearly display that actual bulk delivery is unavailable.
+
+Never show an email as successfully sent unless the provider confirms successful delivery.
+
+### Email Templates
+
+Include:
+
+1. Application Acknowledgement.
+2. Shortlisting Notification.
+3. Interview Invitation.
+4. Interview Reminder.
+5. Offer Notification.
+6. Rejection Notification.
+
+# 18. USER INTERFACE AND UX REQUIREMENTS
+
+The application must have a premium, professional SaaS design.
+
+### Design Direction
+
+Create a modern AI recruitment dashboard inspired by professional HR SaaS products.
+
+### Recommended Theme
+
+**Primary Theme:** Dark Navy + Electric Blue + Violet.
+
+Color Palette:
+
+- Primary Background: #0B1020
+- Secondary Background: #111827
+- Card Background: #172033
+- Primary Blue: #3B82F6
+- Accent Violet: #8B5CF6
+- Success Green: #22C55E
+- Warning Amber: #F59E0B
+- Danger Red: #EF4444
+- Primary Text: #F8FAFC
+- Secondary Text: #94A3B8
+- Border: #263449
+
+Provide a light theme option if feasible.
+
+### Design Requirements
+
+- Modern sidebar navigation.
+- Clean dashboard layout.
+- Professional typography.
+- Consistent spacing.
+- Rounded cards.
+- Subtle shadows.
+- Clear visual hierarchy.
+- Interactive charts.
+- Responsive data tables.
+- Professional loading skeletons.
+- Toast notifications.
+- Confirmation dialogs.
+- Empty states.
+- Error states.
+- Success states.
+
+### Sidebar Navigation
+
+Include:
+
+- Dashboard.
+- Candidates.
+- Resume Upload.
+- Job Management.
+- AI Matching.
+- Candidate Ranking.
+- Hiring Pipeline.
+- Compare Candidates.
+- Skill Gap Analysis.
+- Email Center.
+- Reports.
+- Settings.
+
+# 19. APPLICATION PAGES AND NAVIGATION
+
+## Page 1: Dashboard
+
+Display recruitment metrics, charts, recent activity, and quick actions.
+
+## Page 2: Candidates
+
+Display all candidate profiles in a searchable, sortable, filterable table.
+
+## Page 3: Resume Upload
+
+Provide bulk PDF/DOCX uploading and processing.
+
+## Page 4: Job Management
+
+Create, edit, view, pause, and close job openings.
+
+## Page 5: Job Details
+
+Display job requirements, application counts, and associated candidates.
+
+## Page 6: AI Matching
+
+Allow recruiters to select a job and calculate candidate matching scores.
+
+## Page 7: Candidate Ranking
+
+Display ranked candidates for the selected job.
+
+## Page 8: Candidate Profile
+
+Display complete extracted resume information and matching results.
+
+## Page 9: Hiring Pipeline
+
+Display the recruitment process using a Kanban board.
+
+## Page 10: Candidate Comparison
+
+Compare two to four candidates.
+
+## Page 11: Skill Gap Analysis
+
+Display required, matched, missing, and transferable skills.
+
+## Page 12: Email Center
+
+Prepare personalized candidate emails.
+
+## Page 13: Reports
+
+Generate recruitment reports and export candidate data.
+
+## Page 14: Settings
+
+Provide theme preferences, scoring configuration, demo data management, and application configuration.
+
+# 20. TECHNICAL ARCHITECTURE
+
+The application must follow a modular architecture.
+
+### Frontend Responsibilities
+
+React + TypeScript must handle:
+
+- Application navigation.
+- Dashboard rendering.
+- Resume uploading.
+- Candidate profile display.
+- Candidate editing.
+- Job management.
+- Search and filtering.
+- Ranking display.
+- Pipeline management.
+- Candidate comparison.
+- Analytics.
+- Email drafting.
+
+### Backend Responsibilities
+
+Python Flask must handle:
+
+- Resume text extraction.
+- Document validation.
+- Resume parsing orchestration.
+- Gemini API communication.
+- Structured response validation.
+- Candidate matching orchestration.
+- Duplicate detection.
+- Report generation.
+- Optional email integration.
+
+### AI Responsibilities
+
+Google Gemini API must handle:
+
+- Resume information extraction.
+- Job description analysis.
+- Candidate profile summarization.
+- Skill normalization assistance.
+- Resume-JD suitability explanations.
+- Skill-gap analysis.
+- Candidate insights.
+- Interview question generation.
+
+### Processing Responsibilities
+
+Use deterministic application logic for:
+
+- Academic filtering.
+- Experience filtering.
+- Candidate sorting.
+- Matching score calculation.
+- Duplicate exact-match detection.
+- Pipeline stage management.
+- Dashboard calculations.
+
+AI must not be responsible for basic mathematical filtering or deterministic ranking calculations.
+
+# 21. TECHNOLOGY STACK
+
+## Frontend
+
+- React.
+- TypeScript.
+- Vite.
+- Tailwind CSS.
+- React Router.
+- Recharts.
+- Lucide React.
+- React Hook Form.
+- Zod.
+
+## Backend
+
+- Python.
+- Flask.
+- Flask-CORS.
+- Pydantic.
+- Google Gen AI SDK.
+
+## AI
+
+- Google Gemini API.
+- Structured JSON output.
+- Prompt engineering.
+- AI-based resume analysis.
+
+## Document Processing
+
+- PyMuPDF or PDF.js.
+- python-docx or Mammoth.js.
+- File type validation.
+- SHA-256 document fingerprinting.
+
+## Utilities
+
+- UUID or session-generated temporary identifiers.
+- Date-fns.
+- Browser File API.
+- CSV and JSON export utilities.
+
+## Development and Deployment
+
+- Google AI Studio.
+- Visual Studio Code.
+- Git and GitHub.
+- Vercel for frontend.
+- Render or another suitable Python hosting provider for backend.
+
+# 22. DATA STRUCTURES AND APPLICATION STATE
+
+No database must be implemented.
+
+The system must use in-memory state and browser local storage.
+
+### Candidate Object
+
+{
+  "id": "candidate-session-001",
+  "fullName": "Rahul Sharma",
+  "email": "rahul@example.com",
+  "phone": "+91XXXXXXXXXX",
+  "location": "Bengaluru",
+  "education": {
+    "tenthPercentage": 88.5,
+    "twelfthPercentage": 85.2,
+    "degree": "B.E.",
+    "branch": "Computer Science",
+    "college": "ABC Institute",
+    "cgpa": 8.4,
+    "graduationYear": 2025
+  },
+  "experience": {
+    "totalYears": 1,
+    "internships": [],
+    "workHistory": []
+  },
+  "skills": ["Python", "React", "SQL"],
+  "projects": [],
+  "certifications": [],
+  "resumeSummary": "",
+  "resumeFileName": "rahul_resume.pdf",
+  "processingStatus": "parsed",
+  "duplicateStatus": "unique",
+  "applicationStatus": "Applied",
+  "matchResults": []
+}
+
+### Job Object
+
+{
+  "id": "job-session-001",
+  "title": "Python Developer",
+  "department": "Engineering",
+  "description": "Looking for a Python Developer...",
+  "requiredSkills": ["Python", "Flask", "SQL"],
+  "preferredSkills": ["Docker", "AWS"],
+  "minimumExperience": 0,
+  "maximumExperience": 3,
+  "minimumCGPA": 7.0,
+  "location": "Bengaluru",
+  "graduationYears": [2024, 2025, 2026],
+  "status": "Active"
+}
+
+### Match Result Object
+
+{
+  "candidateId": "candidate-session-001",
+  "jobId": "job-session-001",
+  "overallScore": 92,
+  "categoryScores": {
+    "skills": 95,
+    "experience": 90,
+    "education": 85,
+    "projects": 95,
+    "certifications": 80,
+    "responsibilities": 90
+  },
+  "matchedSkills": ["Python", "Flask", "SQL"],
+  "missingRequiredSkills": [],
+  "missingPreferredSkills": ["Docker"],
+  "explanation": "Strong alignment with job requirements.",
+  "evaluatedAt": "ISO-8601 timestamp"
+}
+
+These are illustrative application structures. Implement proper TypeScript interfaces and Python validation models.
+
+### Temporary Identifiers
+
+- Use UUIDs or collision-resistant session identifiers.
+- Do not treat identifiers as permanent database records.
+- Do not create a database layer.
+- Maintain relationships between candidates, jobs, and match results in application memory.
+
+# 23. BACKEND API SPECIFICATIONS
+
+Implement REST APIs using Flask.
+
+### Resume APIs
+
+POST /api/resumes/upload
+
+Upload multiple resume files.
+
+POST /api/resumes/parse
+
+Parse and extract candidate information.
+
+POST /api/resumes/bulk-parse
+
+Process multiple resumes and return individual results.
+
+GET /api/resumes/status
+
+Return processing information for the current session.
+
+### Candidate APIs
+
+GET /api/candidates
+
+Return current candidate profiles.
+
+GET /api/candidates/{id}
+
+Return an individual candidate.
+
+PUT /api/candidates/{id}
+
+Update candidate information.
+
+DELETE /api/candidates/{id}
+
+Delete a candidate from current application state.
+
+POST /api/candidates/compare
+
+Compare selected candidates.
+
+### Job APIs
+
+POST /api/jobs
+
+Create a job.
+
+GET /api/jobs
+
+Return all current jobs.
+
+GET /api/jobs/{id}
+
+Return a job.
+
+PUT /api/jobs/{id}
+
+Update a job.
+
+DELETE /api/jobs/{id}
+
+Delete a job.
+
+POST /api/jobs/analyze
+
+Analyze a job description using Gemini.
+
+### Matching APIs
+
+POST /api/matching/analyze
+
+Match candidates against a job.
+
+POST /api/matching/bulk
+
+Match multiple candidates against a job.
+
+GET /api/matching/rankings/{job_id}
+
+Return ranked candidates.
+
+POST /api/matching/skill-gap
+
+Generate candidate skill-gap insights.
+
+### Pipeline APIs
+
+PUT /api/pipeline/{candidate_id}
+
+Update candidate recruitment status.
+
+GET /api/pipeline
+
+Return current pipeline information.
+
+### Duplicate APIs
+
+POST /api/duplicates/check
+
+Check whether a resume or candidate profile is duplicated.
+
+### Analytics APIs
+
+GET /api/analytics/dashboard
+
+Return dashboard metrics.
+
+GET /api/analytics/recruitment
+
+Return recruitment analytics.
+
+### Email APIs
+
+POST /api/email/prepare
+
+Generate personalized email drafts.
+
+POST /api/email/send
+
+Optional provider-backed email sending.
+
+### Reports APIs
+
+GET /api/reports/candidates
+
+Export candidate information.
+
+GET /api/reports/jobs
+
+Export job information.
+
+GET /api/reports/recruitment
+
+Export recruitment statistics.
+
+### API Requirements
+
+- Validate every request.
+- Return consistent JSON responses.
+- Implement appropriate HTTP status codes.
+- Provide useful error messages.
+- Handle invalid identifiers.
+- Handle missing fields.
+- Avoid leaking API credentials.
+- Support CORS for the frontend origin.
+- Implement request size limits.
+- Include appropriate timeout handling.
+
+# 24. GOOGLE GEMINI API INTEGRATION
+
+Gemini is the primary AI intelligence engine.
+
+Use the official Google Gen AI SDK and a currently supported Gemini model available in Google AI Studio.
+
+Do not hardcode a model version that may become unavailable.
+
+### Gemini Use Cases
+
+**Use Case 1: Resume Parsing**
+
+Input: Extracted resume text.
+
+Output: Structured candidate JSON.
+
+**Use Case 2: Job Description Analysis**
+
+Input: Job description text.
+
+Output: Structured job requirements.
+
+**Use Case 3: Candidate Matching Explanation**
+
+Input: Candidate profile and job requirements.
+
+Output: Suitability explanation.
+
+**Use Case 4: Skill Gap Analysis**
+
+Input: Candidate skills and required job skills.
+
+Output: Missing skills and recommendations.
+
+**Use Case 5: Candidate Summary**
+
+Input: Candidate profile.
+
+Output: Concise recruiter-friendly summary.
+
+**Use Case 6: Interview Question Generation**
+
+Input: Job requirements and candidate profile.
+
+Output: Relevant technical and behavioral interview questions.
+
+### Gemini Integration Rules
+
+- Use structured JSON responses.
+- Validate every AI response.
+- Retry transient failures with a limited retry policy.
+- Handle malformed JSON.
+- Handle API quota errors.
+- Handle model unavailability.
+- Handle network failures.
+- Do not send unnecessary personal information to AI.
+- Do not expose API keys in frontend source code.
+- Keep Gemini API requests on the backend.
+- Add a deterministic fallback for non-AI features.
+- Never invent candidate information when parsing fails.
+
+# 25. AI PROMPT ENGINEERING REQUIREMENTS
+
+Create separate prompts for each AI task.
+
+### Prompt A: Resume Parser
+
+"You are an expert resume information extraction system.
+
+Extract structured candidate information from the provided resume text.
+
+Return valid JSON following the predefined schema.
+
+Rules:
+1. Extract only information explicitly supported by the document.
+2. Never invent missing values.
+3. Return null for unavailable fields.
+4. Distinguish between academic projects, internships, and professional employment.
+5. Preserve academic grading values and scales.
+6. Identify skills accurately.
+7. Extract graduation years where available.
+8. Return a missing_fields list.
+9. Include confidence scores for important extracted fields.
+10. Return only valid JSON."
+
+### Prompt B: Job Description Analyzer
+
+"You are an expert recruitment job description analyzer.
+
+Analyze the provided job description and extract structured hiring requirements.
+
+Identify:
+- Job title.
+- Required skills.
+- Preferred skills.
+- Educational qualifications.
+- Experience requirements.
+- Academic requirements.
+- Responsibilities.
+- Certifications.
+- Location.
+- Employment type.
+
+Differentiate mandatory requirements from preferred requirements.
+
+Do not invent requirements that are not supported by the job description.
+
+Return valid structured JSON."
+
+### Prompt C: Resume-JD Matching
+
+"You are an AI recruitment analysis assistant.
+
+Evaluate the provided candidate profile against the provided job requirements.
+
+Analyze:
+- Technical skill alignment.
+- Relevant professional experience.
+- Internship experience.
+- Educational qualifications.
+- Project relevance.
+- Certification relevance.
+- Job responsibility alignment.
+
+Identify matching skills, missing required skills, and missing preferred skills.
+
+Provide an evidence-based explanation for every important finding.
+
+Do not invent experience, skills, qualifications, or achievements.
+
+Do not make hiring decisions based on protected or sensitive personal characteristics.
+
+Return structured JSON containing matching evidence and category-level assessments.
+
+The final numerical matching score will be calculated by the application's deterministic scoring engine."
+
+### Prompt D: Skill Gap Analysis
+
+"You are a technical skill gap analysis assistant.
+
+Compare the candidate's verified skills with the required and preferred skills for the selected job.
+
+Return:
+- Matched skills.
+- Missing required skills.
+- Missing preferred skills.
+- Related transferable skills.
+- Recommended learning areas.
+- Practical project recommendations.
+
+Do not classify a candidate as unqualified solely because an optional skill is missing.
+
+Return valid structured JSON."
+
+### Prompt E: Candidate Summary
+
+"Create a concise recruiter-friendly candidate summary using only the verified candidate profile.
+
+Include:
+- Educational background.
+- Relevant experience.
+- Strongest technical skills.
+- Relevant projects.
+- Certifications.
+- Potential job alignment.
+
+Do not invent or exaggerate information.
+
+Return structured JSON."
+
+# 26. DATA MANAGEMENT AND STORAGE STRATEGY
+
+Database integration is strictly prohibited for this project.
+
+Authentication is strictly prohibited for this project.
+
+### Permitted Storage
+
+**In-Memory State**
+
+Use React state or a centralized state manager for live application data.
+
+**Browser Local Storage**
+
+Use local storage for non-sensitive application metadata, user preferences, demo configurations, and optionally serialized candidate/job data when appropriate.
+
+**Temporary File Storage**
+
+Keep uploaded files in browser memory or temporary server storage only for active processing.
+
+### Data Persistence Rules
+
+- Do not create SQL databases.
+- Do not create MongoDB databases.
+- Do not integrate Firebase Firestore.
+- Do not integrate Supabase.
+- Do not implement user accounts.
+- Do not implement login or registration.
+- Do not implement password storage.
+- Do not create permanent server-side candidate storage.
+- Do not create database migrations.
+- Do not require a database connection to launch the application.
+
+### Session Management
+
+- The application should work immediately after opening.
+- Store active candidates and jobs in application memory.
+- Use browser local storage for optional demo persistence.
+- Provide a Reset Demo Data option.
+- Provide Clear Session Data.
+- Provide Import Demo Dataset.
+- Provide Export Current Session.
+
+### Important Limitation
+
+The system must clearly communicate that temporary candidate data may be lost when the session is cleared or application data is reset.
+
+Browser local storage is not a secure long-term document repository.
+
+# 27. ERROR HANDLING AND VALIDATION
+
+Implement comprehensive error handling.
+
+### Resume Processing Errors
+
+- Unsupported format.
+- Corrupted PDF.
+- Corrupted DOCX.
+- Empty document.
+- Password-protected document.
+- Scanned PDF without readable text.
+- OCR failure.
+- AI API failure.
+- Invalid JSON response.
+- Missing candidate information.
+
+For scanned resumes, implement OCR as an optional fallback using an appropriate OCR library.
+
+### Matching Errors
+
+- Job description unavailable.
+- Candidate profile unavailable.
+- Missing required fields.
+- Gemini API timeout.
+- Invalid AI response.
+- Incomplete matching data.
+
+### UI Error Handling
+
+Every error must provide:
+
+- Clear error message.
+- Reason where known.
+- Recommended corrective action.
+- Retry option where appropriate.
+
+Do not display raw backend stack traces to users.
+
+# 28. PERFORMANCE AND SCALABILITY REQUIREMENTS
+
+The application should be optimized for small-team recruitment workloads.
+
+### Performance Requirements
+
+- Support bulk upload of at least 100 sample resumes in a controlled test environment.
+- Process files using a bounded queue.
+- Avoid sending all resumes in one enormous Gemini request.
+- Limit concurrent AI requests.
+- Show progress during bulk processing.
+- Avoid unnecessary component re-rendering.
+- Use pagination for large candidate lists.
+- Use debounced search.
+- Optimize chart rendering.
+- Cache matching results within the current session when inputs have not changed.
+
+### Scalability Considerations
+
+- Modular frontend architecture.
+- Separate resume parsing from matching.
+- Separate AI orchestration from deterministic scoring.
+- Independent candidate and job modules.
+- Configurable scoring weights.
+- Batch processing.
+- Centralized error handling.
+
+Because the application has no database, long-term persistence and multi-user synchronization are out of scope.
+
+# 29. SECURITY AND PRIVACY REQUIREMENTS
+
+Although authentication is not required, implement basic application security.
+
+- Keep Gemini API keys on the backend.
+- Validate file types and sizes.
+- Sanitize uploaded filenames.
+- Restrict document processing to supported formats.
+- Validate user-provided text.
+- Avoid unsafe HTML rendering.
+- Apply appropriate CORS restrictions.
+- Avoid logging complete resumes unnecessarily.
+- Provide a clear session reset option.
+- Process resumes only for recruitment-related purposes.
+- Minimize personal information sent to external AI services.
+- Do not infer sensitive personal characteristics.
+- Do not automatically reject candidates using AI scores.
+
+Candidate evaluation must be based on job-relevant, verifiable information.
+
+# 30. ACCESSIBILITY AND RESPONSIVENESS
+
+The application must work across:
+
+- Desktop.
+- Laptop.
+- Tablet.
+- Mobile.
+
+### Responsive Requirements
+
+- Collapsible sidebar.
+- Responsive dashboard cards.
+- Mobile-friendly candidate tables.
+- Horizontal scrolling for comparison tables where necessary.
+- Responsive charts.
+- Mobile-friendly resume upload.
+- Accessible form controls.
+- Keyboard navigation.
+- Visible focus states.
+- Appropriate color contrast.
+- Clear field labels.
+
+# 31. SAMPLE DATASET AND TEST SCENARIOS
+
+The application must include a realistic demo dataset.
+
+### Resume Dataset
+
+Use a combination of:
+
+- Your own resume.
+- At least 30 synthetic sample resumes initially.
+- Different educational backgrounds.
+- Different CGPA values.
+- Different 10th and 12th percentages.
+- Different graduation years.
+- Freshers.
+- Experienced candidates.
+- Candidates with internships.
+- Candidates with missing academic information.
+- Candidates with different technical skills.
+- Candidates from different locations.
+- Duplicate resumes.
+- Candidates with PDF and DOCX formats.
+
+Use synthetic information for sample candidates. Do not fabricate real people's contact information.
+
+### Sample Job Descriptions
+
+Create at least six different sample JDs.
+
+**JD 1: Python Developer**
+
+Required Skills:
+- Python.
+- Flask.
+- REST APIs.
+- SQL.
+- Git.
+
+Preferred Skills:
+- Docker.
+- AWS.
+
+Experience: 0–2 years.
+
+**JD 2: Full Stack Developer**
+
+Required Skills:
+- React.
+- JavaScript.
+- TypeScript.
+- Node.js.
+- REST APIs.
+
+Preferred Skills:
+- MongoDB.
+- Docker.
+
+Experience: 0–3 years.
+
+**JD 3: AI/ML Engineer**
+
+Required Skills:
+- Python.
+- Machine Learning.
+- TensorFlow.
+- NumPy.
+- Pandas.
+
+Preferred Skills:
+- Computer Vision.
+- NLP.
+- Generative AI.
+
+Experience: 0–2 years.
+
+**JD 4: Data Analyst**
+
+Required Skills:
+- SQL.
+- Python.
+- Excel.
+- Power BI.
+- Data Visualization.
+
+Preferred Skills:
+- Tableau.
+- Statistics.
+
+Experience: 0–2 years.
+
+**JD 5: Frontend Developer**
+
+Required Skills:
+- HTML.
+- CSS.
+- JavaScript.
+- React.
+- Responsive Design.
+
+Preferred Skills:
+- TypeScript.
+- Tailwind CSS.
+
+Experience: 0–2 years.
+
+**JD 6: Junior Java Developer**
+
+Required Skills:
+- Java.
+- OOP.
+- SQL.
+- Data Structures.
+- REST APIs.
+
+Preferred Skills:
+- Spring Boot.
+- Git.
+
+Experience: 0–2 years.
+
+### Dataset Import
+
+Provide a demo data import function.
+
+Recruiters should be able to load sample candidates and sample job descriptions with one action.
+
+The sample dataset must be clearly identified as demonstration data.
+
+# 32. END-TO-END USER WORKFLOW
+
+The complete application must support this workflow:
+
+**Step 1: Launch Application**
+
+Open HireSwift AI directly without authentication.
+
+**Step 2: Load Demo Dataset or Upload Resumes**
+
+Upload multiple PDF/DOCX files or load sample candidates.
+
+**Step 3: Parse Resumes**
+
+Extract candidate details and display structured profiles.
+
+**Step 4: Review Candidate Profiles**
+
+Allow recruiters to correct extracted information.
+
+**Step 5: Create a Job Description**
+
+Create a job manually or analyze an existing JD using Gemini.
+
+**Step 6: Match Candidates**
+
+Select a job and execute candidate matching.
+
+**Step 7: Review Scores**
+
+Display candidate matching scores, evidence, and AI Decision Rationale.
+
+**Step 8: Filter Candidates**
+
+Apply academic, technical, professional, and location filters.
+
+**Step 9: Rank Candidates**
+
+Display candidates from highest to lowest matching score.
+
+**Step 10: Compare Candidates**
+
+Select two to four candidates for side-by-side comparison.
+
+**Step 11: Shortlist Candidates**
+
+Move suitable candidates to the Shortlisted stage.
+
+**Step 12: Manage Interviews**
+
+Move selected candidates to the Interview stage and add interview notes.
+
+**Step 13: Offer or Reject**
+
+Move candidates to Offer or Rejected.
+
+**Step 14: Prepare Communication**
+
+Prepare personalized email drafts for shortlisted candidates.
+
+**Step 15: View Analytics**
+
+Review recruitment statistics and export reports.
+
+# 33. TESTING AND QUALITY ASSURANCE
+
+Implement comprehensive testing for all modules.
+
+## 33.1 Resume Upload Tests
+
+- Upload a valid PDF.
+- Upload a valid DOCX.
+- Upload multiple resumes.
+- Upload an unsupported TXT file.
+- Upload an image instead of a resume.
+- Upload an empty PDF.
+- Upload a corrupted document.
+- Upload a password-protected PDF.
+- Upload a resume exceeding the size limit.
+- Remove a resume before processing.
+- Retry a failed resume.
+- Verify that one failed resume does not stop the remaining queue.
+
+## 33.2 Resume Parsing Tests
+
+- Extract candidate name correctly.
+- Extract email correctly.
+- Extract phone correctly.
+- Extract education correctly.
+- Extract CGPA correctly.
+- Extract 10th percentage correctly.
+- Extract 12th percentage correctly.
+- Extract graduation year correctly.
+- Extract technical skills correctly.
+- Extract experience correctly.
+- Distinguish internships from employment.
+- Extract projects.
+- Extract certifications.
+- Handle missing academic information.
+- Handle multiple educational qualifications.
+- Handle resumes with inconsistent formatting.
+- Handle scanned documents where OCR is available.
+- Validate JSON output.
+- Verify manual correction.
+
+## 33.3 Job Management Tests
+
+- Create a job.
+- Edit a job.
+- Delete a job.
+- Pause a job.
+- Close a job.
+- Create multiple jobs.
+- Analyze a job description.
+- Extract mandatory skills.
+- Extract preferred skills.
+- Extract experience requirements.
+- Extract academic requirements.
+- Edit AI-extracted requirements.
+
+## 33.4 AI Matching Tests
+
+- Match a highly relevant candidate.
+- Match a partially relevant candidate.
+- Match an irrelevant candidate.
+- Match a fresher.
+- Match an experienced candidate.
+- Match a candidate with missing academic details.
+- Match a candidate with missing experience details.
+- Match the same candidate against different jobs.
+- Verify score calculation.
+- Verify score category.
+- Verify matching explanation.
+- Verify missing skills.
+- Verify scoring consistency.
+- Verify recalculation after profile edits.
+- Verify recalculation after JD edits.
+
+## 33.5 Filtering Tests
+
+- Filter by 10th percentage.
+- Filter by 12th percentage.
+- Filter by CGPA.
+- Filter by graduation year.
+- Filter by location.
+- Filter by technical skills.
+- Filter by experience.
+- Filter by degree.
+- Filter by certifications.
+- Filter by recruitment stage.
+- Filter by match score.
+- Combine multiple filters.
+- Clear all filters.
+- Verify missing-value handling.
+- Verify AND/OR skill filtering.
+
+## 33.6 Candidate Ranking Tests
+
+- Rank by highest score.
+- Rank by lowest score.
+- Rank candidates for different jobs.
+- Verify tie-breaking.
+- Verify ranking after profile edits.
+- Verify ranking after JD edits.
+
+## 33.7 Duplicate Detection Tests
+
+- Upload the same resume twice.
+- Upload resumes with the same email.
+- Upload resumes with the same phone number.
+- Upload resumes with different filenames but identical contents.
+- Upload resumes with similar names.
+- Upload resumes with similar education.
+- Verify that potential duplicates require review.
+- Verify manual merge or skip behavior.
+
+## 33.8 Pipeline Tests
+
+- Verify default Applied status.
+- Move candidate to Shortlisted.
+- Move candidate to Interview.
+- Move candidate to Offer.
+- Move candidate to Rejected.
+- Move candidates backward between stages.
+- Verify stage counts.
+- Verify activity history.
+- Verify rejection reasons.
+- Verify job-specific pipeline data.
+
+## 33.9 Dashboard Tests
+
+- Verify total candidate count.
+- Verify total job count.
+- Verify application count.
+- Verify shortlist count.
+- Verify interview count.
+- Verify offer count.
+- Verify rejection count.
+- Verify matching score statistics.
+- Verify chart updates.
+- Verify empty dashboard state.
+
+## 33.10 Candidate Comparison Tests
+
+- Compare two candidates.
+- Compare three candidates.
+- Compare four candidates.
+- Attempt to compare more than four candidates.
+- Compare candidates with missing fields.
+- Highlight common skills.
+- Highlight unique skills.
+- Verify score comparisons.
+
+## 33.11 Email Tests
+
+- Select shortlisted candidates.
+- Prepare personalized email.
+- Verify dynamic candidate names.
+- Verify dynamic job titles.
+- Validate email addresses.
+- Preview emails.
+- Copy email content.
+- Open default email application.
+- Verify provider failure handling if email integration is enabled.
+
+## 33.12 Data Management Tests
+
+- Refresh the application.
+- Verify local-storage persistence where enabled.
+- Clear session data.
+- Reset demo data.
+- Import sample dataset.
+- Export candidate data.
+- Export recruitment reports.
+- Verify no database dependency.
+- Verify no authentication dependency.
+
+## 33.13 UI/UX Tests
+
+- Verify desktop layout.
+- Verify tablet layout.
+- Verify mobile layout.
+- Verify sidebar navigation.
+- Verify forms.
+- Verify dialogs.
+- Verify loading states.
+- Verify empty states.
+- Verify error notifications.
+- Verify keyboard navigation.
+- Verify accessible contrast.
+
+# 34. ACCEPTANCE CRITERIA
+
+The project will be considered complete only when all mandatory features are operational.
+
+| Requirement | Acceptance Criteria |
+|---|---|
+| Resume Upload | Multiple PDF/DOCX files upload successfully |
+| Resume Parsing | Structured profiles are generated |
+| Manual Editing | Recruiters can correct parsed data |
+| Job Management | Multiple JDs can be created and managed |
+| AI Matching | Candidate scores are generated for selected jobs |
+| Matching Explanation | Evidence-based explanations are displayed |
+| Candidate Filtering | All specified filters work correctly |
+| Candidate Ranking | Candidates are ranked per job |
+| Duplicate Detection | Exact and potential duplicates are identified |
+| Pipeline | Candidates move across all hiring stages |
+| Dashboard | Metrics reflect actual application state |
+| Comparison | Two to four candidates can be compared |
+| Skill Gap | Missing and matching skills are identified |
+| Email | Personalized drafts can be prepared |
+| Reports | Candidate and recruitment data can be exported |
+| Session Handling | Data management works without a database |
+| Authentication | No login or registration is required |
+| Responsive UI | Application works across screen sizes |
+
+### Suggested Quality Targets
+
+- At least 95% accuracy for deterministic filter test cases.
+- At least 90% accuracy on clearly extractable fields in the manually verified test resume set.
+- 100% correct deterministic score calculation for test fixtures.
+- 100% correct exact duplicate detection for identical document hashes.
+- No unhandled application crashes during bulk processing.
+- All critical user workflows must pass end-to-end tests.
+
+These are testing targets, not assumed performance results.
+
+# 35. DEPLOYMENT REQUIREMENTS
+
+The final application must support local development and cloud deployment.
+
+### Local Development
+
+Frontend:
+
+npm install
+
+npm run dev
+
+Backend:
+
+python -m venv venv
+
+Activate the virtual environment.
+
+pip install -r requirements.txt
+
+python app.py
+
+### Environment Variables
+
+Create a backend .env file.
+
+GEMINI_API_KEY=your_gemini_api_key
+
+FLASK_ENV=development
+
+FRONTEND_URL=http://localhost:5173
+
+Do not commit .env files to GitHub.
+
+### Deployment
+
+Frontend:
+- Vercel.
+
+Backend:
+- Render or another Python-compatible hosting provider.
+
+Ensure that:
+- API URLs are configurable.
+- CORS is configured correctly.
+- API keys remain private.
+- Temporary processing storage is cleaned up.
+- File upload limits are configured.
+- The frontend can communicate with the deployed backend.
+
+# 36. EXPECTED FINAL DELIVERABLES
+
+The completed project must include:
+
+1. Fully functional HireSwift AI application.
+2. Professional responsive user interface.
+3. Working bulk resume upload.
+4. PDF and DOCX parsing.
+5. Gemini-powered resume extraction.
+6. Candidate profile management.
+7. Job description management.
+8. AI-powered resume-JD matching.
+9. Explainable candidate scoring.
+10. Advanced filtering.
+11. Candidate ranking.
+12. Duplicate detection.
+13. Recruitment pipeline.
+14. Recruiter analytics dashboard.
+15. Candidate comparison.
+16. AI skill gap analysis.
+17. Bulk email preparation.
+18. CSV and JSON export.
+19. Sample resume dataset.
+20. Sample job descriptions.
+21. Complete testing implementation.
+22. README.md.
+23. Installation instructions.
+24. Environment configuration documentation.
+25. Deployment instructions.
+26. GitHub repository.
+27. Live deployment link.
+
+# 37. DEVELOPMENT PHASES
+
+Follow this implementation sequence.
+
+### Phase 1: Project Setup
+
+- Initialize React and TypeScript.
+- Configure Tailwind CSS.
+- Configure Flask backend.
+- Establish frontend-backend communication.
+- Set up environment variables.
+- Create the application layout.
+- Implement sidebar navigation.
+
+### Phase 2: Dashboard and UI
+
+- Build dashboard cards.
+- Build charts.
+- Build candidate tables.
+- Build job management interface.
+- Build responsive layouts.
+
+### Phase 3: Resume Upload and Parsing
+
+- Implement PDF upload.
+- Implement DOCX upload.
+- Implement bulk processing.
+- Implement document text extraction.
+- Integrate Gemini resume parsing.
+- Implement structured validation.
+- Build candidate profile generation.
+
+### Phase 4: Job Description Management
+
+- Implement job creation.
+- Implement job editing.
+- Implement JD analysis.
+- Implement structured job requirements.
+
+### Phase 5: AI Matching Engine
+
+- Implement skill normalization.
+- Implement category scoring.
+- Implement weighted score calculation.
+- Integrate Gemini explanations.
+- Implement candidate ranking.
+- Implement skill-gap analysis.
+
+### Phase 6: Filtering and Duplicate Detection
+
+- Implement academic filters.
+- Implement technical filters.
+- Implement experience filters.
+- Implement location filters.
+- Implement score filters.
+- Implement exact duplicate detection.
+- Implement potential duplicate review.
+
+### Phase 7: Recruitment Pipeline
+
+- Implement Kanban board.
+- Implement stage transitions.
+- Implement candidate activity history.
+- Implement interview information.
+- Implement offer and rejection tracking.
+
+### Phase 8: Advanced Features
+
+- Implement side-by-side comparison.
+- Implement email templates.
+- Implement personalized email drafts.
+- Implement export reports.
+- Implement interview question generation.
+
+### Phase 9: Testing
+
+- Test all frontend modules.
+- Test all backend endpoints.
+- Test Gemini integration.
+- Test resume parsing.
+- Test candidate filtering.
+- Test matching calculations.
+- Test bulk processing.
+- Test pipeline transitions.
+- Test mobile responsiveness.
+- Fix all critical bugs.
+
+### Phase 10: Final Deployment
+
+- Configure production environment.
+- Deploy backend.
+- Deploy frontend.
+- Verify Gemini API integration.
+- Run complete end-to-end testing.
+- Prepare GitHub repository.
+- Prepare README.md.
+- Prepare hackathon demonstration.
+
+# 38. FINAL DEVELOPMENT CONSTRAINTS
+
+These requirements must be followed throughout the implementation.
+
+1. The project must be developed using Google AI Studio as the primary AI-assisted development platform.
+2. Use React and TypeScript for the frontend.
+3. Use Python Flask for backend processing.
+4. Use Google Gemini API for AI functionality.
+5. Do not implement any database.
+6. Do not implement authentication.
+7. Do not create login or registration pages.
+8. Do not use Firebase, Supabase, MongoDB, or SQL databases.
+9. Use application memory and browser local storage for permitted temporary data.
+10. All mandatory features must be functional.
+11. Do not create buttons that have no working functionality.
+12. Do not use static placeholder data for features that should operate on uploaded resumes.
+13. Use real PDF and DOCX extraction.
+14. Validate all Gemini-generated structured responses.
+15. Keep deterministic filtering and scoring separate from AI explanations.
+16. Maintain consistent application state across pages.
+17. Implement proper loading, error, and empty states.
+18. Ensure that dashboard analytics update dynamically.
+19. Test the application with multiple resumes and multiple job descriptions.
+20. Ensure that the application can run without database credentials or authentication configuration.
+
+---
+
+# 39. FINAL PROJECT SUCCESS DEFINITION
+
+HireSwift AI must function as a complete small-team recruitment platform.
+
+A recruiter should be able to open the application without logging in, upload a batch of resumes, extract structured candidate profiles, create multiple job descriptions, match candidates against specific jobs, review explainable scores, filter applicants using academic and professional criteria, rank candidates, compare profiles, identify duplicates, and manage the recruitment pipeline.
+
+The final system must demonstrate that AI can reduce manual resume screening while maintaining transparent, consistent, and evidence-based recruitment workflows.
+
+**Final Product Name:** HireSwift AI
+
+**Product Category:** AI-Powered HRTech / Recruitment SaaS
+
+**Tagline:** Hire Smarter. Shortlist Faster. Find the Right Talent.
+
+**Primary Objective:** Transform manual resume screening into an intelligent, structured, and efficient recruitment process.
+
+**Development Platform:** Google AI Studio
+
+**Final Deliverable:** A fully functional, responsive, AI-powered Applicant Tracking System for small teams, without database or authentication requirements.

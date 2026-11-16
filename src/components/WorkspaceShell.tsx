@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles } from 'lucide-react';
-import { WorkspaceRoute, CANDIDATES_DATA, JOBS_DATA } from '../data/atsData';
+import { CandidateProfile, WorkspaceRoute } from '../data/atsData';
+import { useAts } from '../context/AtsContext';
 
 interface WorkspaceShellProps {
   activeRoute: WorkspaceRoute;
   onNavigate: (route: WorkspaceRoute) => void;
   onGoLanding: () => void;
+  onSelectCandidate: (candidate: CandidateProfile) => void;
   children: React.ReactNode;
 }
 
@@ -32,8 +34,10 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
   activeRoute,
   onNavigate,
   onGoLanding,
+  onSelectCandidate,
   children,
 }) => {
+  const { candidates, jobs, activities, theme, toggleTheme, setSelectedJobId } = useAts();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
   const [cmdQuery, setCmdQuery] = useState('');
@@ -57,15 +61,17 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
   }, []);
 
   const currentNavLabel =
-    [...WORKSPACE_NAV, ...BOTTOM_NAV].find((n) => n.id === activeRoute)?.label ?? 'Workspace';
+    activeRoute === 'job-details'
+      ? 'Job Details'
+      : [...WORKSPACE_NAV, ...BOTTOM_NAV].find((n) => n.id === activeRoute)?.label ?? 'Workspace';
 
-  const filteredCandidates = CANDIDATES_DATA.filter(
+  const filteredCandidates = candidates.filter(
     (c) =>
       c.name.toLowerCase().includes(cmdQuery.toLowerCase()) ||
       c.skills.some((s) => s.toLowerCase().includes(cmdQuery.toLowerCase()))
   );
 
-  const filteredJobs = JOBS_DATA.filter((j) =>
+  const filteredJobs = jobs.filter((j) =>
     j.title.toLowerCase().includes(cmdQuery.toLowerCase())
   );
 
@@ -152,14 +158,36 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
 
         <div className="flex items-center justify-between px-space-md py-2 mt-1">
           <div className="flex items-center gap-space-xs font-label-sm text-label-sm text-[#94A3B8]">
-            <span className="material-symbols-outlined text-[16px]">dark_mode</span>
+            <span className="material-symbols-outlined text-[16px]">
+              {theme === 'dark' ? 'dark_mode' : 'light_mode'}
+            </span>
             <span>Theme</span>
           </div>
-          <div className="flex items-center bg-[#151E32] rounded-full p-0.5 border border-[#263449]">
-            <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-mono-code text-[10px]">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="flex items-center bg-[#151E32] rounded-full p-0.5 border border-[#263449] cursor-pointer"
+            title="Switch Dark / Light theme"
+          >
+            <span
+              className={`px-2 py-0.5 rounded-full font-mono-code text-[10px] transition-colors ${
+                theme === 'dark'
+                  ? 'bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white'
+                  : 'text-[#94A3B8]'
+              }`}
+            >
               Dark
             </span>
-          </div>
+            <span
+              className={`px-2 py-0.5 rounded-full font-mono-code text-[10px] transition-colors ${
+                theme === 'light'
+                  ? 'bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white'
+                  : 'text-[#94A3B8]'
+              }`}
+            >
+              Light
+            </span>
+          </button>
         </div>
       </div>
     </>
@@ -271,24 +299,25 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
               </button>
 
               {notifOpen && (
-                <div className="absolute right-0 mt-2 w-80 rounded-xl bg-surface-container border border-outline-variant/40 shadow-2xl p-4 z-50">
-                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-outline-variant/20">
-                    <span className="font-headline-sm text-on-surface">Notifications</span>
-                    <span className="font-mono-code text-[10px] text-tertiary">3 UNREAD</span>
+                <div className="absolute right-0 mt-2 w-80 rounded-xl glass-card shadow-2xl p-4 z-50">
+                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#263449]">
+                    <span className="font-headline-sm text-white">Recent Updates</span>
+                    <span className="font-mono-code text-[10px] text-[#3B82F6]">
+                      {Math.min(activities.length, 4)} UPDATES
+                    </span>
                   </div>
-                  <div className="space-y-2.5 text-xs">
-                    <div className="p-2.5 rounded-lg bg-surface-container-low">
-                      <p className="text-on-surface font-medium">Rahul Sharma scored 92% match</p>
-                      <span className="text-outline font-mono-code text-[10px]">10m ago · Senior Python Dev</span>
-                    </div>
-                    <div className="p-2.5 rounded-lg bg-surface-container-low">
-                      <p className="text-on-surface font-medium">Duplicate flagged: Sneha_Reddy_Analyst.pdf</p>
-                      <span className="text-amber-300 font-mono-code text-[10px]">98.4% similarity</span>
-                    </div>
-                    <div className="p-2.5 rounded-lg bg-surface-container-low">
-                      <p className="text-on-surface font-medium">Priya Verma interview confirmed</p>
-                      <span className="text-outline font-mono-code text-[10px]">2h ago · Technical Round 1</span>
-                    </div>
+                  <div className="space-y-2.5 text-xs max-h-64 overflow-y-auto">
+                    {activities.slice(0, 4).map((act) => (
+                      <div key={act.id} className="p-2.5 rounded-lg bg-[#0B1020]/70 border border-[#263449]/60">
+                        <p className="text-white font-medium">{act.title}</p>
+                        <span className="text-[#94A3B8] font-mono-code text-[10px]">
+                          {act.time} · {act.detail}
+                        </span>
+                      </div>
+                    ))}
+                    {activities.length === 0 && (
+                      <p className="text-[#94A3B8] py-2 text-center">No recent activity in this session.</p>
+                    )}
                   </div>
                 </div>
               )}
@@ -422,7 +451,7 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
                         key={c.id}
                         type="button"
                         onClick={() => {
-                          onNavigate('candidates');
+                          onSelectCandidate(c);
                           setCmdOpen(false);
                         }}
                         className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-surface-container-high text-left cursor-pointer"
@@ -449,14 +478,15 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
                         key={j.id}
                         type="button"
                         onClick={() => {
-                          onNavigate('job-management');
+                          setSelectedJobId(j.id);
+                          onNavigate('job-details');
                           setCmdOpen(false);
                         }}
                         className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-surface-container-high text-left cursor-pointer"
                       >
                         <span className="text-sm font-medium text-on-surface">{j.title}</span>
                         <span className="font-mono-code text-xs text-on-surface-variant">
-                          {j.applicants} applicants
+                          {j.location}
                         </span>
                       </button>
                     ))}
