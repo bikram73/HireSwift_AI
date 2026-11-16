@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { CANDIDATES_DATA, CandidateProfile, WorkspaceRoute } from '../../data/atsData';
 
 interface DashboardViewProps {
@@ -10,8 +10,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onNavigate,
   onSelectCandidate,
 }) => {
-  const [showLogsModal, setShowLogsModal] = useState(false);
-
   const topMatching = CANDIDATES_DATA.slice(0, 4);
 
   return (
@@ -20,9 +18,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-space-lg mb-space-xl">
         <div>
           <div className="flex items-center gap-space-sm mb-1">
-            <span className="inline-flex items-center justify-center w-2 h-2 rounded-full bg-primary-container" />
             <span className="font-mono-code text-mono-code text-tertiary uppercase tracking-wider">
-              Recruiter Workspace • Live Telemetry
+              Recruiter Workspace
             </span>
           </div>
           <h1 className="font-heading font-extrabold text-headline-xl text-white tracking-tight">
@@ -69,33 +66,28 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div>
               <div className="flex items-center gap-space-sm mb-1">
                 <span className="px-2 py-0.5 rounded-full bg-primary-container text-on-primary-container font-mono-code text-label-sm">
-                  v2.4 PRO
+                  AI MATCHING
                 </span>
                 <span className="font-label-sm text-label-sm text-tertiary">
-                  Neural Matching Pipeline
+                  Smart Candidate Screening
                 </span>
               </div>
               <p className="font-headline-sm text-headline-sm text-on-surface">
-                AI Talent Matching Engine v2.4 Active • 148 candidates parsed with 94% precision matching
+                148 candidates evaluated with 94% matching accuracy
               </p>
               <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
-                Semantic graph clustering identified 19 high-velocity matches for priority roles across backend and data engineering.
+                Semantic profile matching identified 19 top-fit candidates for priority roles across backend and data engineering.
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-space-md shrink-0 w-full md:w-auto justify-end">
-            <div className="flex flex-col items-end">
-              <span className="font-mono-code text-label-sm text-on-surface-variant">Throughput</span>
-              <span className="font-mono-code text-body-md text-primary font-bold">1.4s / Resume</span>
-            </div>
-            <div className="h-8 w-px bg-surface-container-highest" />
             <button
               type="button"
-              onClick={() => setShowLogsModal(true)}
-              className="px-3 py-1.5 bg-surface-container hover:bg-surface-bright text-tertiary rounded-lg font-label-md text-label-md transition-colors flex items-center gap-1 cursor-pointer"
+              onClick={() => onNavigate('ai-matching')}
+              className="px-3.5 py-2 bg-[#1B2740] hover:bg-[#263449] border border-[#263449] text-white rounded-xl font-label-md text-label-md transition-colors flex items-center gap-1 cursor-pointer"
             >
-              <span>Engine Logs</span>
+              <span>View Matches</span>
               <span className="material-symbols-outlined text-[16px]">chevron_right</span>
             </button>
           </div>
@@ -429,7 +421,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 Top In-Demand Skills
               </h2>
               <p className="font-body-sm text-body-sm text-on-surface-variant">
-                Synthesized from open technical job specs
+                Aggregated from active technical job openings
               </p>
             </div>
             <span className="font-mono-code text-label-sm text-tertiary">Weighted AI Index</span>
@@ -606,11 +598,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     Recent Activity
                   </h2>
                   <p className="font-body-sm text-body-sm text-on-surface-variant">
-                    Live audit log of recruitment events
+                    Latest recruitment updates across your team
                   </p>
                 </div>
               </div>
-              <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
             </div>
 
             <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-surface-container-highest">
@@ -700,66 +691,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           </div>
 
-          <div className="mt-4 pt-3 flex items-center justify-between">
-            <span className="font-mono-code text-[11px] text-on-surface-variant flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary" /> Stream Connected
-            </span>
+          <div className="mt-4 pt-3 flex items-center justify-end">
             <button
               type="button"
-              onClick={() => setShowLogsModal(true)}
+              onClick={() => onNavigate('candidates')}
               className="text-tertiary font-label-md text-label-md hover:underline cursor-pointer"
             >
-              View Audit Log
+              View All Candidates
             </button>
           </div>
         </div>
       </div>
-
-      {/* Engine Logs / Audit Modal */}
-      {showLogsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div
-            className="fixed inset-0 bg-black/65 backdrop-blur-xs"
-            onClick={() => setShowLogsModal(false)}
-          />
-          <div className="relative w-full max-w-2xl rounded-2xl bg-surface-container border border-outline-variant/40 shadow-2xl p-6 z-10">
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-outline-variant/20">
-              <div>
-                <h3 className="font-headline-md text-on-surface">
-                  AI Matching Engine Logs (v2.4 Pro)
-                </h3>
-                <p className="font-body-sm text-on-surface-variant">
-                  Real-time semantic indexing &amp; recruitment audit stream
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowLogsModal(false)}
-                className="p-1.5 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container-high cursor-pointer"
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-            <div className="space-y-2 font-mono-code text-[11px] bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/20 max-h-72 overflow-y-auto">
-              <div className="text-emerald-400">
-                [19:14:02] PARSER_OK :: Rahul_Sharma_Resume.pdf · 1.4s · 92% Python Dev alignment
-              </div>
-              <div className="text-tertiary">
-                [19:12:48] VECTOR_INDEX :: Clustered 148 candidates across 42,000 taxonomy nodes
-              </div>
-              <div className="text-amber-300">
-                [19:09:11] DEDUP_WARN :: Sneha_Reddy_Analyst.pdf matched DB record #441 (98.4%)
-              </div>
-              <div className="text-on-surface-variant">
-                [18:55:20] STAGE_UPDATE :: Priya Verma moved to Technical Round 1
-              </div>
-              <div className="text-primary">
-                [18:30:04] JOB_SYNC :: Senior DevOps Engineer indexed (Urgent priority)
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

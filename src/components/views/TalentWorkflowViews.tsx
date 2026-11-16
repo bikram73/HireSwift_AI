@@ -38,9 +38,9 @@ export const AIMatchingView: React.FC<ViewProps> = ({
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
         <div>
           <div className="flex items-center gap-2 font-mono-code text-mono-code text-tertiary mb-1">
-            <span>NEURAL_MATCHING</span>
+            <span>AI MATCHING</span>
             <span className="text-outline">/</span>
-            <span>TALENT_PIPELINE_V2.4</span>
+            <span>TALENT PIPELINE</span>
           </div>
           <h1 className="font-heading font-extrabold text-headline-lg text-white tracking-tight">
             Talent Pipeline &amp; Matching

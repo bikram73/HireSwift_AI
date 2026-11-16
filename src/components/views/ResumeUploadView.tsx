@@ -34,7 +34,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
         id: `q-${Date.now()}-${idx}`,
         docId: `#DOC-${8930 + idx}`,
         fileName: f.name,
-        hashOrNote: `ID: #DOC-${8930 + idx} • Queued for AI parse`,
+        hashOrNote: 'Queued for AI parsing',
         type: ext,
         size: f.size > 1024 * 1024 ? `${mb} MB` : `${Math.max(1, Math.round(f.size / 1024))} KB`,
         uploadProgress: 100,
@@ -52,7 +52,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
           ? {
               ...f,
               parsingStatus: 'parsed',
-              hashOrNote: `ID: ${f.docId} • Verified profile built`,
+              hashOrNote: 'Profile built successfully',
             }
           : f
       )
@@ -67,13 +67,13 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
           ? {
               ...f,
               parsingStatus: 'parsed',
-              hashOrNote: `ID: ${f.docId} • OCR Deep-Scan Recovered`,
+              hashOrNote: 'Document recovered successfully',
               errorDetail: undefined,
             }
           : f
       )
     );
-    showToast('OCR Deep-Scan recovered failed resume file');
+    showToast('Recovered failed resume file');
   };
 
   const handleResolveDuplicate = (id: string) => {
@@ -83,7 +83,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
           ? {
               ...f,
               parsingStatus: 'parsed',
-              hashOrNote: `ID: ${f.docId} • Merged with existing record`,
+              hashOrNote: 'Merged with existing candidate profile',
               duplicateMatch: undefined,
             }
           : f
@@ -123,12 +123,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md mb-space-xl">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-space-xs font-mono-code text-mono-code text-tertiary">
-            <span>BATCH_INGEST</span>
-            <span className="text-outline">/</span>
-            <span>PIPELINE_V2.4</span>
-            <span className="inline-flex items-center px-1.5 py-0.2 rounded-full bg-primary-container/20 text-primary text-[10px] font-mono-code ml-2">
-              PARALLEL_STREAM
-            </span>
+            <span>BULK RESUME UPLOAD</span>
           </div>
           <h1 className="font-heading font-extrabold text-headline-lg text-white tracking-tight">
             Resume Upload
@@ -274,7 +269,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
                 </div>
                 <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-container/15 text-primary text-[11px] font-mono-code">
                   <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
-                  <span>Ingestion Engine Active</span>
+                  <span>Queue Active</span>
                 </div>
               </div>
               <div className="flex items-center gap-space-sm">
@@ -492,8 +487,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
 
             <div className="p-space-md bg-surface-container/60 flex items-center justify-between text-on-surface-variant font-mono-code text-mono-code">
               <div className="flex items-center gap-4">
-                <span>Concurrency: 4 Workers</span>
-                <span>Latency: 840ms/doc</span>
+                <span>Parallel Processing Active</span>
               </div>
               <span className="text-tertiary font-medium">
                 {files.filter((f) => f.parsingStatus === 'processing').length} In-flight,{' '}
@@ -521,7 +515,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
               <span className="material-symbols-outlined text-[14px]">
                 verified
               </span>
-              <span>TAXONOMY_V4 ACTIVE</span>
+              <span>STANDARDIZED SKILLS</span>
             </div>
           </div>
         </div>
@@ -536,7 +530,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
                 <div className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   <span className="font-mono-code text-mono-code text-tertiary tracking-wide uppercase">
-                    AI Engine Online
+                    AI Parser Ready
                   </span>
                 </div>
                 <h3 className="font-headline-md text-headline-md text-on-surface mt-1">
@@ -544,7 +538,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
                 </h3>
               </div>
               <span className="px-2.5 py-1 rounded-full bg-primary-container text-on-primary-container font-mono-code text-[11px] font-bold">
-                PRO ATS
+                AI PARSER
               </span>
             </div>
 
@@ -555,15 +549,15 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
                 </span>
                 <div className="flex flex-col">
                   <span className="font-label-sm text-label-sm text-outline uppercase">
-                    Active Vision Engine
+                    Active Parser Model
                   </span>
                   <span className="font-body-md text-body-md text-on-surface font-semibold">
-                    Gemini 1.5 Pro ATS Parser
+                    Gemini 1.5 ATS Parser
                   </span>
                 </div>
               </div>
               <span className="font-mono-code text-[11px] text-tertiary bg-surface-container-high px-2 py-0.5 rounded">
-                v2.4.1
+                Active
               </span>
             </div>
 
@@ -583,7 +577,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
                 />
               </div>
               <div className="flex items-center justify-between font-mono-code text-[11px] text-outline mt-1">
-                <span>Phase: Vector embedding generation</span>
+                <span>Matching extracted skills &amp; experience</span>
                 <span>{overallPct === 100 ? 'Complete' : '4.5s remaining'}</span>
               </div>
             </div>
@@ -666,19 +660,19 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
                   <span className="material-symbols-outlined text-[13px]">
                     broken_image
                   </span>
-                  <span>OCR Defect</span>
+                  <span>Unreadable File</span>
                 </div>
               </div>
             </div>
 
-            {/* Extraction Velocity Sparkline */}
+            {/* Processing Speed Sparkline */}
             <div className="p-space-md rounded-lg bg-surface-container-high/60 flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <span className="font-label-sm text-label-sm text-on-surface-variant">
-                  Extraction Velocity
+                  Processing Speed
                 </span>
                 <span className="font-mono-code text-[11px] text-primary">
-                  12.4 kB/s avg
+                  Fast Batch Mode
                 </span>
               </div>
               <div className="h-10 w-full flex items-end">
@@ -752,7 +746,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
 
               <button
                 type="button"
-                onClick={() => showToast('Downloaded extraction_summary_v24.csv')}
+                onClick={() => showToast('Downloaded extraction_summary.csv')}
                 className="w-full py-2.5 px-3.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-body-sm text-body-sm font-medium flex items-center justify-between transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
@@ -772,7 +766,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
                 lock
               </span>
               <span>
-                SOC-2 Type II Certified Ingestion. PII mask applied by default prior to third-party LLM evaluation.
+                Encrypted resume processing with privacy protection enabled by default.
               </span>
             </div>
           </div>

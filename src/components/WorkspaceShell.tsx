@@ -161,11 +161,6 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
             </span>
           </div>
         </div>
-
-        <div className="mt-2 px-space-md py-1.5 rounded-xl bg-[#151E32]/80 border border-[#263449] flex items-center justify-between">
-          <span className="font-mono-code text-[10px] text-[#3B82F6]">v2.4 Pro • AI Enabled</span>
-          <span className="h-2 w-2 rounded-full bg-[#8B5CF6] animate-pulse" />
-        </div>
       </div>
     </>
   );

@@ -209,7 +209,7 @@ export const ReportsView: React.FC = () => {
           Hiring Reports &amp; Benchmarks
         </h1>
         <p className="font-body-md text-body-md text-[#94A3B8]">
-          Velocity telemetry, source quality breakdown, and funnel conversion benchmarks.
+          Hiring velocity, source quality breakdown, and funnel conversion benchmarks.
         </p>
       </div>
 

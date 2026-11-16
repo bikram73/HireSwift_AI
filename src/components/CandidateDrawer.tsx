@@ -196,7 +196,7 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
                 <div className="text-tertiary">CONTACT: {candidate.email}</div>
                 <div>LOCATION: {candidate.location}</div>
                 <div>STAGE: {candidate.status}</div>
-                <div>DEDUP_HASH: sha256:9f2c81b0...44a1 (0 conflicts)</div>
+                <div>PROFILE STATUS: Verified Unique Candidate</div>
               </div>
             </div>
           )}

@@ -126,12 +126,8 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-space-lg mb-space-xl">
         <div className="flex flex-col gap-1 max-w-2xl">
           <div className="flex items-center gap-space-sm mb-1">
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-surface-container-high text-tertiary font-mono-code text-[11px] tracking-wide">
-              <span className="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse" />
-              CANDIDATE REPOSITORY • LIVE INGESTION
-            </span>
-            <span className="font-mono-code text-[11px] text-outline">
-              AUTO-SYNC ACTIVE
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-high text-tertiary font-mono-code text-[11px] tracking-wide">
+              CANDIDATE DIRECTORY
             </span>
           </div>
           <h1 className="font-heading font-extrabold text-headline-xl text-white tracking-tight">
@@ -676,9 +672,6 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                     {filteredCandidates.length}
                   </span>{' '}
                   of <span className="font-medium text-on-surface">482</span> candidates
-                </span>
-                <span className="font-mono-code text-[11px] text-outline hidden md:inline">
-                  • Latency 24ms
                 </span>
               </div>
               <div className="flex items-center gap-space-xs">

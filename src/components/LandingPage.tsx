@@ -485,7 +485,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                   onClick={() => onEnterWorkspace('ai-matching')}
                   className="inline-flex items-center gap-2 text-sm font-semibold text-[#8B5CF6] hover:text-white transition-colors cursor-pointer"
                 >
-                  <span>Explore Candidate Scorecard Spec</span>
+                  <span>Explore Candidate Scorecard</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -697,13 +697,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                   HireSwift<span className="text-[#8B5CF6]">AI</span>
                 </span>
               </div>
-              <p className="text-xs text-[#94A3B8] max-w-sm mb-6 leading-relaxed">
+              <p className="text-xs text-[#94A3B8] max-w-sm leading-relaxed">
                 The intelligent Applicant Tracking System built to eliminate hiring friction, auto-score candidates semantically, and build world-class engineering teams.
               </p>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#151E32] border border-[#263449] text-xs text-emerald-400">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                All AI Systems Operational • v2.4
-              </div>
             </div>
 
             <div>
