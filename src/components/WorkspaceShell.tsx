@@ -37,13 +37,10 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
   onSelectCandidate,
   children,
 }) => {
-  const { candidates, jobs, activities, setSelectedJobId } = useAts();
+  const { candidates, jobs, setSelectedJobId } = useAts();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
   const [cmdQuery, setCmdQuery] = useState('');
-  const [notifOpen, setNotifOpen] = useState(false);
-  const [orgOpen, setOrgOpen] = useState(false);
-  const [activeOrg, setActiveOrg] = useState('Acme Corp');
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -52,8 +49,6 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
         setCmdOpen((prev) => !prev);
       } else if (e.key === 'Escape') {
         setCmdOpen(false);
-        setNotifOpen(false);
-        setOrgOpen(false);
       }
     };
     window.addEventListener('keydown', onKeyDown);
@@ -189,16 +184,6 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
             >
               <span className="material-symbols-outlined text-[22px]">menu</span>
             </button>
-            <button
-              type="button"
-              onClick={onGoLanding}
-              className="flex items-center gap-2 cursor-pointer shrink-0 group"
-              title="View Landing Page"
-            >
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-[#4F46E5] to-[#8B5CF6] flex items-center justify-center shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform">
-                <Sparkles className="w-3.5 h-3.5 text-white" />
-              </div>
-            </button>
             <div className="flex items-center gap-space-xs font-body-sm text-body-sm text-[#94A3B8] truncate">
               <button
                 type="button"
@@ -245,104 +230,6 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
               <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
               <span className="hidden sm:inline">+ Analyze Resumes</span>
               <span className="sm:hidden">+ Analyze</span>
-            </button>
-
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => {
-                  setNotifOpen((p) => !p);
-                  setOrgOpen(false);
-                }}
-                className="relative flex items-center justify-center p-2 rounded-xl bg-[#151E32]/60 border border-[#263449]/80 text-[#94A3B8] hover:bg-[#1B2740] hover:text-white transition-colors cursor-pointer"
-                aria-label="Notifications"
-              >
-                <span className="material-symbols-outlined text-[20px]">notifications</span>
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-[#0B1020]" />
-              </button>
-
-              {notifOpen && (
-                <div className="absolute right-0 mt-2 w-80 rounded-xl glass-card shadow-2xl p-4 z-50">
-                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#263449]">
-                    <span className="font-headline-sm text-white">Recent Updates</span>
-                    <span className="font-mono-code text-[10px] text-[#3B82F6]">
-                      {Math.min(activities.length, 4)} UPDATES
-                    </span>
-                  </div>
-                  <div className="space-y-2.5 text-xs max-h-64 overflow-y-auto">
-                    {activities.slice(0, 4).map((act) => (
-                      <div key={act.id} className="p-2.5 rounded-lg bg-[#0B1020]/70 border border-[#263449]/60">
-                        <p className="text-white font-medium">{act.title}</p>
-                        <span className="text-[#94A3B8] font-mono-code text-[10px]">
-                          {act.time} · {act.detail}
-                        </span>
-                      </div>
-                    ))}
-                    {activities.length === 0 && (
-                      <p className="text-[#94A3B8] py-2 text-center">No recent activity in this session.</p>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="hidden sm:block h-6 w-px bg-outline-variant/30 mx-1" />
-
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => {
-                  setOrgOpen((p) => !p);
-                  setNotifOpen(false);
-                }}
-                className="flex items-center gap-space-xs px-2.5 py-1.5 rounded-xl bg-[#151E32]/85 border border-[#263449] cursor-pointer hover:bg-[#1B2740] transition-colors"
-              >
-                <span className="material-symbols-outlined text-[16px] text-[#8B5CF6]">business</span>
-                <span className="font-body-sm text-body-sm text-[#F8FAFC] font-medium hidden sm:inline whitespace-nowrap">
-                  {activeOrg}
-                </span>
-                <span className="material-symbols-outlined text-[16px] text-[#94A3B8]">arrow_drop_down</span>
-              </button>
-
-              {orgOpen && (
-                <div className="absolute right-0 mt-2 w-56 rounded-xl glass-card shadow-2xl p-1.5 z-50">
-                  {['Acme Corp', 'SynapticLabs', 'NodeCraft Talent'].map((org) => (
-                    <button
-                      key={org}
-                      type="button"
-                      onClick={() => {
-                        setActiveOrg(org);
-                        setOrgOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                        activeOrg === org
-                          ? 'bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white'
-                          : 'text-[#94A3B8] hover:bg-[#1B2740] hover:text-white'
-                      }`}
-                    >
-                      {org}
-                    </button>
-                  ))}
-                  <div className="my-1 border-t border-[#263449]" />
-                  <button
-                    type="button"
-                    onClick={onGoLanding}
-                    className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-[#3B82F6] hover:bg-[#1B2740] transition-colors cursor-pointer flex items-center gap-2"
-                  >
-                    <span className="material-symbols-outlined text-[15px]">public</span>
-                    <span>View Landing Page</span>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => onNavigate('settings')}
-              className="w-8 h-8 rounded-xl bg-[#151E32] border border-[#263449] hover:border-[#8B5CF6]/60 flex items-center justify-center cursor-pointer transition-colors"
-              title="Workspace Settings"
-            >
-              <span className="material-symbols-outlined text-[#F8FAFC] text-[18px]">settings</span>
             </button>
           </div>
         </header>
