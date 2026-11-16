@@ -50,9 +50,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
               <span className="font-heading font-bold text-xl tracking-tight text-white">
                 HireSwift<span className="text-[#8B5CF6]">AI</span>
               </span>
-              <span className="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-[#8B5CF6]/15 text-[#8B5CF6] border border-[#8B5CF6]/30">
-                ATS 2.0
-              </span>
             </div>
           </a>
 

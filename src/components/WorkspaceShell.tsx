@@ -91,9 +91,6 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
               <span className="font-heading font-bold text-base tracking-tight text-white leading-none">
                 HireSwift<span className="text-[#8B5CF6]">AI</span>
               </span>
-              <span className="text-[9px] font-semibold tracking-wide uppercase px-1.5 py-0.5 rounded-full bg-[#8B5CF6]/15 text-[#8B5CF6] border border-[#8B5CF6]/30">
-                ATS
-              </span>
             </div>
             <span className="font-label-sm text-label-sm text-[#94A3B8] font-medium mt-1">
               AI Recruitment
