@@ -336,9 +336,9 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
               type="button"
               onClick={() => onNavigate('settings')}
               className="w-8 h-8 rounded-full bg-primary flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
-              title="Recruiter Account Settings"
+              title="Workspace Settings"
             >
-              <span className="material-symbols-outlined text-on-primary text-[18px]">person</span>
+              <span className="material-symbols-outlined text-on-primary text-[18px]">settings</span>
             </button>
           </div>
         </header>

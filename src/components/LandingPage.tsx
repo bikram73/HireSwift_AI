@@ -37,14 +37,6 @@ interface LandingPageProps {
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
-  const [workEmail, setWorkEmail] = useState('');
-  const [workspaceReady, setWorkspaceReady] = useState(false);
-
-  const handleWorkspaceSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!workEmail.trim()) return;
-    setWorkspaceReady(true);
-  };
 
   const starterPrice = billingCycle === 'monthly' ? '$49' : '$39';
   const growthPrice = billingCycle === 'monthly' ? '$129' : '$103';
@@ -94,16 +86,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
             <button
               type="button"
               onClick={() => onEnterWorkspace('dashboard')}
-              className="hidden sm:inline-block text-sm font-medium text-[#94A3B8] hover:text-white transition-colors duration-150 cursor-pointer whitespace-nowrap"
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              onClick={() => onEnterWorkspace('dashboard')}
               className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#4F46E5] to-[#3B82F6] hover:from-[#4338CA] hover:to-[#2563EB] shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 transition-all duration-200 border border-white/10 cursor-pointer whitespace-nowrap"
             >
-              <span>Get Started</span>
+              <span>Open Workspace</span>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -842,38 +827,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
               Join 1,200+ recruiters and founders who hire 10x faster with AI precision. Launch your team workspace right now.
             </p>
 
-            {workspaceReady ? (
-              <div className="max-w-md mx-auto p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-xs text-emerald-300 font-medium">
-                  <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span>Workspace ready for {workEmail}</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => onEnterWorkspace('dashboard')}
-                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-semibold text-xs whitespace-nowrap cursor-pointer"
-                >
-                  Enter Workspace
-                </button>
-              </div>
-            ) : (
-              <form className="max-w-md mx-auto flex flex-col sm:flex-row gap-3" onSubmit={handleWorkspaceSubmit}>
-                <input
-                  className="flex-1 px-4 py-3.5 rounded-xl bg-[#0B1020]/90 border border-[#263449] text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] text-sm"
-                  placeholder="Enter your work email"
-                  required
-                  type="email"
-                  value={workEmail}
-                  onChange={(e) => setWorkEmail(e.target.value)}
-                />
-                <button
-                  className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-white font-semibold text-sm shadow-lg shadow-indigo-600/30 whitespace-nowrap transition-all duration-200 cursor-pointer"
-                  type="submit"
-                >
-                  Get Started
-                </button>
-              </form>
-            )}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <button
+                type="button"
+                onClick={() => onEnterWorkspace('dashboard')}
+                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-white font-semibold text-sm shadow-lg shadow-indigo-600/30 whitespace-nowrap transition-all duration-200 cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Launch Workspace</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onEnterWorkspace('ai-matching')}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#151E32] hover:bg-[#1B2740] border border-[#263449] text-white font-semibold text-sm whitespace-nowrap transition-all duration-200 cursor-pointer"
+              >
+                <span>Explore AI Matching</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
 
             <p className="text-xs text-[#94A3B8]/70 mt-4">
               Instant workspace provisioning • Full feature access • Setup in 90 seconds
