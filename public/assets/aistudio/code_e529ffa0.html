@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HireSwift AI – Intelligent Applicant Tracking System</title>
+<!-- Google Fonts: Plus Jakarta Sans & Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            heading: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              bg: '#0B1020',
+              surface: '#151E32',
+              elevated: '#1B2740',
+              border: '#263449',
+              indigo: '#4F46E5',
+              deepIndigo: '#3730A3',
+              blue: '#3B82F6',
+              violet: '#8B5CF6',
+              textPrimary: '#F8FAFC',
+              textSecondary: '#94A3B8',
+            }
+          },
+          boxShadow: {
+            'glow-indigo': '0 0 35px -5px rgba(79, 70, 229, 0.35)',
+            'glow-violet': '0 0 40px -5px rgba(139, 92, 246, 0.3)',
+            'card-glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+          }
+        }
+      }
+    }
+  </script>
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<style data-purpose="custom-styling">
+    body {
+      background-color: #0B1020;
+      color: #F8FAFC;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+    .gradient-hero-text {
+      background: linear-gradient(135deg, #FFFFFF 30%, #8B5CF6 70%, #3B82F6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .glass-card {
+      background: rgba(21, 30, 50, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid #263449;
+    }
+    .subtle-grid {
+      background-size: 40px 40px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    }
+    .glow-conic {
+      background: radial-gradient(circle at 50% 30%, rgba(79, 70, 229, 0.22) 0%, rgba(139, 92, 246, 0.15) 35%, transparent 70%);
+    }
+  </style>
+</head>
+<body class="bg-[#0B1020] text-[#F8FAFC] antialiased subtle-grid">
+<!-- BEGIN: MainHeader -->
+<header class="sticky top-0 z-50 w-full backdrop-blur-md bg-[#0B1020]/80 border-b border-[#263449]/70 transition-all duration-300">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+<!-- Brand Logo -->
+<a class="flex items-center gap-3 group" data-purpose="brand-logo" href="#">
+<div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#4F46E5] to-[#8B5CF6] flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform duration-200">
+<i class="w-5 h-5 text-white" data-lucide="sparkles"></i>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-heading font-bold text-xl tracking-tight text-white">HireSwift<span class="text-[#8B5CF6]">AI</span></span>
+<span class="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-[#8B5CF6]/15 text-[#8B5CF6] border border-[#8B5CF6]/30">ATS 2.0</span>
+</div>
+</a>
+<!-- Desktop Navigation Links -->
+<nav class="hidden md:flex items-center gap-8 text-sm font-medium text-[#94A3B8]">
+<a class="hover:text-white transition-colors duration-150" href="#features">Features</a>
+<a class="hover:text-white transition-colors duration-150" href="#how-it-works">How It Works</a>
+<a class="hover:text-white transition-colors duration-150" href="#pipeline">AI Matching</a>
+<a class="hover:text-white transition-colors duration-150" href="#pricing">Pricing</a>
+<a class="hover:text-white transition-colors duration-150" href="#testimonials">Testimonials</a>
+</nav>
+<!-- Header Actions -->
+<div class="flex items-center gap-4">
+<a class="hidden sm:inline-block text-sm font-medium text-[#94A3B8] hover:text-white transition-colors duration-150" href="#signin">Sign In</a>
+<a class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#4F46E5] to-[#3B82F6] hover:from-[#4338CA] hover:to-[#2563EB] shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 transition-all duration-200 border border-white/10" href="#trial">
+<span>Start Free Trial</span>
+<i class="w-4 h-4" data-lucide="chevron-right"></i>
+</a>
+</div>
+</div>
+</header>
+<!-- END: MainHeader -->
+<!-- BEGIN: HeroSection -->
+<section class="relative pt-12 pb-24 lg:pt-20 lg:pb-32 overflow-hidden">
+<!-- Ambient Radial Gradient Background Light -->
+<div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] h-[500px] glow-conic pointer-events-none blur-3xl opacity-80"></div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+<!-- Announcement Pill Badge -->
+<div class="flex justify-center mb-6">
+<div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-[#151E32]/90 border border-[#263449] shadow-inner text-xs sm:text-sm font-medium text-[#F8FAFC]">
+<span class="inline-flex items-center justify-center w-2 h-2 rounded-full bg-[#8B5CF6] animate-pulse"></span>
+<span>Powered by Gemini 1.5 Pro ATS Parser</span>
+<span class="text-[#263449]">•</span>
+<span class="text-[#8B5CF6] font-semibold">99.4% Extraction Accuracy</span>
+</div>
+</div>
+<!-- Main Headline & Subtitle -->
+<div class="text-center max-w-4xl mx-auto mb-10">
+<h1 class="text-4xl sm:text-6xl lg:text-7xl font-heading font-extrabold tracking-tight leading-[1.12] mb-6">
+          Hire Smarter. Shortlist Faster. <br class="hidden sm:inline"/>
+<span class="gradient-hero-text">Find the Right Talent.</span>
+</h1>
+<p class="text-lg sm:text-xl text-[#94A3B8] leading-relaxed max-w-3xl mx-auto font-normal">
+          HireSwift AI is the intelligent ATS built for high-growth startups and small teams. Ingest hundreds of resumes in seconds, score semantic fit automatically, and eliminate hiring bias without the enterprise bloat.
+        </p>
+</div>
+<!-- Dual Call To Actions -->
+<div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+<a class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-base font-semibold text-white bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 shadow-xl shadow-indigo-600/35 hover:shadow-indigo-600/50 transition-all duration-200 border border-white/20" href="#trial">
+<i class="w-5 h-5 text-indigo-200" data-lucide="sparkles"></i>
+<span>Start 14-Day Free Trial</span>
+</a>
+<a class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl text-base font-semibold text-[#F8FAFC] bg-[#151E32] hover:bg-[#1B2740] border border-[#263449] transition-all duration-200 hover:border-[#3B82F6]/50" href="#demo">
+<i class="w-5 h-5 text-[#3B82F6]" data-lucide="play-circle"></i>
+<span>Watch 2-Min Interactive Demo</span>
+</a>
+</div>
+<!-- Trust Proof Brand Bar -->
+<div class="text-center mb-16">
+<p class="text-xs uppercase tracking-widest text-[#94A3B8]/80 font-semibold mb-6">
+          Trusted by 1,200+ forward-thinking teams worldwide
+        </p>
+<div class="flex flex-wrap items-center justify-center gap-8 md:gap-14 opacity-60 grayscale hover:grayscale-0 transition-all duration-300">
+<div class="flex items-center gap-2 text-sm font-semibold tracking-wider text-slate-300"><i class="w-4 h-4 fill-white" data-lucide="triangle"></i> VERCEL</div>
+<div class="flex items-center gap-2 text-sm font-semibold tracking-wider text-slate-300"><i class="w-4 h-4" data-lucide="box"></i> RETOOL</div>
+<div class="flex items-center gap-2 text-sm font-semibold tracking-wider text-slate-300"><i class="w-4 h-4 fill-emerald-400 text-emerald-400" data-lucide="zap"></i> SUPABASE</div>
+<div class="flex items-center gap-2 text-sm font-semibold tracking-wider text-slate-300"><i class="w-4 h-4" data-lucide="video"></i> LOOM</div>
+<div class="flex items-center gap-2 text-sm font-semibold tracking-wider text-slate-300"><i class="w-4 h-4" data-lucide="credit-card"></i> RAMP</div>
+<div class="flex items-center gap-2 text-sm font-semibold tracking-wider text-slate-300"><i class="w-4 h-4" data-lucide="layers"></i> LINEAR</div>
+</div>
+</div>
+<!-- Hero Visual Display Mockup -->
+<div class="relative max-w-5xl mx-auto" data-purpose="hero-product-showcase">
+<!-- Ambient decorative aura glow -->
+<div class="absolute -inset-1.5 bg-gradient-to-r from-[#4F46E5] via-[#8B5CF6] to-[#3B82F6] rounded-2xl blur-xl opacity-40 group-hover:opacity-75 transition duration-1000"></div>
+<!-- Window Mockup Frame -->
+<div class="relative rounded-2xl bg-[#0B1020] border border-[#263449] shadow-2xl overflow-hidden">
+<!-- Mockup Window Bar -->
+<div class="flex items-center justify-between px-4 py-3 bg-[#151E32]/90 border-b border-[#263449]">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-rose-500/80 inline-block"></span>
+<span class="w-3 h-3 rounded-full bg-amber-500/80 inline-block"></span>
+<span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block"></span>
+</div>
+<div class="text-xs font-mono text-[#94A3B8] bg-[#0B1020] px-4 py-1 rounded-md border border-[#263449] flex items-center gap-2">
+<i class="w-3 h-3 text-[#8B5CF6]" data-lucide="lock"></i>
+<span>app.hireswift.ai/pipeline/senior-fullstack</span>
+</div>
+<div class="flex items-center gap-2 text-[#94A3B8]">
+<i class="w-3.5 h-3.5" data-lucide="refresh-cw"></i>
+</div>
+</div>
+<!-- Real Screenshot Asset Embedded -->
+<div class="relative aspect-[16/9] w-full overflow-hidden bg-[#0B1020]">
+<img alt="HireSwift AI Interactive Talent Pipeline &amp; Semantic Matching Dashboard" class="w-full h-full object-cover object-top" loading="eager" src="https://lh3.googleusercontent.com/aida/ALJJyrBeFlCTLH8HIGgUbM7jidZ7dBlbygD5Bt6jtPsDwSpgZao8liduf9Dc9Ki04j2ASeLdb5E_YwhRH4kxDpaZVqFrUmeMpAO4_0A85Y47pCIn_lJJNak6DI-0gxuRs3VODYGvwjIdOo3BoKYNUl3-AvwKB7BprYvdQ1yaXVBHKi4h2_WulaiU2m4i9bd5cv_E2YJNtMwcnIrPFtAaqZXjuJUY2h4fJ9DJV2Ae8jfgxuU"/>
+<!-- Floating Badge 1 (Top Left) -->
+<div class="hidden sm:flex absolute top-5 left-5 items-center gap-3 p-3 rounded-xl bg-[#151E32]/90 backdrop-blur-md border border-[#263449] shadow-xl animate-bounce duration-1000">
+<div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+<i class="w-4 h-4" data-lucide="zap"></i>
+</div>
+<div class="text-left">
+<p class="text-xs font-semibold text-white">Bulk Parser Stream</p>
+<p class="text-[11px] text-[#94A3B8]">150 resumes parsed in 34s • 0 duplicates</p>
+</div>
+</div>
+<!-- Floating Badge 2 (Bottom Right) -->
+<div class="hidden sm:flex absolute bottom-5 right-5 items-center gap-3 p-3.5 rounded-xl bg-[#151E32]/95 backdrop-blur-md border border-[#8B5CF6]/50 shadow-2xl">
+<div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-[#4F46E5] to-[#8B5CF6] text-white flex items-center justify-center font-bold">
+<i class="w-4 h-4" data-lucide="target"></i>
+</div>
+<div class="text-left">
+<div class="flex items-center gap-2">
+<span class="text-xs font-bold text-white">AI Semantic Match</span>
+<span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400">94% Fit</span>
+</div>
+<p class="text-[11px] text-[#94A3B8]">Sarah Chen • Senior Software Engineer</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- END: HeroSection -->
+<!-- BEGIN: MetricComparisonStrip -->
+<section class="border-y border-[#263449] bg-[#151E32]/40 py-12 relative">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<!-- Comparison Bar -->
+<div class="glass-card rounded-2xl p-6 lg:p-8 mb-10 border border-[#263449] flex flex-col md:flex-row items-center justify-between gap-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 font-bold shrink-0">
+<i class="w-6 h-6" data-lucide="clock"></i>
+</div>
+<div>
+<p class="text-xs font-semibold uppercase tracking-wider text-rose-400">Traditional ATS Slogging</p>
+<p class="text-lg font-heading font-semibold text-white">18 Hours / Week spent manual screening</p>
+</div>
+</div>
+<div class="hidden md:block text-[#94A3B8] font-bold text-lg">vs</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-[#4F46E5]/20 border border-[#4F46E5]/40 flex items-center justify-center text-[#8B5CF6] font-bold shrink-0">
+<i class="w-6 h-6" data-lucide="sparkles"></i>
+</div>
+<div>
+<p class="text-xs font-semibold uppercase tracking-wider text-emerald-400">With HireSwift AI Engine</p>
+<p class="text-lg font-heading font-semibold text-white">45 Minutes / Week automated shortlists</p>
+</div>
+</div>
+</div>
+<!-- Stat Counters Grid -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+<div class="p-4 rounded-xl border border-[#263449]/60 bg-[#151E32]/20">
+<p class="text-3xl lg:text-4xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-[#8B5CF6]">10x</p>
+<p class="text-xs sm:text-sm font-medium text-[#94A3B8] mt-1">Faster Screening</p>
+</div>
+<div class="p-4 rounded-xl border border-[#263449]/60 bg-[#151E32]/20">
+<p class="text-3xl lg:text-4xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-[#3B82F6]">99.4%</p>
+<p class="text-xs sm:text-sm font-medium text-[#94A3B8] mt-1">Parsing Accuracy</p>
+</div>
+<div class="p-4 rounded-xl border border-[#263449]/60 bg-[#151E32]/20">
+<p class="text-3xl lg:text-4xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-emerald-400">0</p>
+<p class="text-xs sm:text-sm font-medium text-[#94A3B8] mt-1">Duplicate Resumes</p>
+</div>
+<div class="p-4 rounded-xl border border-[#263449]/60 bg-[#151E32]/20">
+<p class="text-3xl lg:text-4xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-[#4F46E5]">64%</p>
+<p class="text-xs sm:text-sm font-medium text-[#94A3B8] mt-1">Lower Time-to-Hire</p>
+</div>
+</div>
+</div>
+</section>
+<!-- END: MetricComparisonStrip -->
+<!-- BEGIN: CoreFeaturesSection -->
+<section class="py-24 relative" id="features">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<!-- Section Title Header -->
+<div class="text-center max-w-3xl mx-auto mb-16">
+<span class="text-xs font-bold tracking-widest text-[#8B5CF6] uppercase">High Performance Architecture</span>
+<h2 class="text-3xl sm:text-4xl lg:text-5xl font-heading font-extrabold text-white mt-3 mb-4">
+          Everything You Need to Hire Top 1% Engineers &amp; Leaders
+        </h2>
+<p class="text-[#94A3B8] text-base sm:text-lg">
+          Ditch clunky 2012 enterprise systems. HireSwift AI gives your lean team sovereign superpower recruiting workflows.
+        </p>
+</div>
+<!-- Core 6 Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Card 1 -->
+<div class="glass-card rounded-2xl p-7 border border-[#263449] hover:border-[#4F46E5]/60 transition-all duration-300 group hover:-translate-y-1">
+<div class="w-12 h-12 rounded-xl bg-[#4F46E5]/15 border border-[#4F46E5]/30 flex items-center justify-center text-[#8B5CF6] mb-5 group-hover:bg-[#4F46E5] group-hover:text-white transition-all">
+<i class="w-6 h-6" data-lucide="file-text"></i>
+</div>
+<h3 class="text-xl font-heading font-semibold text-white mb-2.5">Bulk AI Resume Parsing &amp; OCR</h3>
+<p class="text-sm text-[#94A3B8] leading-relaxed">
+            Drag &amp; drop hundreds of PDF, DOCX, or scanned portfolios. Our Gemini parser extracts deep vector tokens, cleans noisy text, and automatically resolves identity duplicates in seconds.
+          </p>
+</div>
+<!-- Card 2 -->
+<div class="glass-card rounded-2xl p-7 border border-[#263449] hover:border-[#8B5CF6]/60 transition-all duration-300 group hover:-translate-y-1">
+<div class="w-12 h-12 rounded-xl bg-[#8B5CF6]/15 border border-[#8B5CF6]/30 flex items-center justify-center text-[#8B5CF6] mb-5 group-hover:bg-[#8B5CF6] group-hover:text-white transition-all">
+<i class="w-6 h-6" data-lucide="brain-circuit"></i>
+</div>
+<h3 class="text-xl font-heading font-semibold text-white mb-2.5">Semantic Resume-JD Matching</h3>
+<p class="text-sm text-[#94A3B8] leading-relaxed">
+            Move far beyond rigid keywords. Evaluates architectural nuance, tech stacks, problem-solving scope, and company pedigree with explicit reasoning you can trust.
+          </p>
+</div>
+<!-- Card 3 -->
+<div class="glass-card rounded-2xl p-7 border border-[#263449] hover:border-[#3B82F6]/60 transition-all duration-300 group hover:-translate-y-1">
+<div class="w-12 h-12 rounded-xl bg-[#3B82F6]/15 border border-[#3B82F6]/30 flex items-center justify-center text-[#3B82F6] mb-5 group-hover:bg-[#3B82F6] group-hover:text-white transition-all">
+<i class="w-6 h-6" data-lucide="sliders"></i>
+</div>
+<h3 class="text-xl font-heading font-semibold text-white mb-2.5">Precision Academic &amp; Skill Filtering</h3>
+<p class="text-sm text-[#94A3B8] leading-relaxed">
+            Dial in exact constraints: CGPA cutoffs, tier-1 universities, graduation batches, specific cloud certifications, and minimum production experience thresholds with a slider.
+          </p>
+</div>
+<!-- Card 4 -->
+<div class="glass-card rounded-2xl p-7 border border-[#263449] hover:border-[#4F46E5]/60 transition-all duration-300 group hover:-translate-y-1">
+<div class="w-12 h-12 rounded-xl bg-[#4F46E5]/15 border border-[#4F46E5]/30 flex items-center justify-center text-[#8B5CF6] mb-5 group-hover:bg-[#4F46E5] group-hover:text-white transition-all">
+<i class="w-6 h-6" data-lucide="trello"></i>
+</div>
+<h3 class="text-xl font-heading font-semibold text-white mb-2.5">Kanban Hiring Pipeline</h3>
+<p class="text-sm text-[#94A3B8] leading-relaxed">
+            Fluid, drag-and-drop applicant stages with automated triggers. Move candidates seamlessly from Sourced to Tech Interview, with audit-logged feedback and notes.
+          </p>
+</div>
+<!-- Card 5 -->
+<div class="glass-card rounded-2xl p-7 border border-[#263449] hover:border-[#8B5CF6]/60 transition-all duration-300 group hover:-translate-y-1">
+<div class="w-12 h-12 rounded-xl bg-[#8B5CF6]/15 border border-[#8B5CF6]/30 flex items-center justify-center text-[#8B5CF6] mb-5 group-hover:bg-[#8B5CF6] group-hover:text-white transition-all">
+<i class="w-6 h-6" data-lucide="columns"></i>
+</div>
+<h3 class="text-xl font-heading font-semibold text-white mb-2.5">Side-by-Side Comparison</h3>
+<p class="text-sm text-[#94A3B8] leading-relaxed">
+            Eliminate bias with instant candidate side-by-side matrices. Compare radar charts across system design, past longevity, communication scores, and salary expectations.
+          </p>
+</div>
+<!-- Card 6 -->
+<div class="glass-card rounded-2xl p-7 border border-[#263449] hover:border-[#3B82F6]/60 transition-all duration-300 group hover:-translate-y-1">
+<div class="w-12 h-12 rounded-xl bg-[#3B82F6]/15 border border-[#3B82F6]/30 flex items-center justify-center text-[#3B82F6] mb-5 group-hover:bg-[#3B82F6] group-hover:text-white transition-all">
+<i class="w-6 h-6" data-lucide="mail-check"></i>
+</div>
+<h3 class="text-xl font-heading font-semibold text-white mb-2.5">Smart Email Center &amp; Sequences</h3>
+<p class="text-sm text-[#94A3B8] leading-relaxed">
+            Trigger dynamic emails with Cal.com/Calendly self-schedule links, gentle reminders, polite rejection feedback letters, and 1-click offer generation.
+          </p>
+</div>
+</div>
+</div>
+</section>
+<!-- END: CoreFeaturesSection -->
+<!-- BEGIN: WorkflowSection -->
+<section class="py-20 bg-[#151E32]/30 border-y border-[#263449]" id="how-it-works">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center max-w-2xl mx-auto mb-16">
+<span class="text-xs font-bold tracking-widest text-[#3B82F6] uppercase">Zero Operational Friction</span>
+<h2 class="text-3xl sm:text-4xl font-heading font-extrabold text-white mt-2">
+          How HireSwift AI Delivers in 3 Simple Steps
+        </h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+<!-- Step 1 -->
+<div class="relative glass-card rounded-2xl p-8 border border-[#263449]">
+<span class="text-5xl font-extrabold text-[#263449] select-none block mb-4">01</span>
+<div class="w-10 h-10 rounded-lg bg-indigo-500/20 text-[#8B5CF6] flex items-center justify-center mb-4">
+<i class="w-5 h-5" data-lucide="upload-cloud"></i>
+</div>
+<h3 class="text-lg font-bold text-white mb-2">Ingest &amp; Bulk Parse</h3>
+<p class="text-sm text-[#94A3B8]">
+            Drop your zip archives, Google Drive folder links, or LinkedIn exports. Our multi-threaded parser ingests up to 500 files per minute.
+          </p>
+</div>
+<!-- Step 2 -->
+<div class="relative glass-card rounded-2xl p-8 border border-[#263449]">
+<span class="text-5xl font-extrabold text-[#263449] select-none block mb-4">02</span>
+<div class="w-10 h-10 rounded-lg bg-violet-500/20 text-violet-400 flex items-center justify-center mb-4">
+<i class="w-5 h-5" data-lucide="cpu"></i>
+</div>
+<h3 class="text-lg font-bold text-white mb-2">Neural JD Alignment</h3>
+<p class="text-sm text-[#94A3B8]">
+            Gemini 1.5 Pro compares applicant technical histories against your role's specific tech stack, assigning a clear % fit score with itemized reasoning.
+          </p>
+</div>
+<!-- Step 3 -->
+<div class="relative glass-card rounded-2xl p-8 border border-[#263449]">
+<span class="text-5xl font-extrabold text-[#263449] select-none block mb-4">03</span>
+<div class="w-10 h-10 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center mb-4">
+<i class="w-5 h-5" data-lucide="check-circle-2"></i>
+</div>
+<h3 class="text-lg font-bold text-white mb-2">Decision Support &amp; Offer</h3>
+<p class="text-sm text-[#94A3B8]">
+            Review your auto-ranked shortlist, trigger automated interview invites, compare final finalists, and close your dream hire in half the time.
+          </p>
+</div>
+</div>
+</div>
+</section>
+<!-- END: WorkflowSection -->
+<!-- BEGIN: InteractiveScorecardPreview -->
+<section class="py-24 relative" id="pipeline">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+<!-- Left Explainer Column -->
+<div class="lg:col-span-5">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1B2740] border border-[#263449] text-xs font-semibold text-[#8B5CF6] mb-4">
+<i class="w-3.5 h-3.5" data-lucide="sparkle"></i>
+            Explainable AI Scoring
+          </div>
+<h2 class="text-3xl sm:text-4xl font-heading font-extrabold text-white mb-6 leading-tight">
+            Stop Guessing. See Exactly Why A Candidate Matches.
+          </h2>
+<p class="text-base text-[#94A3B8] mb-6 leading-relaxed">
+            Unlike legacy black-box keyword matchers that reject candidates for missing synonyms, HireSwift evaluates true experience depth, project complexity, and engineering leadership signals.
+          </p>
+<ul class="space-y-3.5 text-sm text-slate-300">
+<li class="flex items-start gap-3">
+<i class="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" data-lucide="check"></i>
+<span>Multi-axis radar scoring: Skills, Architecture, Communication, Leadership.</span>
+</li>
+<li class="flex items-start gap-3">
+<i class="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" data-lucide="check"></i>
+<span>Direct citation links to relevant bullet points in original resume PDF.</span>
+</li>
+<li class="flex items-start gap-3">
+<i class="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" data-lucide="check"></i>
+<span>Automated flags for resume exaggerations or timeline inconsistencies.</span>
+</li>
+</ul>
+<div class="mt-8">
+<a class="inline-flex items-center gap-2 text-sm font-semibold text-[#8B5CF6] hover:text-white transition-colors" href="#trial">
+<span>Explore Candidate Scorecard Spec</span>
+<i class="w-4 h-4" data-lucide="arrow-right"></i>
+</a>
+</div>
+</div>
+<!-- Right Interactive Candidate Scorecard Widget Preview -->
+<div class="lg:col-span-7">
+<div class="glass-card rounded-2xl p-6 sm:p-8 border border-[#263449] shadow-2xl relative">
+<div class="flex items-center justify-between border-b border-[#263449] pb-5 mb-6">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
+                  SC
+                </div>
+<div>
+<h4 class="font-heading font-bold text-white text-lg">Sarah Chen</h4>
+<p class="text-xs text-[#94A3B8]">Senior Fullstack / Cloud Architect • 7.5 Yrs Exp</p>
+</div>
+</div>
+<div class="text-right">
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
+<i class="w-3.5 h-3.5" data-lucide="shield-check"></i> 94% Match
+                </div>
+</div>
+</div>
+<!-- Score Bars -->
+<div class="space-y-4 mb-6">
+<div>
+<div class="flex justify-between text-xs font-medium mb-1.5">
+<span class="text-slate-300">Technical Stack Alignment (React, Go, AWS, Docker)</span>
+<span class="text-white font-semibold">96%</span>
+</div>
+<div class="w-full bg-[#1B2740] rounded-full h-2 overflow-hidden">
+<div class="bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] h-2 rounded-full" style="width: 96%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-xs font-medium mb-1.5">
+<span class="text-slate-300">System Design &amp; High-Load Scale</span>
+<span class="text-white font-semibold">91%</span>
+</div>
+<div class="w-full bg-[#1B2740] rounded-full h-2 overflow-hidden">
+<div class="bg-gradient-to-r from-[#3B82F6] to-[#8B5CF6] h-2 rounded-full" style="width: 91%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-xs font-medium mb-1.5">
+<span class="text-slate-300">Academic &amp; Foundation Credential</span>
+<span class="text-white font-semibold">88%</span>
+</div>
+<div class="w-full bg-[#1B2740] rounded-full h-2 overflow-hidden">
+<div class="bg-emerald-500 h-2 rounded-full" style="width: 88%"></div>
+</div>
+</div>
+</div>
+<!-- AI Summary Box -->
+<div class="p-4 rounded-xl bg-[#0B1020]/90 border border-[#263449] mb-5">
+<div class="flex items-center gap-2 mb-2 text-xs font-semibold text-[#8B5CF6]">
+<i class="w-4 h-4" data-lucide="bot"></i>
+<span>Gemini ATS Rationale Summary</span>
+</div>
+<p class="text-xs text-[#94A3B8] leading-relaxed">
+                "Sarah has directed 3 microservice transformations at scale with verifiable metrics (reduced latency by 42%). Meets 9/10 core JD requirements with verified production Kubernetes mastery."
+              </p>
+</div>
+<!-- Action buttons inside scorecard -->
+<div class="flex items-center gap-3">
+<button class="flex-1 py-2.5 px-4 rounded-lg bg-[#4F46E5] hover:bg-[#4338CA] text-xs font-semibold text-white transition-colors flex items-center justify-center gap-2">
+<i class="w-3.5 h-3.5" data-lucide="calendar"></i> Schedule 45-Min Interview
+              </button>
+<button class="py-2.5 px-4 rounded-lg bg-[#1B2740] hover:bg-[#263449] text-xs font-medium text-[#94A3B8] hover:text-white transition-colors border border-[#263449]">
+                View Full Dossier
+              </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- END: InteractiveScorecardPreview -->
+<!-- BEGIN: PricingSection -->
+<section class="py-24 bg-[#151E32]/30 border-y border-[#263449] relative" id="pricing">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center max-w-3xl mx-auto mb-16">
+<span class="text-xs font-bold tracking-widest text-[#8B5CF6] uppercase">Predictable &amp; Founder Friendly</span>
+<h2 class="text-3xl sm:text-4xl lg:text-5xl font-heading font-extrabold text-white mt-2 mb-4">
+          Simple Pricing That Scales With Your Team
+        </h2>
+<p class="text-[#94A3B8] text-base sm:text-lg">
+          No mandatory annual contracts. Unlimited team seats on every plan.
+        </p>
+<!-- Billing Toggle Pill -->
+<div class="inline-flex items-center p-1.5 rounded-xl bg-[#0B1020] border border-[#263449] mt-6">
+<button class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-[#4F46E5] text-white">Monthly</button>
+<button class="px-4 py-1.5 rounded-lg text-xs font-semibold text-[#94A3B8] hover:text-white transition-colors">
+            Annual <span class="text-emerald-400 font-bold ml-1">Save 20%</span>
+</button>
+</div>
+</div>
+<!-- Pricing Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Starter Plan -->
+<div class="glass-card rounded-2xl p-8 border border-[#263449] flex flex-col justify-between">
+<div>
+<h3 class="text-xl font-heading font-bold text-white mb-2">Starter</h3>
+<p class="text-xs text-[#94A3B8] mb-6">Ideal for seed teams and founders actively hiring their first core engineers.</p>
+<div class="flex items-baseline gap-1 mb-6">
+<span class="text-4xl font-extrabold text-white">$49</span>
+<span class="text-xs text-[#94A3B8]">/ month</span>
+</div>
+<ul class="space-y-3 text-xs text-slate-300 mb-8">
+<li class="flex items-center gap-2"><i class="w-4 h-4 text-emerald-400" data-lucide="check"></i> Up to 3 Active Job Openings</li>
+<li class="flex items-center gap-2"><i class="w-4 h-4 text-emerald-400" data-lucide="check"></i> 300 Parsed Resumes / month</li>
+<li class="flex items-center gap-2"><i class="w-4 h-4 text-emerald-400" data-lucide="check"></i> Gemini AI Semantic Matching</li>
+<li class="flex items-center gap-2"><i class="w-4 h-4 text-emerald-400" data-lucide="check"></i> Kanban Pipeline Management</li>
+<li class="flex items-center gap-2 text-slate-500"><i class="w-4 h-4" data-lucide="x"></i> Candidate Radar Matrix</li>
+</ul>
+</div>
+<a class="w-full py-3 text-center rounded-xl bg-[#1B2740] hover:bg-[#263449] text-xs font-semibold text-white border border-[#263449] transition-all" href="#trial">
+            Get Started
+          </a>
+</div>
+<!-- Growth Plan (Featured) -->
+<div class="relative glass-card rounded-2xl p-8 border-2 border-[#8B5CF6] shadow-glow-indigo flex flex-col justify-between bg-gradient-to-b from-[#151E32] to-[#1B2740]">
+<div class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-[10px] uppercase font-bold tracking-widest text-white rounded-full shadow">
+            Most Popular
+          </div>
+<div>
+<h3 class="text-xl font-heading font-bold text-white mb-2">Growth</h3>
+<p class="text-xs text-[#94A3B8] mb-6">For scaling startups rapidly expanding their technical and GTM teams.</p>
+<div class="flex items-baseline gap-1 mb-6">
+<span class="text-4xl font-extrabold text-white">$129</span>
+<span class="text-xs text-[#94A3B8]">/ month</span>
+</div>
+<ul class="space-y-3 text-xs text-slate-200 mb-8">
+<li class="flex items-center gap-2"><i class="w-4 h-4 text-emerald-400" data-lucide="check"></i> 15 Active Job Openings</li>
+<li class="flex items-center gap-2"><i class="w-4 h-4 text-emerald-400" data-lucide="check"></i> Unlimited Resumes Parsed</li>
+<li class="flex items-center gap-2"><i class="w-4 h-4 text-emerald-400" data-lucide="check"></i> Side-by-side Candidate Comparison</li>
+<li class="flex items-center gap-2"><i class="w-4 h-4 text-emerald-400" data-lucide="check"></i> Smart Email Automation &amp; Triggers</li>
+<li class="flex items-center gap-2"><i class="w-4 h-4 text-emerald-400" data-lucide="check"></i> Unlimited Team Seats &amp; Roles</li>
+</ul>
+</div>
+<a class="w-full py-3 text-center rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-xs font-semibold text-white shadow-lg shadow-indigo-600/30 transition-all" href="#trial">
+            Start 14-Day Free Trial
+          </a>
+</div>
+<!-- Scale Plan -->
+<div class="glass-card rounded-2xl p-8 border border-[#263449] flex flex-col justify-between">
+<div>
+<h3 class="text-xl font-heading font-bold text-white mb-2">Scale</h3>
+<p class="text-xs text-[#94A3B8] mb-6">For high-volume hiring agencies and established venture-backed companies.</p>
+<div class="flex items-baseline gap-1 mb-6">
+<span class="text-4xl font-extrabold text-white">$299</span>
+<span class="text-xs text-[#94A3B8]">/ month</span>
+</div>
+<ul class="space-y-3 text-xs text-slate-300 mb-8">
+<li class="flex items-center gap-2"><i class="w-4 h-4 text-emerald-400" data-lucide="check"></i> Unlimited Jobs &amp; Candidates</li>
+<li class="flex items-center gap-2"><i class="w-4 h-4 text-emerald-400" data-lucide="check"></i> Dedicated ATS Database &amp; OCR</li>
+<li class="flex items-center gap-2"><i class="w-4 h-4 text-emerald-400" data-lucide="check"></i> Custom Prompt Calibration</li>
+<li class="flex items-center gap-2"><i class="w-4 h-4 text-emerald-400" data-lucide="check"></i> Priority Concierge Parsing Queue</li>
+<li class="flex items-center gap-2"><i class="w-4 h-4 text-emerald-400" data-lucide="check"></i> Dedicated Slack Channel &amp; SLA</li>
+</ul>
+</div>
+<a class="w-full py-3 text-center rounded-xl bg-[#1B2740] hover:bg-[#263449] text-xs font-semibold text-white border border-[#263449] transition-all" href="#contact">
+            Contact Sales
+          </a>
+</div>
+</div>
+</div>
+</section>
+<!-- END: PricingSection -->
+<!-- BEGIN: TestimonialsSection -->
+<section class="py-24 relative" id="testimonials">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center max-w-2xl mx-auto mb-16">
+<span class="text-xs font-bold tracking-widest text-[#3B82F6] uppercase">Loved By Talent Teams</span>
+<h2 class="text-3xl sm:text-4xl font-heading font-extrabold text-white mt-2">
+          From Chaos to 1-Click Shortlists
+        </h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Quote 1 -->
+<div class="glass-card rounded-2xl p-7 border border-[#263449] flex flex-col justify-between">
+<p class="text-sm text-slate-300 italic mb-6">
+            "HireSwift cut our screening time by 80%. When we posted our Senior Backend role, we got 420 resumes. In 4 minutes, the AI highlighted the top 12 matches with spot-on reasoning. We closed the hire in 8 days."
+          </p>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-indigo-500/30 text-indigo-300 font-bold flex items-center justify-center text-sm">
+              EV
+            </div>
+<div>
+<p class="text-xs font-bold text-white">Elena Volkoy</p>
+<p class="text-[11px] text-[#94A3B8]">Head of Talent @ SynapticLabs</p>
+</div>
+</div>
+</div>
+<!-- Quote 2 -->
+<div class="glass-card rounded-2xl p-7 border border-[#263449] flex flex-col justify-between">
+<p class="text-sm text-slate-300 italic mb-6">
+            "Standard ATS tools are clunky databases. HireSwift feels like a sports car designed by Linear and Stripe engineers. It's lightning-fast, and the radar scoring has zero hallucinations."
+          </p>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-violet-500/30 text-violet-300 font-bold flex items-center justify-center text-sm">
+              MC
+            </div>
+<div>
+<p class="text-xs font-bold text-white">Marcus Chen</p>
+<p class="text-[11px] text-[#94A3B8]">Co-founder &amp; CTO @ NodeCraft</p>
+</div>
+</div>
+</div>
+<!-- Quote 3 -->
+<div class="glass-card rounded-2xl p-7 border border-[#263449] flex flex-col justify-between">
+<p class="text-sm text-slate-300 italic mb-6">
+            "The side-by-side comparison tool resolved disagreements between hiring managers and founders instantly. The candidate scorecards provide indisputable clarity on who actually has production scale."
+          </p>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-blue-500/30 text-blue-300 font-bold flex items-center justify-center text-sm">
+              DR
+            </div>
+<div>
+<p class="text-xs font-bold text-white">Devon Ross</p>
+<p class="text-[11px] text-[#94A3B8]">VP of People @ CloudSpire</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- END: TestimonialsSection -->
+<!-- BEGIN: FinalCallToAction -->
+<section class="py-20 relative overflow-hidden" id="trial">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+<div class="glass-card rounded-3xl p-8 sm:p-14 border border-[#4F46E5]/40 text-center relative overflow-hidden shadow-2xl">
+<!-- Ambient background flair -->
+<div class="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-[#4F46E5]/20 blur-3xl pointer-events-none"></div>
+<div class="absolute -left-20 -top-20 w-80 h-80 rounded-full bg-[#8B5CF6]/20 blur-3xl pointer-events-none"></div>
+<h2 class="text-3xl sm:text-4xl lg:text-5xl font-heading font-extrabold text-white mb-4 tracking-tight">
+          Ready to Modernize Your Recruitment Pipeline?
+        </h2>
+<p class="text-[#94A3B8] text-base sm:text-lg max-w-2xl mx-auto mb-8 font-normal">
+          Join 1,200+ recruiters and founders who hire 10x faster with AI precision. Start your 14-day free trial right now.
+        </p>
+<!-- Fast Email Input Signup -->
+<form class="max-w-md mx-auto flex flex-col sm:flex-row gap-3" onsubmit="event.preventDefault(); alert('Trial account initialized! Welcome aboard HireSwift AI.');">
+<input class="flex-1 px-4 py-3.5 rounded-xl bg-[#0B1020]/90 border border-[#263449] text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] text-sm" placeholder="Enter your work email" required="" type="email"/>
+<button class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-white font-semibold text-sm shadow-lg shadow-indigo-600/30 whitespace-nowrap transition-all duration-200" type="submit">
+            Get Started Free
+          </button>
+</form>
+<p class="text-xs text-[#94A3B8]/70 mt-4">
+          No credit card required • 14-day full feature access • Setup in 90 seconds
+        </p>
+</div>
+</div>
+</section>
+<!-- END: FinalCallToAction -->
+<!-- BEGIN: Footer -->
+<footer class="border-t border-[#263449] bg-[#0B1020] pt-16 pb-12 text-[#94A3B8] text-sm">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+<!-- Brand Info -->
+<div class="col-span-2">
+<div class="flex items-center gap-2.5 mb-4">
+<div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#4F46E5] to-[#8B5CF6] flex items-center justify-center text-white">
+<i class="w-4 h-4" data-lucide="sparkles"></i>
+</div>
+<span class="font-heading font-bold text-lg text-white">HireSwift<span class="text-[#8B5CF6]">AI</span></span>
+</div>
+<p class="text-xs text-[#94A3B8] max-w-sm mb-6 leading-relaxed">
+            The intelligent Applicant Tracking System built to eliminate hiring friction, auto-score candidates semantically, and build world-class engineering teams.
+          </p>
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#151E32] border border-[#263449] text-xs text-emerald-400">
+<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            All AI Systems Operational • v2.4
+          </div>
+</div>
+<!-- Product Links -->
+<div>
+<p class="text-xs font-bold uppercase tracking-wider text-white mb-4">Product</p>
+<ul class="space-y-2.5 text-xs">
+<li><a class="hover:text-white transition-colors" href="#features">Resume Parser OCR</a></li>
+<li><a class="hover:text-white transition-colors" href="#pipeline">Semantic Matching</a></li>
+<li><a class="hover:text-white transition-colors" href="#features">Kanban Pipeline</a></li>
+<li><a class="hover:text-white transition-colors" href="#pricing">Pricing Plans</a></li>
+<li><a class="hover:text-white transition-colors" href="#">API &amp; Integrations</a></li>
+</ul>
+</div>
+<!-- Resources Links -->
+<div>
+<p class="text-xs font-bold uppercase tracking-wider text-white mb-4">Resources</p>
+<ul class="space-y-2.5 text-xs">
+<li><a class="hover:text-white transition-colors" href="#">Documentation</a></li>
+<li><a class="hover:text-white transition-colors" href="#">ATS Migration Guide</a></li>
+<li><a class="hover:text-white transition-colors" href="#">Hiring Benchmarks 2025</a></li>
+<li><a class="hover:text-white transition-colors" href="#">Engineering Rubrics</a></li>
+<li><a class="hover:text-white transition-colors" href="#">Customer Stories</a></li>
+</ul>
+</div>
+<!-- Company & Legal -->
+<div>
+<p class="text-xs font-bold uppercase tracking-wider text-white mb-4">Company</p>
+<ul class="space-y-2.5 text-xs">
+<li><a class="hover:text-white transition-colors" href="#">About Us</a></li>
+<li><a class="hover:text-white transition-colors" href="#">Careers (We're Hiring)</a></li>
+<li><a class="hover:text-white transition-colors" href="#">Privacy Policy</a></li>
+<li><a class="hover:text-white transition-colors" href="#">Terms of Service</a></li>
+<li><a class="hover:text-white transition-colors" href="#">Security &amp; SOC2</a></li>
+</ul>
+</div>
+</div>
+<div class="pt-8 border-t border-[#263449] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#94A3B8]/60">
+<p>© 2025 HireSwift AI, Inc. Built for modern high-velocity recruitment.</p>
+<div class="flex items-center gap-6">
+<a class="hover:text-white transition-colors" href="#">Twitter / X</a>
+<a class="hover:text-white transition-colors" href="#">GitHub</a>
+<a class="hover:text-white transition-colors" href="#">LinkedIn</a>
+</div>
+</div>
+</div>
+</footer>
+<!-- END: Footer -->
+<!-- BEGIN: InteractiveScripts -->
+<script data-purpose="icon-initialization">
+    // Initialize feather/lucide icons dynamically
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+  </script>
+<!-- END: InteractiveScripts -->
+</body></html>

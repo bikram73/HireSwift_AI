@@ -1,0 +1,6 @@
+{
+  "name": "HireSwift AI – Smart Applicant Tracking System",
+  "description": "HireSwift AI is an intelligent Applicant Tracking System featuring bulk AI resume parsing, semantic candidate-JD matching, precision academic & skill filtering, Kanban hiring pipelines, and side-by-side candidate comparisons.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
