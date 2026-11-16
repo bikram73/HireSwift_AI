@@ -37,7 +37,7 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
   onSelectCandidate,
   children,
 }) => {
-  const { candidates, jobs, activities, theme, toggleTheme, setSelectedJobId } = useAts();
+  const { candidates, jobs, activities, setSelectedJobId } = useAts();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
   const [cmdQuery, setCmdQuery] = useState('');
@@ -152,40 +152,6 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
             );
           })}
         </nav>
-
-        <div className="flex items-center justify-between px-space-md py-2 mt-1">
-          <div className="flex items-center gap-space-xs font-label-sm text-label-sm text-[#94A3B8]">
-            <span className="material-symbols-outlined text-[16px]">
-              {theme === 'dark' ? 'dark_mode' : 'light_mode'}
-            </span>
-            <span>Theme</span>
-          </div>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="flex items-center bg-[#151E32] rounded-full p-0.5 border border-[#263449] cursor-pointer"
-            title="Switch Dark / Light theme"
-          >
-            <span
-              className={`px-2 py-0.5 rounded-full font-mono-code text-[10px] transition-colors ${
-                theme === 'dark'
-                  ? 'bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white'
-                  : 'text-[#94A3B8]'
-              }`}
-            >
-              Dark
-            </span>
-            <span
-              className={`px-2 py-0.5 rounded-full font-mono-code text-[10px] transition-colors ${
-                theme === 'light'
-                  ? 'bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white'
-                  : 'text-[#94A3B8]'
-              }`}
-            >
-              Light
-            </span>
-          </button>
-        </div>
       </div>
     </>
   );
