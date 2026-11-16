@@ -745,7 +745,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                 </li>
                 <li>
                   <button type="button" onClick={() => onEnterWorkspace('reports')} className="hover:text-white transition-colors cursor-pointer">
-                    Hiring Benchmarks 2025
+                    Hiring Benchmarks 2026
                   </button>
                 </li>
                 <li>
@@ -794,7 +794,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
           </div>
 
           <div className="pt-8 border-t border-[#263449] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#94A3B8]/60">
-            <p>© 2025 HireSwift AI, Inc. Built for modern high-velocity recruitment.</p>
+            <p>© 2026 HireSwift AI, Inc. Built for modern high-velocity recruitment.</p>
             <div className="flex items-center gap-6">
               <a className="hover:text-white transition-colors" href="#top">
                 Twitter / X
