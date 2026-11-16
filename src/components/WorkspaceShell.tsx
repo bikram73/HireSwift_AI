@@ -39,7 +39,7 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
   const [cmdQuery, setCmdQuery] = useState('');
   const [notifOpen, setNotifOpen] = useState(false);
   const [orgOpen, setOrgOpen] = useState(false);
-  const [activeOrg, setActiveOrg] = useState('Acme Corp (Pro Plan)');
+  const [activeOrg, setActiveOrg] = useState('Acme Corp');
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -302,7 +302,7 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
 
               {orgOpen && (
                 <div className="absolute right-0 mt-2 w-56 rounded-xl bg-surface-container border border-outline-variant/40 shadow-2xl p-1.5 z-50">
-                  {['Acme Corp (Pro Plan)', 'SynapticLabs (Scale)', 'NodeCraft Talent'].map((org) => (
+                  {['Acme Corp', 'SynapticLabs', 'NodeCraft Talent'].map((org) => (
                     <button
                       key={org}
                       type="button"

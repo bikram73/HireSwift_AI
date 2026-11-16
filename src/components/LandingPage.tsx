@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Sparkles,
   ChevronRight,
@@ -27,7 +27,6 @@ import {
   ShieldCheck,
   Bot,
   Calendar,
-  X,
 } from 'lucide-react';
 import { WorkspaceRoute } from '../data/atsData';
 
@@ -36,11 +35,6 @@ interface LandingPageProps {
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) => {
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
-
-  const starterPrice = billingCycle === 'monthly' ? '$49' : '$39';
-  const growthPrice = billingCycle === 'monthly' ? '$129' : '$103';
-  const scalePrice = billingCycle === 'monthly' ? '$299' : '$239';
 
   return (
     <div className="min-h-screen bg-[#0B1020] text-[#F8FAFC] antialiased subtle-grid">
@@ -72,9 +66,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
             </a>
             <a className="hover:text-white transition-colors duration-150 whitespace-nowrap" href="#pipeline">
               AI Matching
-            </a>
-            <a className="hover:text-white transition-colors duration-150 whitespace-nowrap" href="#pricing">
-              Pricing
             </a>
             <a className="hover:text-white transition-colors duration-150 whitespace-nowrap" href="#testimonials">
               Testimonials
@@ -593,168 +584,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
         </div>
       </section>
 
-      {/* PricingSection */}
-      <section className="py-24 bg-[#151E32]/30 border-y border-[#263449] relative" id="pricing">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="text-xs font-bold tracking-widest text-[#8B5CF6] uppercase">
-              Predictable &amp; Founder Friendly
-            </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-extrabold text-white mt-2 mb-4">
-              Simple Pricing That Scales With Your Team
-            </h2>
-            <p className="text-[#94A3B8] text-base sm:text-lg">
-              No mandatory annual contracts. Unlimited team seats on every plan.
-            </p>
-            <div className="inline-flex items-center p-1.5 rounded-xl bg-[#0B1020] border border-[#263449] mt-6">
-              <button
-                type="button"
-                onClick={() => setBillingCycle('monthly')}
-                className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                  billingCycle === 'monthly'
-                    ? 'bg-[#4F46E5] text-white'
-                    : 'text-[#94A3B8] hover:text-white'
-                }`}
-              >
-                Monthly
-              </button>
-              <button
-                type="button"
-                onClick={() => setBillingCycle('annual')}
-                className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                  billingCycle === 'annual'
-                    ? 'bg-[#4F46E5] text-white'
-                    : 'text-[#94A3B8] hover:text-white'
-                }`}
-              >
-                Annual <span className="text-emerald-400 font-bold ml-1">Save 20%</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Starter Plan */}
-            <div className="glass-card rounded-2xl p-8 border border-[#263449] flex flex-col justify-between">
-              <div>
-                <h3 className="text-xl font-heading font-bold text-white mb-2">Starter</h3>
-                <p className="text-xs text-[#94A3B8] mb-6">
-                  Ideal for seed teams and founders actively hiring their first core engineers.
-                </p>
-                <div className="flex items-baseline gap-1 mb-6 tabular-nums">
-                  <span className="text-4xl font-extrabold text-white">{starterPrice}</span>
-                  <span className="text-xs text-[#94A3B8]">/ month</span>
-                </div>
-                <ul className="space-y-3 text-xs text-slate-300 mb-8">
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-400" /> Up to 3 Active Job Openings
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-400" /> 300 Parsed Resumes / month
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-400" /> Gemini AI Semantic Matching
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-400" /> Kanban Pipeline Management
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-500">
-                    <X className="w-4 h-4" /> Candidate Radar Matrix
-                  </li>
-                </ul>
-              </div>
-              <button
-                type="button"
-                onClick={() => onEnterWorkspace('dashboard')}
-                className="w-full py-3 text-center rounded-xl bg-[#1B2740] hover:bg-[#263449] text-xs font-semibold text-white border border-[#263449] transition-all cursor-pointer"
-              >
-                Get Started
-              </button>
-            </div>
-
-            {/* Growth Plan (Featured) */}
-            <div className="relative glass-card rounded-2xl p-8 border-2 border-[#8B5CF6] shadow-glow-indigo flex flex-col justify-between bg-gradient-to-b from-[#151E32] to-[#1B2740]">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-[10px] uppercase font-bold tracking-widest text-white rounded-full shadow">
-                Most Popular
-              </div>
-              <div>
-                <h3 className="text-xl font-heading font-bold text-white mb-2">Growth</h3>
-                <p className="text-xs text-[#94A3B8] mb-6">
-                  For scaling startups rapidly expanding their technical and GTM teams.
-                </p>
-                <div className="flex items-baseline gap-1 mb-6 tabular-nums">
-                  <span className="text-4xl font-extrabold text-white">{growthPrice}</span>
-                  <span className="text-xs text-[#94A3B8]">/ month</span>
-                </div>
-                <ul className="space-y-3 text-xs text-slate-200 mb-8">
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-400" /> 15 Active Job Openings
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-400" /> Unlimited Resumes Parsed
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-400" /> Side-by-side Candidate Comparison
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-400" /> Smart Email Automation &amp; Triggers
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-400" /> Unlimited Team Seats &amp; Roles
-                  </li>
-                </ul>
-              </div>
-              <button
-                type="button"
-                onClick={() => onEnterWorkspace('dashboard')}
-                className="w-full py-3 text-center rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-xs font-semibold text-white shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
-              >
-                Choose Growth Plan
-              </button>
-            </div>
-
-            {/* Scale Plan */}
-            <div className="glass-card rounded-2xl p-8 border border-[#263449] flex flex-col justify-between">
-              <div>
-                <h3 className="text-xl font-heading font-bold text-white mb-2">Scale</h3>
-                <p className="text-xs text-[#94A3B8] mb-6">
-                  For high-volume hiring agencies and established venture-backed companies.
-                </p>
-                <div className="flex items-baseline gap-1 mb-6 tabular-nums">
-                  <span className="text-4xl font-extrabold text-white">{scalePrice}</span>
-                  <span className="text-xs text-[#94A3B8]">/ month</span>
-                </div>
-                <ul className="space-y-3 text-xs text-slate-300 mb-8">
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-400" /> Unlimited Jobs &amp; Candidates
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-400" /> Dedicated ATS Database &amp; OCR
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-400" /> Custom Prompt Calibration
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-400" /> Priority Concierge Parsing Queue
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-400" /> Dedicated Slack Channel &amp; SLA
-                  </li>
-                </ul>
-              </div>
-              <button
-                type="button"
-                onClick={() => onEnterWorkspace('dashboard')}
-                className="w-full py-3 text-center rounded-xl bg-[#1B2740] hover:bg-[#263449] text-xs font-semibold text-white border border-[#263449] transition-all cursor-pointer"
-              >
-                Contact Sales
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* TestimonialsSection */}
-      <section className="py-24 relative" id="testimonials">
+      <section className="py-24 bg-[#151E32]/30 border-y border-[#263449] relative" id="testimonials">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <span className="text-xs font-bold tracking-widest text-[#3B82F6] uppercase">
@@ -894,9 +725,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                   </button>
                 </li>
                 <li>
-                  <a className="hover:text-white transition-colors" href="#pricing">
-                    Pricing Plans
-                  </a>
+                  <button type="button" onClick={() => onEnterWorkspace('compare-candidates')} className="hover:text-white transition-colors cursor-pointer">
+                    Candidate Comparison
+                  </button>
                 </li>
                 <li>
                   <button type="button" onClick={() => onEnterWorkspace('settings')} className="hover:text-white transition-colors cursor-pointer">

@@ -329,7 +329,7 @@ export const SettingsView: React.FC = () => {
           {saved ? (
             <span className="text-xs text-emerald-400">Settings saved cleanly.</span>
           ) : (
-            <span className="font-mono-code text-xs text-outline">Plan: Acme Corp (Pro Plan)</span>
+            <span className="font-mono-code text-xs text-outline">Workspace: Acme Corp</span>
           )}
           <button
             type="button"
