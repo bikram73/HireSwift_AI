@@ -54,12 +54,17 @@ function parseHashState(): { mode: 'landing' | 'workspace'; route: WorkspaceRout
 }
 
 function AppContent() {
-  const initial = parseHashState();
-  const [mode, setMode] = useState<'landing' | 'workspace'>(initial.mode);
-  const [activeRoute, setActiveRoute] = useState<WorkspaceRoute>(initial.route);
+  const [mode, setMode] = useState<'landing' | 'workspace'>('landing');
+  const [activeRoute, setActiveRoute] = useState<WorkspaceRoute>('dashboard');
   const [selectedCandidate, setSelectedCandidate] = useState<CandidateProfile | null>(null);
 
   useEffect(() => {
+    const currentHash = window.location.hash.replace(/^#\/?/, '').trim();
+    if (VALID_ROUTES.includes(currentHash as WorkspaceRoute)) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+    window.scrollTo({ top: 0, behavior: 'auto' });
+
     const handleHashChange = () => {
       const next = parseHashState();
       setMode(next.mode);
