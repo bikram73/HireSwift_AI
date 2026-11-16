@@ -309,7 +309,7 @@ export const SettingsView: React.FC = () => {
               SOC-2 PII Redaction Layer
             </p>
             <p className="font-body-sm text-on-surface-variant">
-              Mask personal phone numbers and home addresses during bias-free initial scoring.
+              Mask personal phone numbers and home addresses during unbiased initial scoring.
             </p>
           </div>
           <button

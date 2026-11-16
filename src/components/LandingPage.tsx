@@ -37,13 +37,13 @@ interface LandingPageProps {
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
-  const [trialEmail, setTrialEmail] = useState('');
-  const [trialSubmitted, setTrialSubmitted] = useState(false);
+  const [workEmail, setWorkEmail] = useState('');
+  const [workspaceReady, setWorkspaceReady] = useState(false);
 
-  const handleTrialSubmit = (e: React.FormEvent) => {
+  const handleWorkspaceSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!trialEmail.trim()) return;
-    setTrialSubmitted(true);
+    if (!workEmail.trim()) return;
+    setWorkspaceReady(true);
   };
 
   const starterPrice = billingCycle === 'monthly' ? '$49' : '$39';
@@ -103,7 +103,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
               onClick={() => onEnterWorkspace('dashboard')}
               className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#4F46E5] to-[#3B82F6] hover:from-[#4338CA] hover:to-[#2563EB] shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 transition-all duration-200 border border-white/10 cursor-pointer whitespace-nowrap"
             >
-              <span>Start Free Trial</span>
+              <span>Get Started</span>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -143,7 +143,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-base font-semibold text-white bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 shadow-xl shadow-indigo-600/35 hover:shadow-indigo-600/50 transition-all duration-200 border border-white/20 cursor-pointer"
             >
               <Sparkles className="w-5 h-5 text-indigo-200" />
-              <span>Start 14-Day Free Trial</span>
+              <span>Launch Workspace</span>
             </button>
             <button
               type="button"
@@ -723,7 +723,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                 onClick={() => onEnterWorkspace('dashboard')}
                 className="w-full py-3 text-center rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-xs font-semibold text-white shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
               >
-                Start 14-Day Free Trial
+                Choose Growth Plan
               </button>
             </div>
 
@@ -830,7 +830,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
       </section>
 
       {/* FinalCallToAction */}
-      <section className="py-20 relative overflow-hidden" id="trial">
+      <section className="py-20 relative overflow-hidden" id="get-started">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="glass-card rounded-3xl p-8 sm:p-14 border border-[#4F46E5]/40 text-center relative overflow-hidden shadow-2xl">
             <div className="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-[#4F46E5]/20 blur-3xl pointer-events-none" />
@@ -839,14 +839,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
               Ready to Modernize Your Recruitment Pipeline?
             </h2>
             <p className="text-[#94A3B8] text-base sm:text-lg max-w-2xl mx-auto mb-8 font-normal">
-              Join 1,200+ recruiters and founders who hire 10x faster with AI precision. Start your 14-day free trial right now.
+              Join 1,200+ recruiters and founders who hire 10x faster with AI precision. Launch your team workspace right now.
             </p>
 
-            {trialSubmitted ? (
+            {workspaceReady ? (
               <div className="max-w-md mx-auto p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col sm:flex-row items-center justify-between gap-3">
                 <div className="flex items-center gap-2 text-xs text-emerald-300 font-medium">
                   <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span>Trial workspace ready for {trialEmail}</span>
+                  <span>Workspace ready for {workEmail}</span>
                 </div>
                 <button
                   type="button"
@@ -857,26 +857,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                 </button>
               </div>
             ) : (
-              <form className="max-w-md mx-auto flex flex-col sm:flex-row gap-3" onSubmit={handleTrialSubmit}>
+              <form className="max-w-md mx-auto flex flex-col sm:flex-row gap-3" onSubmit={handleWorkspaceSubmit}>
                 <input
                   className="flex-1 px-4 py-3.5 rounded-xl bg-[#0B1020]/90 border border-[#263449] text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] text-sm"
                   placeholder="Enter your work email"
                   required
                   type="email"
-                  value={trialEmail}
-                  onChange={(e) => setTrialEmail(e.target.value)}
+                  value={workEmail}
+                  onChange={(e) => setWorkEmail(e.target.value)}
                 />
                 <button
                   className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-white font-semibold text-sm shadow-lg shadow-indigo-600/30 whitespace-nowrap transition-all duration-200 cursor-pointer"
                   type="submit"
                 >
-                  Get Started Free
+                  Get Started
                 </button>
               </form>
             )}
 
             <p className="text-xs text-[#94A3B8]/70 mt-4">
-              No credit card required • 14-day full feature access • Setup in 90 seconds
+              Instant workspace provisioning • Full feature access • Setup in 90 seconds
             </p>
           </div>
         </div>
