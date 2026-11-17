@@ -264,4 +264,34 @@ describe('Backend API (Express & Netlify Function Parity - Mode B Fallback)', ()
     const jdJson = await jdRes.json();
     expect(jdJson.analysis.requiredSkills).toContain('React');
   });
+
+  it('ISSUE-2 & ISSUE-5: Heuristic absent fields produce 0 confidence and >5.8MB base64 PDF returns 413', async () => {
+    const bare = heuristicParseResume('Short bio note with no contact or credentials', 'note.pdf');
+    expect(bare.confidence.email).toBe(0);
+    expect(bare.confidence.education).toBe(0);
+    expect(bare.confidence.skills).toBe(0);
+
+    const oversizedBase64 = 'A'.repeat(5_800_005);
+    const expressRes = await request(app).post('/api/resumes/parse').send({
+      fileName: 'huge_scan.pdf',
+      mimeType: 'application/pdf',
+      extractedText: '',
+      base64Pdf: oversizedBase64,
+    });
+    expect(expressRes.status).toBe(413);
+
+    const netlifyRes = await netlifyHandler(
+      new Request('https://hireswift-ai.netlify.app/api/resumes/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileName: 'huge_scan.pdf',
+          mimeType: 'application/pdf',
+          extractedText: '',
+          base64Pdf: oversizedBase64,
+        }),
+      })
+    );
+    expect(netlifyRes.status).toBe(413);
+  });
 });

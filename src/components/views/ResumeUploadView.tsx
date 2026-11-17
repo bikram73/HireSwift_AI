@@ -1,7 +1,12 @@
 import React, { useRef, useState } from 'react';
 import { useAts } from '../../context/AtsContext';
 import { CandidateProfile, QueuedResumeFile, WorkspaceRoute } from '../../data/atsData';
-import { computeMatchResult, detectDuplicates, exportRowsToCsv } from '../../utils/atsEngine';
+import {
+  computeExtractionConfidence,
+  computeMatchResult,
+  detectDuplicates,
+  exportRowsToCsv,
+} from '../../utils/atsEngine';
 import { DocumentValidationError, validateAndExtractResume } from '../../utils/fileExtractor';
 
 interface ResumeUploadViewProps {
@@ -243,12 +248,21 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
       languagesKnown: data.languages_known ?? [],
       keyStrengths: data.key_strengths ?? allSkills.slice(0, 3),
       missingFields: data.missing_fields ?? [],
-      confidence: {
-        name: data.confidence?.name ?? 0.9,
-        email: data.confidence?.email ?? (pInfo.email ? 0.95 : 0.2),
-        education: data.confidence?.education ?? (cgpaVal !== null ? 0.9 : 0.5),
-        skills: data.confidence?.skills ?? (allSkills.length > 0 ? 0.9 : 0.4),
-      },
+      confidence: computeExtractionConfidence({
+        extractedText,
+        extractedName: fullName,
+        isFilenameFallbackName: !pInfo.full_name?.trim(),
+        email: pInfo.email?.trim() || null,
+        degree: edu.degree ?? null,
+        branch: edu.branch ?? null,
+        college: edu.college ?? null,
+        cgpa: cgpaVal,
+        graduationYear: edu.graduation_year ?? null,
+        tenthPercentage: tenthVal,
+        twelfthPercentage: twelfthVal,
+        skills: allSkills,
+        reportedConfidence: data.confidence,
+      }),
       matchScore: 70,
       matchLabel: '70% Good',
       status: 'Applied', // Always default to Applied per spec
@@ -265,13 +279,6 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
       processingStatus: (data.missing_fields?.length ?? 0) > 2 ? 'needs-review' : 'parsed',
       duplicateStatus: 'Unique',
       appliedAt: new Date().toISOString(),
-      radar: {
-        communication: 80,
-        problemSolving: 82,
-        culturalFit: 79,
-        technicalSkills: 84,
-        architecture: totalExp > 1 ? 82 : 72,
-      },
       highlights: (data.key_strengths ?? allSkills.slice(0, 3)).map((s) => `Extracted strength: ${s}`),
       timeline: [
         {

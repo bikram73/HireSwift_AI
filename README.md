@@ -171,7 +171,7 @@ HireSwift AI enforces **strict factual grounding**: unverified fields stay `null
 - **Mammoth (`1.13.0`)** — Client-side `.docx` text extraction
 
 ### ⚙️ Backend & AI
-- **Node.js `20+`** & **Express `4.21.2`** — Local/cloud full-stack server with Vite dev middleware
+- **Node.js `22.18+`** *(native TypeScript execution verified on `v22.23.2`; Node `20 LTS` supported via compiled `npm run start:compiled` or `tsx`)* & **Express `4.21.2`** — Local/cloud full-stack server with Vite dev middleware
 - **Multi-Provider 3-Tier AI Stack** — Automatic cascading fallback across:
   - **Tier 1 — Google Gemini (`@google/genai 3.3.0`)**: `gemini-3.5-flash-lite` *(primary multimodal PDF OCR & structured JSON extraction)*
   - **Tier 2 — OpenRouter API**: `meta-llama/llama-3.3-70b-instruct:free` *(zero-cost cloud JSON fallback)*
@@ -232,7 +232,7 @@ hireswift-ai/
 ## 🚀 Installation & Setup
 
 ### ✅ Prerequisites
-- **Node.js `v20+`** (recommended LTS)
+- **Node.js `v22.18+`** *(verified on `v22.23.2` for native `npm start` / `node server.ts`; for **Node 20 LTS**, run `npm run build && npm run start:compiled` or `npm run dev`)*
 - **npm** (or **bun**)
 - *(Optional)* A **Gemini API key** for live LLM extraction (app runs cleanly with deterministic heuristics even without a key)
 
@@ -270,6 +270,8 @@ hireswift-ai/
 6. **Run production Node server locally**
    ```bash
    NODE_ENV=production npm start
+   # On Node 20 LTS (uses esbuild-compiled dist/server.mjs):
+   NODE_ENV=production npm run start:compiled
    ```
 
 ### ☁️ Deploying to Netlify
@@ -433,14 +435,14 @@ Verified continuously across the codebase (full report in [QA_TEST_REPORT.md](./
 
 - **Session & Browser Storage**: Candidate profiles, jobs, scoring weights, and activity events are stored cleanly in React state and persisted locally in browser `localStorage`—no external user accounts or remote databases store PII.
 - **Zero Client-Side Secret Exposure**: `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, and `GROQ_API_KEY` are read strictly by server-side Node/serverless handlers (`lib/atsApi.ts`) and never prefixed with `VITE_` or included in frontend JavaScript bundles.
-- **Transient Document Processing**: Uploaded files stay in browser memory (`URL.createObjectURL` for local preview); only extracted text (or temporary base64 for OCR fallback) is transmitted over `/api/*` during parsing.
+- **Transient Document Processing**: Uploaded files stay in browser memory (`URL.createObjectURL` and `resumeTextPreview` are excluded from `localStorage` and session JSON exports across reloads); only extracted text (or temporary base64 for small scanned PDFs) is transmitted over `/api/*` during parsing.
 
 ---
 
 ## ⚠️ Supported Formats & Limitations
 
 - **Supported Resume Formats**: `.pdf` (text-based and scanned image PDFs) and `.docx` (Word OpenXML). Legacy binary `.doc` files are rejected with clear guidance.
-- **File Size Limit**: Configurable in **Settings** (safe default under serverless body limits; up to `6 MB` on Netlify synchronous functions / `16 MB` on Express).
+- **File Size Limit**: Defaults to **`4 MB`** in **Settings** (`maxFileSizeMb`), keeping image-only scanned PDFs (which expand by ~33% as base64 JSON) safely within Netlify's **`6 MB`** synchronous payload limit (`HTTP 413` enforced server-side above `5.8 MB` base64). Larger text-searchable PDFs (`6–15 MB`) can be enabled on local Express deployments via Settings.
 - **Email Center**: Generates ready-to-send email drafts, `.eml` downloads, and clipboard copies rather than connecting directly to an SMTP server.
 - **Persistence Scope**: Because data is session/browser-scoped (`localStorage`), clearing browser site data resets local records unless exported via **Settings → Export Session JSON**.
 

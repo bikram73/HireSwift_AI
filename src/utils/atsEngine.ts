@@ -50,6 +50,96 @@ export function getMatchCategory(score: number): MatchCategory {
   return 'Poor Match';
 }
 
+export function computeExtractionConfidence(input: {
+  extractedText: string;
+  extractedName: string | null | undefined;
+  isFilenameFallbackName?: boolean;
+  email: string | null | undefined;
+  degree: string | null | undefined;
+  branch: string | null | undefined;
+  college: string | null | undefined;
+  cgpa: number | null;
+  graduationYear: number | null;
+  tenthPercentage?: number | null;
+  twelfthPercentage?: number | null;
+  skills: string[];
+  reportedConfidence?: {
+    name?: number;
+    email?: number;
+    education?: number;
+    skills?: number;
+  };
+}): CandidateProfile['confidence'] {
+  const lowerText = (input.extractedText || '').toLowerCase();
+  const cleanName = (input.extractedName || '').trim();
+  const validEmail =
+    typeof input.email === 'string' &&
+    /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(input.email.trim()) &&
+    !input.email.trim().endsWith('@unavailable.local');
+
+  const nameInText =
+    Boolean(cleanName) &&
+    cleanName !== 'Candidate Profile' &&
+    lowerText.includes(cleanName.toLowerCase());
+
+  const computedName =
+    !cleanName || cleanName === 'Candidate Profile'
+      ? 0
+      : nameInText
+        ? 0.95
+        : input.isFilenameFallbackName
+          ? 0.55
+          : 0.78;
+
+  const computedEmail = !validEmail
+    ? 0
+    : lowerText.includes(input.email!.trim().toLowerCase())
+      ? 0.99
+      : 0.9;
+
+  const schoolBoost =
+    input.cgpa === null && (input.tenthPercentage != null || input.twelfthPercentage != null)
+      ? 0.15
+      : 0;
+  const computedEducationRaw =
+    (input.cgpa !== null ? 0.35 : 0) +
+    (input.degree && input.degree !== 'Degree Not Listed' ? 0.25 : 0) +
+    (input.college && input.college !== 'Institution Not Listed' ? 0.2 : 0) +
+    (input.branch && input.branch !== 'General' ? 0.1 : 0) +
+    (input.graduationYear !== null ? 0.1 : 0) +
+    schoolBoost;
+  const computedEducation = Number(Math.min(1, computedEducationRaw).toFixed(2));
+
+  const skills = input.skills.filter(Boolean);
+  let computedSkills = 0;
+  if (skills.length > 0) {
+    if (lowerText.length >= 20 && !lowerText.startsWith('[scanned pdf:')) {
+      const verifiedCount = skills.filter((s) => lowerText.includes(s.toLowerCase())).length;
+      const ratio = verifiedCount / skills.length;
+      computedSkills = Number(
+        Math.min(0.98, 0.35 + ratio * 0.45 + Math.min(skills.length, 6) * 0.03).toFixed(2)
+      );
+    } else {
+      computedSkills = Number(Math.min(0.9, 0.4 + Math.min(skills.length, 5) * 0.1).toFixed(2));
+    }
+  }
+
+  const clampReported = (val: unknown, fallback: number, hasEvidence: boolean): number => {
+    if (!hasEvidence) return 0;
+    if (typeof val === 'number' && Number.isFinite(val) && val >= 0 && val <= 1) {
+      return Number(val.toFixed(2));
+    }
+    return fallback;
+  };
+
+  return {
+    name: clampReported(input.reportedConfidence?.name, computedName, Boolean(cleanName && cleanName !== 'Candidate Profile')),
+    email: clampReported(input.reportedConfidence?.email, computedEmail, validEmail),
+    education: clampReported(input.reportedConfidence?.education, computedEducation, computedEducation > 0),
+    skills: clampReported(input.reportedConfidence?.skills, computedSkills, skills.length > 0),
+  };
+}
+
 export function computeMatchResult(
   candidate: CandidateProfile,
   job: JobPosting,

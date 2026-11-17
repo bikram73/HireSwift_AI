@@ -1,7 +1,7 @@
 import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
 
 function getGeminiModel(): string {
-  return process.env.GEMINI_MODEL || 'gemini-4-hydrogen';
+  return process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 }
 
 function getOpenRouterModel(): string {
@@ -306,6 +306,27 @@ export function heuristicParseResume(text: string, fileName: string) {
   if (!phoneMatch) missingFields.push('phone');
   if (!cgpaMatch) missingFields.push('cgpa');
 
+  const extractedDegree = /\bM\.?\s?Tech|M\.?\s?S\.?|Master/i.test(text)
+    ? 'M.Tech / M.S.'
+    : /\bB\.?\s?Tech|B\.?\s?E\.?|Bachelor/i.test(text)
+      ? 'B.Tech / B.E.'
+      : /\bMCA\b/i.test(text)
+        ? 'MCA'
+        : /\bB\.?\s?Sc|BCA\b/i.test(text)
+          ? 'B.Sc / BCA'
+          : null;
+  const extractedBranch = /Computer Science|CSE/i.test(text) ? 'Computer Science' : null;
+  const extractedCgpa = cgpaMatch ? parseFloat(cgpaMatch[1]) : null;
+  const extractedGradYear = gradYearMatch ? parseInt(gradYearMatch[gradYearMatch.length - 1], 10) : null;
+  const nameMatchedInLines = Boolean(
+    lines[0] && lines[0].length < 48 && !lines[0].includes('@') && !/\d{4}/.test(lines[0])
+  );
+  const eduScore =
+    (extractedCgpa !== null ? 0.35 : 0) +
+    (extractedDegree ? 0.25 : 0) +
+    (extractedBranch ? 0.15 : 0) +
+    (extractedGradYear !== null ? 0.15 : 0);
+
   return {
     personal_information: {
       full_name: guessedName,
@@ -325,19 +346,11 @@ export function heuristicParseResume(text: string, fileName: string) {
       twelfth_year: null,
       diploma_details: null,
       diploma_score: null,
-      degree: /\bM\.?\s?Tech|M\.?\s?S\.?|Master/i.test(text)
-        ? 'M.Tech / M.S.'
-        : /\bB\.?\s?Tech|B\.?\s?E\.?|Bachelor/i.test(text)
-          ? 'B.Tech / B.E.'
-          : /\bMCA\b/i.test(text)
-            ? 'MCA'
-            : /\bB\.?\s?Sc|BCA\b/i.test(text)
-              ? 'B.Sc / BCA'
-              : null,
-      branch: /Computer Science|CSE/i.test(text) ? 'Computer Science' : null,
+      degree: extractedDegree,
+      branch: extractedBranch,
       college: null,
-      cgpa: cgpaMatch ? parseFloat(cgpaMatch[1]) : null,
-      graduation_year: gradYearMatch ? parseInt(gradYearMatch[gradYearMatch.length - 1], 10) : null,
+      cgpa: extractedCgpa,
+      graduation_year: extractedGradYear,
       postgraduate_details: null,
     },
     experience: {
@@ -379,10 +392,13 @@ export function heuristicParseResume(text: string, fileName: string) {
     key_strengths: detectedSkills.slice(0, 4),
     missing_fields: missingFields,
     confidence: {
-      name: guessedName ? 0.85 : 0.4,
-      email: emailMatch ? 0.99 : 0.0,
-      education: cgpaMatch ? 0.88 : 0.4,
-      skills: detectedSkills.length > 0 ? 0.86 : 0.35,
+      name: nameMatchedInLines ? 0.92 : guessedName !== 'Candidate Profile' ? 0.55 : 0,
+      email: emailMatch ? 0.99 : 0,
+      education: Number(Math.min(1, eduScore).toFixed(2)),
+      skills:
+        detectedSkills.length > 0
+          ? Number(Math.min(0.98, 0.45 + Math.min(detectedSkills.length, 8) * 0.065).toFixed(2))
+          : 0,
     },
   };
 }
@@ -474,8 +490,16 @@ export async function parseResumePayload(body: {
   if (extractedText !== undefined && typeof extractedText !== 'string') {
     throw new ApiValidationError(400, 'extractedText must be a valid string.');
   }
-  if (base64Pdf !== undefined && typeof base64Pdf !== 'string') {
-    throw new ApiValidationError(400, 'base64Pdf must be a valid base64 string.');
+  if (base64Pdf !== undefined) {
+    if (typeof base64Pdf !== 'string') {
+      throw new ApiValidationError(400, 'base64Pdf must be a valid base64 string.');
+    }
+    if (base64Pdf.length > 5_800_000) {
+      throw new ApiValidationError(
+        413,
+        'Scanned PDF base64 payload exceeds the 6 MB serverless limit (+33% base64 encoding). Compress the file under 4 MB or upload a text-searchable PDF/DOCX.'
+      );
+    }
   }
 
   const safeText = (extractedText || '').trim();

@@ -86,7 +86,7 @@ function loadInitialSession(): PersistedSession {
           jobs: parsed.jobs,
           activities: Array.isArray(parsed.activities) ? parsed.activities : DEMO_ACTIVITIES,
           scoringWeights: parsed.scoringWeights ?? DEFAULT_SCORING_WEIGHTS,
-          maxFileSizeMb: parsed.maxFileSizeMb ?? 10,
+          maxFileSizeMb: parsed.maxFileSizeMb ?? 4,
           selectedJobId: parsed.selectedJobId ?? (parsed.jobs[0]?.id || ''),
           compareIds: Array.isArray(parsed.compareIds) ? parsed.compareIds : ['cand-1', 'cand-2', 'cand-7'],
           aiMatchCache: parsed.aiMatchCache ?? {},
@@ -101,7 +101,7 @@ function loadInitialSession(): PersistedSession {
     jobs: DEMO_JOBS,
     activities: DEMO_ACTIVITIES,
     scoringWeights: DEFAULT_SCORING_WEIGHTS,
-    maxFileSizeMb: 10,
+    maxFileSizeMb: 4,
     selectedJobId: DEMO_JOBS[0].id,
     compareIds: ['cand-1', 'cand-2', 'cand-7'],
     aiMatchCache: {},
@@ -133,8 +133,10 @@ export const AtsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     try {
       const payload: PersistedSession = {
-        // Strip transient objectUrls on storage write
-        candidates: candidates.map((c) => ({ ...c, resumeObjectUrl: undefined })),
+        // Strip transient objectUrls and raw extracted resume text on localStorage write
+        candidates: candidates.map(
+          ({ resumeObjectUrl: _objUrl, resumeTextPreview: _rawText, ...rest }) => rest
+        ),
         jobs,
         activities: activities.slice(0, 25),
         scoringWeights,
@@ -526,7 +528,9 @@ export const AtsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const exportSessionJson = () => {
     exportObjectToJson(`hireswift_session_${new Date().toISOString().slice(0, 10)}.json`, {
       exportedAt: new Date().toISOString(),
-      candidates: candidates.map((c) => ({ ...c, resumeObjectUrl: undefined })),
+      candidates: candidates.map(
+        ({ resumeObjectUrl: _objUrl, resumeTextPreview: _rawText, ...rest }) => rest
+      ),
       jobs,
       scoringWeights,
     });

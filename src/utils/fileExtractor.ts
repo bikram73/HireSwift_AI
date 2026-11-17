@@ -154,6 +154,15 @@ export async function validateAndExtractResume(
 
   const isScannedPdfFallback = extractedText.length < 40;
   const base64Pdf = isScannedPdfFallback ? arrayBufferToBase64(buffer) : undefined;
+  const MAX_SCANNED_PDF_BASE64_CHARS = 5_800_000; // Accounts for +33% base64 inflation inside 6 MB Netlify payload cap
+
+  if (base64Pdf && base64Pdf.length > MAX_SCANNED_PDF_BASE64_CHARS) {
+    throw new DocumentValidationError(
+      'Scanned PDF exceeds OCR payload limit',
+      `"${file.name}" has no selectable text layer (${(file.size / (1024 * 1024)).toFixed(2)} MB raw → ${(base64Pdf.length / (1024 * 1024)).toFixed(2)} MB base64), exceeding the 6 MB serverless request limit.`,
+      'Compress the scanned PDF under 4 MB or export a text-searchable PDF/DOCX.'
+    );
+  }
 
   return {
     fileName: file.name,

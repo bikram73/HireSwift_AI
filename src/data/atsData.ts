@@ -125,13 +125,6 @@ export interface CandidateProfile {
   interviewSchedule?: string;
   rejectionReason?: string;
   appliedAt: string;
-  radar: {
-    communication: number;
-    problemSolving: number;
-    culturalFit: number;
-    technicalSkills: number;
-    architecture: number;
-  };
   highlights: string[];
   timeline: { time: string; event: string; detail: string }[];
   isDemo?: boolean;
@@ -615,10 +608,22 @@ function buildSeedCandidate(seed: SeedCandidateInput, idx: number): CandidatePro
     keyStrengths: seed.skills.slice(0, 3),
     missingFields,
     confidence: {
-      name: 0.99,
-      email: 0.99,
-      education: seed.cgpa !== null ? 0.96 : 0.72,
-      skills: 0.95,
+      name: seed.name ? 0.99 : 0,
+      email: seed.email ? 0.99 : 0,
+      education: Number(
+        Math.min(
+          1,
+          (seed.cgpa !== null ? 0.35 : 0) +
+            (seed.degree ? 0.25 : 0) +
+            (seed.college ? 0.2 : 0) +
+            (seed.branch ? 0.1 : 0) +
+            (seed.gradYear ? 0.1 : 0)
+        ).toFixed(2)
+      ),
+      skills:
+        seed.skills.length > 0
+          ? Number(Math.min(0.98, 0.45 + Math.min(seed.skills.length, 8) * 0.065).toFixed(2))
+          : 0,
     },
     matchScore: seed.matchScore,
     matchLabel,
@@ -636,13 +641,6 @@ function buildSeedCandidate(seed: SeedCandidateInput, idx: number): CandidatePro
     interviewSchedule: seed.interviewSchedule,
     rejectionReason: seed.rejectionReason,
     appliedAt: `2026-11-${String(Math.max(1, 15 - (idx % 14))).padStart(2, '0')}T10:30:00Z`,
-    radar: {
-      communication: Math.min(96, 76 + (seed.matchScore % 19)),
-      problemSolving: Math.min(97, 78 + ((seed.matchScore + 3) % 18)),
-      culturalFit: Math.min(94, 75 + ((seed.matchScore + 5) % 17)),
-      technicalSkills: Math.min(98, seed.matchScore),
-      architecture: Math.min(95, Math.max(68, seed.matchScore - 4)),
-    },
     highlights: seed.highlights,
     timeline: [
       {

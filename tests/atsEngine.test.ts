@@ -8,6 +8,7 @@ import {
   ScoringWeights,
 } from '../src/data/atsData';
 import {
+  computeExtractionConfidence,
   computeMatchResult,
   detectDuplicates,
   exportRowsToCsv,
@@ -100,13 +101,6 @@ function makeCandidate(overrides: Partial<CandidateProfile> = {}): CandidateProf
     processingStatus: 'parsed',
     duplicateStatus: 'Unique',
     appliedAt: '2026-01-01T10:00:00.000Z',
-    radar: {
-      communication: 85,
-      problemSolving: 88,
-      culturalFit: 84,
-      technicalSkills: 90,
-      architecture: 85,
-    },
     highlights: ['Built REST APIs with Python, FastAPI, PostgreSQL, and Docker.'],
     timeline: [],
     ...overrides,
@@ -561,5 +555,41 @@ describe('Performance Benchmark (PRD Section 24)', () => {
     expect(results).toHaveLength(500);
     expect(results.every((r) => r.overallScore >= 0 && r.overallScore <= 100)).toBe(true);
     expect(elapsed).toBeLessThan(250);
+  });
+});
+
+describe('Evidence-Based Extraction Confidence (Issue 2)', () => {
+  it('assigns 0 confidence to absent fields and refuses inflated reported values on missing data', () => {
+    const conf = computeExtractionConfidence({
+      extractedText: 'Minimal unstructured note without contact or skills',
+      extractedName: 'Candidate Profile',
+      email: null,
+      degree: null,
+      branch: null,
+      college: null,
+      cgpa: null,
+      graduationYear: null,
+      skills: [],
+      reportedConfidence: { name: 0.9, email: 0.95, education: 0.9, skills: 0.85 },
+    });
+    expect(conf).toEqual({ name: 0, email: 0, education: 0, skills: 0 });
+  });
+
+  it('computes high confidence when name, email, academics, and skills exist in source text', () => {
+    const conf = computeExtractionConfidence({
+      extractedText: 'Aarav Mehta | aarav@example.com | B.Tech CSE NIT Trichy 2024 CGPA 8.9 | Skills: Python, FastAPI, SQL, Docker',
+      extractedName: 'Aarav Mehta',
+      email: 'aarav@example.com',
+      degree: 'B.Tech',
+      branch: 'Computer Science',
+      college: 'NIT Trichy',
+      cgpa: 8.9,
+      graduationYear: 2024,
+      skills: ['Python', 'FastAPI', 'SQL', 'Docker'],
+    });
+    expect(conf.name).toBe(0.95);
+    expect(conf.email).toBe(0.99);
+    expect(conf.education).toBe(1);
+    expect(conf.skills).toBe(0.92);
   });
 });

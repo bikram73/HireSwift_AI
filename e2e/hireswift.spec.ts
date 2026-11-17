@@ -109,7 +109,32 @@ test.describe('HireSwift AI End-to-End Browser Verification', () => {
     await page.getByRole('button', { name: /Enter Workspace|Launch Workspace|Open Workspace/i }).first().click();
     await expect(page.getByLabel('Open navigation menu')).toBeVisible();
     await page.getByLabel('Open navigation menu').click();
-    await expect(page.getByRole('button', { name: 'Candidates' }).first()).toBeVisible();
+    await expect(page.locator('aside button:visible', { hasText: 'Candidates' }).first()).toBeVisible();
+    await page.locator('aside button:visible', { hasText: 'Candidates' }).first().click();
+
+    // Verify horizontal overflow safety inside workspace views at desktop, tablet & mobile
+    for (const viewLabel of ['Dashboard', 'Candidates', 'Hiring Pipeline', 'Candidate Ranking']) {
+      for (const vp of [
+        { width: 1440, height: 900 },
+        { width: 768, height: 1024 },
+        { width: 375, height: 812 },
+        { width: 320, height: 700 },
+      ]) {
+        await page.setViewportSize(vp);
+        if (vp.width < 1024) {
+          const menuBtn = page.getByLabel('Open navigation menu');
+          if (await menuBtn.isVisible()) {
+            await menuBtn.click();
+          }
+        }
+        await page.locator('aside button:visible', { hasText: viewLabel }).first().click();
+        await page.waitForTimeout(60);
+        const overflow = await page.evaluate(
+          () => document.documentElement.scrollWidth - window.innerWidth
+        );
+        expect(overflow, `${viewLabel} overflow at ${vp.width}x${vp.height}`).toBeLessThanOrEqual(4);
+      }
+    }
   });
 
   test('E2E-001 / E2E-003 / E2E-007: Job Creation, Real PDF Upload, Duplicate Detection, Pipeline & Persistence', async ({
@@ -168,12 +193,16 @@ test.describe('HireSwift AI End-to-End Browser Verification', () => {
     await page.getByPlaceholder(/Search name, email/i).fill('Karan Malhotra');
     await expect(page.getByText('Karan Malhotra').first()).toBeVisible();
 
-    // 5. Security check: no API key literal in localStorage or window
-    const secretLeak = await page.evaluate(() => {
+    // 5. Security & privacy check: no API key literals and no raw resumeTextPreview in localStorage
+    const privacyAudit = await page.evaluate(() => {
       const storage = JSON.stringify(localStorage);
-      return /AIzaSy|sk-or-|gsk_/.test(storage);
+      return {
+        hasSecret: /AIzaSy|sk-or-|gsk_/.test(storage),
+        hasRawResumeText: /"resumeTextPreview"/.test(storage) || /"resumeObjectUrl"/.test(storage),
+      };
     });
-    expect(secretLeak).toBe(false);
+    expect(privacyAudit.hasSecret).toBe(false);
+    expect(privacyAudit.hasRawResumeText).toBe(false);
   });
 
   test('E2E-002 / DEFECT-4..7 / COMP / RANK / SKILL / MAIL / SET: Real DOCX upload & interactive workflow regression', async ({
@@ -185,19 +214,27 @@ test.describe('HireSwift AI End-to-End Browser Verification', () => {
     await page.goto('/');
     await page.getByRole('button', { name: /Enter Workspace|Launch Workspace|Open Workspace/i }).first().click();
 
-    // Verify DOCX extraction & parsing end-to-end in real Chromium
+    // Verify DOCX extraction AND malformed/unsupported file failure isolation in real Chromium
     const { buildRealDocxBytes } = await import('../tests/fixtures');
     const docxBytes = await buildRealDocxBytes(
       'Sneha Iyer | sneha.iyer.qa@example.com | +91-98111-22334 | B.Tech CS 2025 | CGPA: 9.1 | Skills: React, TypeScript, Tailwind CSS'
     );
     await page.locator('aside button', { hasText: 'Resume Upload' }).first().click();
-    await page.locator('input[type="file"]').setInputFiles({
-      name: 'Sneha_Iyer_Resume.docx',
-      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      buffer: Buffer.from(docxBytes),
-    });
+    await page.locator('input[type="file"]').setInputFiles([
+      {
+        name: 'Sneha_Iyer_Resume.docx',
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        buffer: Buffer.from(docxBytes),
+      },
+      {
+        name: 'corrupt_resume.pdf',
+        mimeType: 'application/pdf',
+        buffer: Buffer.from('NOT_A_VALID_PDF', 'utf8'),
+      },
+    ]);
     await page.getByRole('button', { name: /Start AI Resume Parsing/i }).click();
     await expect(page.getByText(/Successfully Parsed/i)).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText(/Failed/i).first()).toBeVisible();
 
     // Candidates: Sort Name A-Z & Rows per page 20
     await page.locator('aside button', { hasText: 'Candidates' }).first().click();

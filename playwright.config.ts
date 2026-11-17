@@ -1,4 +1,10 @@
+import fs from 'fs';
 import { defineConfig } from '@playwright/test';
+
+const preinstalledChromium = '/ms-playwright/chrome-headless-shell-linux64/chrome-headless-shell';
+const executablePath =
+  process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ||
+  (fs.existsSync(preinstalledChromium) ? preinstalledChromium : undefined);
 
 export default defineConfig({
   testDir: './e2e',
@@ -14,5 +20,6 @@ export default defineConfig({
     headless: true,
     acceptDownloads: true,
     viewport: { width: 1440, height: 900 },
+    ...(executablePath ? { launchOptions: { executablePath } } : {}),
   },
 });

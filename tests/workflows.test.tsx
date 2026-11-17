@@ -259,4 +259,29 @@ describe('UI Integration & Defect Verification (PRD Modules 4–23)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Save & Recalculate Match/i }));
     expect(screen.getByText(/Staff Python Architect/i)).toBeInTheDocument();
   });
+
+  it('DATA-009 / ISSUE-3: localStorage excludes raw resumeTextPreview and resumeObjectUrl', () => {
+    render(
+      <AtsProvider>
+        <DashboardView onNavigate={vi.fn()} onSelectCandidate={vi.fn()} />
+      </AtsProvider>
+    );
+    const raw = localStorage.getItem('hireswift_ats_session_v2') || '';
+    expect(raw).not.toBe('');
+    expect(raw).not.toContain('"resumeTextPreview"');
+    expect(raw).not.toContain('"resumeObjectUrl"');
+  });
+
+  it('SET-014 / ERR: Safely handles localStorage QuotaExceededError without crashing UI', () => {
+    const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('QuotaExceededError', 'QuotaExceededError');
+    });
+    render(
+      <AtsProvider>
+        <SettingsView />
+      </AtsProvider>
+    );
+    expect(screen.getByText('Workspace Settings')).toBeInTheDocument();
+    spy.mockRestore();
+  });
 });

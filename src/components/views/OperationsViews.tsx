@@ -911,11 +911,11 @@ export const SettingsView: React.FC = () => {
       {/* Upload Config */}
       <div className="rounded-2xl glass-card p-5 space-y-4">
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <p className="font-body-md text-on-surface font-semibold">Max Resume File Size</p>
             <p className="font-body-sm text-on-surface-variant text-xs">
-              Configurable upload validation ceiling per PDF/DOCX document.
+              Validation limit per PDF/DOCX file (4 MB keeps scanned PDFs under the 6 MB Netlify OCR limit after +33% base64 encoding).
             </p>
           </div>
           <select
@@ -923,10 +923,10 @@ export const SettingsView: React.FC = () => {
             onChange={(e) => setMaxFileSizeMb(parseInt(e.target.value, 10))}
             className="h-9 px-3 rounded-lg bg-surface-container-highest text-on-surface text-xs outline-none"
           >
-            <option value={5}>5 MB</option>
-            <option value={10}>10 MB (Default)</option>
-            <option value={15}>15 MB</option>
-            <option value={25}>25 MB</option>
+            <option value={4}>4 MB (Serverless OCR Safe · Default)</option>
+            <option value={6}>6 MB (Text PDFs / DOCX)</option>
+            <option value={10}>10 MB (Express Local)</option>
+            <option value={15}>15 MB (Express Local)</option>
           </select>
         </div>
       </div>

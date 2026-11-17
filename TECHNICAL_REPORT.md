@@ -19,12 +19,15 @@ Resume parsing combines **client-side binary decoding** with **schema-constraine
 1. **Client Pre-Extraction (`src/utils/fileExtractor.ts`)**:
    - **DOCX**: Unpacked locally via `mammoth.extractRawText()`. Rejects archives containing zero text nodes.
    - **PDF**: Decoded locally via `pdfjs-dist` page-by-page. Detects `PasswordException` and corrupted headers with actionable error messages.
-   - **Scanned PDF Detection**: When `extractedText.length < 40`, the file is flagged as a scanned PDF and encoded as `base64Pdf` so the backend AI multimodal pipeline can perform OCR directly on the document layers.
-2. **Strict Schema Enforcement (`lib/atsApi.ts`)**:
-   - Calls `ai.models.generateContent` with `responseMimeType: 'application/json'` and an explicit `responseSchema` defining scalar fields as `nullable: true`.
+   - **Scanned PDF Detection & Payload Ceiling**: When `extractedText.length < 40`, the file is flagged as a scanned PDF and encoded as `base64Pdf` (~+33% size inflation). Both client (`fileExtractor.ts`) and server (`lib/atsApi.ts`, returning HTTP `413`) enforce a `5.8 MB` base64 ceiling (~`4 MB` raw PDF default) to fit within Netlify's `6 MB` synchronous payload cap.
+2. **Strict Schema Enforcement & Evidence-Based Confidence (`lib/atsApi.ts`, `src/utils/atsEngine.ts`)**:
+   - Calls `ai.models.generateContent` using configured `GEMINI_MODEL` (`gemini-3.5-flash-lite` default) with `responseMimeType: 'application/json'` and `nullable: true` scalar schemas.
+   - Extraction confidence (`computeExtractionConfidence`) is computed strictly from verified field presence and source-text substring matches (`0` on absent fields), never from fixed constants on empty records.
    - System instructions enforce factual grounding: unavailable scalar values return `null`, absent lists return `[]`, and `missing_fields` flags omitted contact or academic items rather than inventing estimates.
 3. **3-Tier AI Chain & Deterministic Fallback Guarantee**:
    - Requests execute across **Gemini → OpenRouter → Groq** with retry backoff (`withRetry`, 1 retry per upstream request; 25s timeout on OpenRouter/Groq). If all configured AI keys are absent or fail, `heuristicParseResume` and `heuristicAnalyzeJd` extract contact regexes, academic metrics, and canonical skills from `KNOWN_SKILLS` without fabricating unstated CGPA, location, or skills. Scanned image-only PDFs without AI OCR return HTTP `422`.
+4. **Privacy-First Browser Persistence (`AtsContext.tsx`)**:
+   - Transient `resumeObjectUrl` and full extracted `resumeTextPreview` stay strictly in React session memory during upload/review and are stripped before `localStorage` serialization or session JSON export.
 
 ---
 

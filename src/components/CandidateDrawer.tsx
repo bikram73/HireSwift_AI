@@ -783,7 +783,7 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
 
               <div className="p-4 rounded-xl bg-surface-container-low border border-[#263449] font-mono-code text-xs text-on-surface-variant whitespace-pre-wrap leading-relaxed max-h-[360px] overflow-y-auto">
                 {liveCandidate.resumeTextPreview ||
-                  `${liveCandidate.name}\n${liveCandidate.email}\n${liveCandidate.education} (${liveCandidate.cgpa})\nSkills: ${liveCandidate.skills.join(', ')}\n\n${liveCandidate.summary}`}
+                  `[Raw full resume text is kept in volatile session memory only and omitted from localStorage across page reloads.]\n\nStructured Profile Summary:\n${liveCandidate.name}\n${liveCandidate.email}\n${liveCandidate.education} (${liveCandidate.cgpa})\nSkills: ${liveCandidate.skills.join(', ')}\n\n${liveCandidate.summary}`}
               </div>
             </div>
           )}
