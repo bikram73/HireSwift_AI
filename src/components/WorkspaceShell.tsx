@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles } from 'lucide-react';
+import { BrandLogo } from './BrandLogo';
 import { CandidateProfile, WorkspaceRoute } from '../data/atsData';
 import { useAts } from '../context/AtsContext';
 
@@ -78,8 +78,8 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
           className="h-16 px-space-xl flex items-center gap-3 border-b border-[#263449]/70 bg-[#0B1020]/90 cursor-pointer hover:bg-[#151E32]/60 transition-colors group"
           title="Back to HireSwift AI Landing Page"
         >
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#4F46E5] to-[#8B5CF6] flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform shrink-0">
-            <Sparkles className="w-4 h-4 text-white" />
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform shrink-0">
+            <BrandLogo className="w-9 h-9" />
           </div>
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-1.5">

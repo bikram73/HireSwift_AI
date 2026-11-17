@@ -29,6 +29,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import { WorkspaceRoute } from '../data/atsData';
+import { BrandLogo } from './BrandLogo';
 
 interface LandingPageProps {
   onEnterWorkspace: (route?: WorkspaceRoute) => void;
@@ -43,8 +44,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           {/* Brand Logo */}
           <a className="flex items-center gap-3 group" href="#top" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#4F46E5] to-[#8B5CF6] flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform duration-200">
-              <Sparkles className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform duration-200">
+              <BrandLogo className="w-10 h-10" />
             </div>
             <div className="flex items-center gap-2">
               <span className="font-heading font-bold text-xl tracking-tight text-white">
@@ -687,8 +688,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
             <div className="col-span-2">
               <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#4F46E5] to-[#8B5CF6] flex items-center justify-center text-white">
-                  <Sparkles className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-md shadow-indigo-500/25">
+                  <BrandLogo className="w-8 h-8" />
                 </div>
                 <span className="font-heading font-bold text-lg text-white">
                   HireSwift<span className="text-[#8B5CF6]">AI</span>
