@@ -1,0 +1,1729 @@
+# 🧪 HireSwift AI – Complete End-to-End Testing PRD
+## Quality Assurance, Functional Testing, Integration Testing, AI Validation & Acceptance Testing
+
+**Project Name:** HireSwift AI  
+**Project Type:** AI-Powered Applicant Tracking System (ATS)  
+**Testing Document:** End-to-End Testing & Quality Assurance PRD  
+**Version:** 1.0  
+**Target Platform:** Web Application  
+**Frontend:** React 19, TypeScript, Vite  
+**Backend:** Node.js, Express.js  
+**AI Integration:** Google Gemini API (`@google/genai`)  
+**Document Processing:** PDF.js, Mammoth  
+**Deployment:** Node/Express and Netlify Functions  
+**Storage:** In-memory application state and browser localStorage  
+**Database:** Not used  
+**Authentication:** Not implemented  
+**Testing Scope:** Complete existing application
+
+---
+
+# 📑 1. Project Overview
+
+HireSwift AI is an intelligent Applicant Tracking System designed to help recruiters manage recruitment activities, extract candidate information from resumes, analyze job descriptions, evaluate candidate suitability, and manage the hiring pipeline.
+
+The application provides resume ingestion, structured candidate extraction, deterministic candidate scoring, Gemini-powered AI explanations, candidate ranking, candidate comparison, skill gap analysis, hiring pipeline management, email drafting, and recruitment analytics.
+
+This testing specification is intended to validate the actual implementation in the supplied HireSwift AI source code.
+
+## 1.1 Primary Testing Objectives
+
+- Verify that the application launches and renders correctly.
+- Validate all navigation links and workspace modules.
+- Verify PDF and DOCX resume uploads.
+- Test resume extraction and candidate profile generation.
+- Verify Gemini integration and deterministic fallback processing.
+- Validate job description creation and AI analysis.
+- Verify candidate matching and weighted scoring calculations.
+- Test candidate filtering, searching, sorting, and pagination.
+- Validate duplicate detection and duplicate resolution.
+- Test hiring pipeline transitions and recruiter notes.
+- Verify candidate comparison and skill gap analysis.
+- Validate email templates and export functionality.
+- Test dashboard analytics and reports.
+- Verify browser persistence and data reset behavior.
+- Test backend REST API endpoints and error handling.
+- Test responsive layouts and browser compatibility.
+- Identify crashes, incorrect calculations, missing functionality, and misleading AI output.
+
+## 1.2 Testing Philosophy
+
+Testing must be performed against the existing source code.
+
+Do not assume that a feature works because it is listed in the README.
+
+Every feature must be tested through its actual user interface, application logic, or API endpoint.
+
+Classify every feature using one of these statuses:
+
+- PASS – Works according to the requirement.
+- FAIL – Does not work or produces incorrect results.
+- BLOCKED – Cannot be tested because a prerequisite is unavailable.
+- PARTIAL – Some expected behavior works, but other behavior is incomplete.
+- NOT IMPLEMENTED – The feature does not exist in the supplied implementation.
+- NOT APPLICABLE – The test does not apply to the current architecture.
+
+Never mark a test as PASS without executing it and recording evidence.
+
+---
+
+# 2. Existing Project Scope
+
+The testing scope must cover these existing project components.
+
+## 2.1 Frontend Components
+
+| Component | Responsibility |
+|---|---|
+| `src/App.tsx` | Main application and view routing |
+| `src/components/LandingPage.tsx` | Landing page and entry navigation |
+| `src/components/WorkspaceShell.tsx` | Workspace navigation and layout |
+| `src/components/CandidateDrawer.tsx` | Candidate profile drawer |
+| `src/components/views/DashboardView.tsx` | Recruitment dashboard |
+| `src/components/views/CandidatesView.tsx` | Candidate management |
+| `src/components/views/ResumeUploadView.tsx` | Resume uploading and processing |
+| `src/components/views/OperationsViews.tsx` | Job management, email, reports, settings and related operations |
+| `src/components/views/TalentWorkflowViews.tsx` | Matching, ranking, comparison, pipeline and skill gap workflows |
+
+## 2.2 State and Business Logic
+
+| Component | Responsibility |
+|---|---|
+| `src/context/AtsContext.tsx` | Global application state and persistence |
+| `src/data/atsData.ts` | Candidate, job and application data structures |
+| `src/utils/atsEngine.ts` | Matching, scoring, ranking and export utilities |
+| `src/utils/fileExtractor.ts` | File validation and document extraction |
+| `lib/atsApi.ts` | Backend AI and deterministic API processing |
+
+## 2.3 Backend Components
+
+| Component | Responsibility |
+|---|---|
+| `server.ts` | Express server and API routes |
+| `netlify/functions/api.ts` | Netlify serverless API |
+| `vite.config.ts` | Frontend development and build configuration |
+| `netlify.toml` | Netlify deployment configuration |
+| `.env.example` | Environment variable reference |
+| `package.json` | Dependencies and execution scripts |
+
+---
+
+# 3. Testing Environment and Prerequisites
+
+## 3.1 Required Software
+
+- Node.js 20 or a compatible version supported by the installed dependencies.
+- npm or Bun.
+- Google Chrome or Microsoft Edge.
+- Visual Studio Code.
+- Terminal or PowerShell.
+- Google Gemini API key for live AI integration testing.
+- Internet connection for Gemini API testing.
+
+## 3.2 Installation and Startup
+
+First, extract the project ZIP and open the project folder.
+
+```bash
+cd HireSwift_AI-main
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Create the environment configuration:
+
+```bash
+cp .env.example .env
+```
+
+On Windows PowerShell, use:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Configure the Gemini API key if available:
+
+```env
+GEMINI_API_KEY=your_actual_api_key
+GEMINI_MODEL=gemini-4-hydrogen
+PORT=3000
+```
+
+Run the application in development mode:
+
+```bash
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+Run the TypeScript check:
+
+```bash
+npm run lint
+```
+
+Run the frontend production build:
+
+```bash
+npm run build
+```
+
+Preview the production build:
+
+```bash
+npm run preview
+```
+
+**Important execution checks:**
+
+1. Verify that the development server starts without errors.
+2. Verify that the frontend loads.
+3. Verify that the backend API is reachable.
+4. Verify that the health endpoint responds.
+5. Check that no missing dependency or TypeScript errors remain.
+6. Inspect the actual production startup command. The supplied ZIP currently defines `start` as `node server.ts`; verify whether this works in the target Node runtime. Do not assume that a successful Vite build proves the Express server can start in production.
+
+If the application cannot start, classify subsequent browser tests as BLOCKED and report the startup failure.
+
+---
+
+# 4. Complete Functional Testing
+
+## 4.1 Landing Page Testing
+
+**Target:** `LandingPage.tsx`
+
+| Test ID | Test Scenario | Test Procedure | Expected Result |
+|---|---|---|---|
+| LAND-001 | Initial application load | Open the application URL | Landing page renders successfully |
+| LAND-002 | Logo visibility | Inspect the brand logo | Logo and brand name are visible |
+| LAND-003 | Main heading | Inspect page heading | Correct HireSwift AI branding appears |
+| LAND-004 | Navigation CTA | Click the primary workspace CTA | Workspace opens |
+| LAND-005 | Feature navigation | Click each feature navigation item | Correct destination opens |
+| LAND-006 | Workflow preview | Inspect workflow section | Recruitment workflow information renders |
+| LAND-007 | Scorecard preview | Inspect candidate scorecard | Example scorecard renders without layout errors |
+| LAND-008 | Visual rendering | Inspect images, cards and icons | No missing assets or broken elements |
+| LAND-009 | Browser refresh | Refresh the page | Application returns to the intended landing experience |
+| LAND-010 | Responsive landing page | Test desktop, tablet and mobile | No overlapping or clipped content |
+
+**Acceptance Criteria:**
+
+- Landing page loads without JavaScript errors.
+- Main CTA navigates correctly.
+- All visible interactive controls work.
+- Responsive layout remains usable.
+
+## 4.2 Workspace Navigation Testing
+
+**Target:** `WorkspaceShell.tsx`, `App.tsx`
+
+| Test ID | Test Scenario | Expected Result |
+|---|---|---|
+| NAV-001 | Open Dashboard | Dashboard appears |
+| NAV-002 | Open Candidates | Candidate directory appears |
+| NAV-003 | Open Resume Upload | Upload interface appears |
+| NAV-004 | Open Job Management | Job management appears |
+| NAV-005 | Open Job Details | Selected job details appear |
+| NAV-006 | Open AI Matching | Matching workspace appears |
+| NAV-007 | Open Candidate Ranking | Ranking workspace appears |
+| NAV-008 | Open Hiring Pipeline | Kanban pipeline appears |
+| NAV-009 | Open Candidate Comparison | Comparison interface appears |
+| NAV-010 | Open Skill Gap Analysis | Skill gap workspace appears |
+| NAV-011 | Open Email Center | Email workspace appears |
+| NAV-012 | Open Reports | Reports workspace appears |
+| NAV-013 | Open Settings | Settings workspace appears |
+| NAV-014 | Open Help Center | Help content appears |
+| NAV-015 | Switch between modules | Navigation remains functional |
+| NAV-016 | Keyboard command search | Ctrl+K or Cmd+K opens the command interface |
+| NAV-017 | Command search filtering | Search returns relevant workspace destinations |
+| NAV-018 | Escape command modal | Modal closes |
+| NAV-019 | Theme control | Theme changes when supported |
+| NAV-020 | Navigation at mobile width | Navigation remains accessible |
+
+**Acceptance Criteria:**
+
+Every implemented workspace view must be reachable through its intended navigation control. No dead navigation items, blank pages, or unexpected application crashes are permitted.
+
+---
+
+# 5. Resume Upload and Document Processing Testing
+
+**Target:** `ResumeUploadView.tsx`, `fileExtractor.ts`, `lib/atsApi.ts`
+
+This is one of the most important parts of HireSwift AI.
+
+## 5.1 File Upload Validation
+
+| Test ID | Test Scenario | Test Input | Expected Result |
+|---|---|---|---|
+| UP-001 | Upload valid PDF | Standard PDF resume | Accepted |
+| UP-002 | Upload valid DOCX | Standard DOCX resume | Accepted |
+| UP-003 | Upload multiple PDFs | 5 valid PDF files | All accepted |
+| UP-004 | Upload multiple DOCX files | 5 valid DOCX files | All accepted |
+| UP-005 | Upload mixed formats | PDF and DOCX together | Supported files processed |
+| UP-006 | Upload unsupported TXT | `.txt` file | Rejected with clear message |
+| UP-007 | Upload image file | `.png` or `.jpg` | Rejected unless explicitly supported |
+| UP-008 | Upload executable | `.exe` file | Rejected |
+| UP-009 | Upload empty file | Zero-byte file | Rejected |
+| UP-010 | Upload corrupted PDF | Invalid PDF content | Clear processing error |
+| UP-011 | Upload corrupted DOCX | Invalid DOCX archive | Clear processing error |
+| UP-012 | Upload password-protected PDF | Encrypted PDF | Clear password-related error |
+| UP-013 | Upload oversized file | File beyond configured limit | Rejected |
+| UP-014 | Upload file with unusual name | Unicode and spaces in filename | File handled safely |
+| UP-015 | Drag and drop | Drop supported resume | File enters upload queue |
+| UP-016 | File picker | Select supported resume | File enters upload queue |
+| UP-017 | Upload same file twice | Identical file | Duplicate detection activates |
+| UP-018 | Remove queued file | Remove before processing | File is removed |
+| UP-019 | Retry failed upload | Reprocess failed file | Retry works or reports the actual reason |
+| UP-020 | Cancel processing | Cancel where supported | Processing stops without corrupting other records |
+
+## 5.2 PDF Extraction Testing
+
+| Test ID | Test Scenario | Expected Result |
+|---|---|---|
+| PDF-001 | Text-based PDF | Text extracted correctly |
+| PDF-002 | Multi-page PDF | Content extracted across pages |
+| PDF-003 | Single-page PDF | Content extracted |
+| PDF-004 | Scanned PDF | Scanned-PDF handling is activated |
+| PDF-005 | Scanned PDF with Gemini | AI attempts document extraction |
+| PDF-006 | Scanned PDF without Gemini | Graceful fallback or clear unsupported-processing message |
+| PDF-007 | PDF with tables | Relevant text is extracted |
+| PDF-008 | PDF with multiple columns | Extraction is usable and not silently corrupted |
+| PDF-009 | PDF with missing academic details | Missing fields remain unknown |
+| PDF-010 | PDF with special characters | Text is processed without crashing |
+
+Do not require perfect extraction from complex multi-column or scanned documents. Compare the extracted result against the source document and record accuracy.
+
+## 5.3 DOCX Extraction Testing
+
+| Test ID | Test Scenario | Expected Result |
+|---|---|---|
+| DOCX-001 | Standard DOCX | Text extracted |
+| DOCX-002 | DOCX with headings | Headings and text preserved |
+| DOCX-003 | DOCX with bullet points | Relevant bullet content extracted |
+| DOCX-004 | DOCX with tables | Table content extracted where supported |
+| DOCX-005 | DOCX with links | Text remains readable |
+| DOCX-006 | Empty DOCX | Clear validation failure |
+| DOCX-007 | Invalid DOCX | Error displayed without application crash |
+| DOCX-008 | DOCX with academic records | Academic information reaches extraction stage |
+
+## 5.4 Structured Resume Extraction
+
+Verify the extracted candidate profile against the uploaded resume.
+
+Required fields:
+
+- Full name.
+- Email.
+- Phone number.
+- Location.
+- Professional summary.
+- Technical skills.
+- Soft skills.
+- Education.
+- School and diploma details where present.
+- College and university details.
+- Graduation year.
+- CGPA or percentage.
+- Work experience.
+- Internship experience.
+- Projects.
+- Certifications.
+- Achievements.
+- Missing fields.
+
+| Test ID | Test Scenario | Expected Result |
+|---|---|---|
+| EXT-001 | Extract candidate name | Name matches source |
+| EXT-002 | Extract email | Email matches source |
+| EXT-003 | Extract phone | Phone matches source |
+| EXT-004 | Extract location | Location matches source if present |
+| EXT-005 | Extract technical skills | Actual skills extracted |
+| EXT-006 | Extract education | Education details match resume |
+| EXT-007 | Extract CGPA | Original CGPA preserved |
+| EXT-008 | Extract percentages | Original percentage preserved |
+| EXT-009 | Extract graduation year | Correct year extracted |
+| EXT-010 | Extract internships | Internships classified correctly |
+| EXT-011 | Extract full-time experience | Work history classified correctly |
+| EXT-012 | Extract projects | Project names and descriptions extracted |
+| EXT-013 | Extract certifications | Available certifications extracted |
+| EXT-014 | Missing email | Missing field remains null |
+| EXT-015 | Missing CGPA | CGPA remains null |
+| EXT-016 | Missing skills | No invented technical skills |
+| EXT-017 | Fresher resume | No fabricated work experience |
+| EXT-018 | Experienced resume | Work history is not discarded |
+| EXT-019 | Multiple education records | Education history remains distinguishable |
+| EXT-020 | Duplicate section content | Repeated information is not incorrectly duplicated |
+
+**Critical data-integrity requirement:**
+
+The system must not invent candidate qualifications.
+
+Examples:
+
+- Missing skills must not automatically become Communication.
+- Missing experience must not automatically be interpreted as verified fresher status.
+- Missing CGPA must not be converted to zero.
+- Missing graduation year must remain unknown.
+- Internships must not automatically be classified as full-time employment.
+
+If the current implementation violates any of these requirements, record FAIL and identify the responsible source file.
+
+## 5.5 Candidate Review Before Saving
+
+| Test ID | Test Scenario | Expected Result |
+|---|---|---|
+| REV-001 | Open parsed candidate review | Profile is visible |
+| REV-002 | Edit candidate name | Edited name is retained |
+| REV-003 | Edit email | Updated email is retained |
+| REV-004 | Edit phone | Updated phone is retained |
+| REV-005 | Edit education | Updated academic details are retained |
+| REV-006 | Add a missing skill | Skill is added |
+| REV-007 | Remove an incorrect skill | Skill is removed |
+| REV-008 | Edit experience | Updated value is retained |
+| REV-009 | Save candidate | Candidate enters candidate directory |
+| REV-010 | Cancel review | Candidate is not unintentionally saved |
+| REV-011 | Process several candidates | Each profile is associated with the correct file |
+| REV-012 | Extraction failure | Invalid candidate is not silently saved as a valid profile |
+
+---
+
+# 6. Duplicate Detection Testing
+
+**Target:** Resume upload logic, SHA-256 hashing and candidate merge functionality.
+
+## 6.1 Duplicate Scenarios
+
+| Test ID | Scenario | Expected Result |
+|---|---|---|
+| DUP-001 | Upload identical PDF twice | Exact duplicate detected |
+| DUP-002 | Upload identical DOCX twice | Exact duplicate detected |
+| DUP-003 | Same candidate with different filename | Content hash still detects identical content |
+| DUP-004 | Same email in different resume | Potential duplicate detected |
+| DUP-005 | Same name and phone | Potential duplicate detected |
+| DUP-006 | Same name but different email and phone | Should not automatically be treated as confirmed duplicate |
+| DUP-007 | Same email with different capitalization | Normalized email matching works |
+| DUP-008 | Same phone with formatting differences | Normalization is tested |
+| DUP-009 | Different candidates with similar names | No incorrect automatic merge |
+| DUP-010 | Merge duplicate records | Selected non-empty information is merged |
+| DUP-011 | Cancel duplicate merge | Original records remain unchanged |
+| DUP-012 | Duplicate pipeline entries | No unintended duplicate applications are created |
+
+**Acceptance Criteria:**
+
+- Exact duplicates must be identified using file content hashes.
+- Potential duplicates must be presented for recruiter review.
+- Different people must not be automatically merged merely because their names are similar.
+- Merge operations must preserve valid information.
+
+---
+
+# 7. Candidate Management Testing
+
+**Target:** `CandidatesView.tsx`, `CandidateDrawer.tsx`, `AtsContext.tsx`
+
+## 7.1 Candidate Directory
+
+| Test ID | Test Scenario | Expected Result |
+|---|---|---|
+| CAN-001 | Open candidate directory | Candidate records render |
+| CAN-002 | Search by full name | Matching candidate appears |
+| CAN-003 | Search by partial name | Relevant results appear |
+| CAN-004 | Search by email | Correct candidate appears |
+| CAN-005 | Search by skill | Candidates with matching skills appear |
+| CAN-006 | Search for unknown candidate | Empty state appears |
+| CAN-007 | Sort by candidate name | Correct order |
+| CAN-008 | Sort by CGPA | Correct numerical order |
+| CAN-009 | Sort by match score | Correct numerical order |
+| CAN-010 | Sort by experience | Correct numerical order |
+| CAN-011 | Change page | Correct next records appear |
+| CAN-012 | Change page size | Correct number of records displayed |
+| CAN-013 | Empty directory | Empty state renders correctly |
+| CAN-014 | Select candidate | Correct row is selected |
+| CAN-015 | Bulk select candidates | Selection count is correct |
+| CAN-016 | Bulk stage update | All selected candidates are updated |
+| CAN-017 | Bulk shortlist | Selected candidates are shortlisted |
+| CAN-018 | Bulk CSV export | Export includes selected candidates |
+
+## 7.2 Advanced Candidate Filters
+
+Test every filter individually and in combination.
+
+| Test ID | Filter | Expected Result |
+|---|---|---|
+| FIL-001 | Minimum CGPA | Candidates below threshold excluded |
+| FIL-002 | Maximum CGPA | Candidates above threshold excluded |
+| FIL-003 | 10th percentage | Correct cutoff applied |
+| FIL-004 | 12th percentage | Correct cutoff applied |
+| FIL-005 | Degree level | Correct education group returned |
+| FIL-006 | Branch | Correct branch candidates returned |
+| FIL-007 | College | Correct college candidates returned |
+| FIL-008 | Graduation year | Correct year candidates returned |
+| FIL-009 | Experience range | Correct experience candidates returned |
+| FIL-010 | Location | Correct location candidates returned |
+| FIL-011 | Remote availability | Correct candidates returned |
+| FIL-012 | Match score range | Correct score interval returned |
+| FIL-013 | Hiring stage | Correct stage candidates returned |
+| FIL-014 | AND skill matching | Candidate must match all selected skills |
+| FIL-015 | OR skill matching | Candidate must match at least one selected skill |
+| FIL-016 | Combined filters | Filters work together |
+| FIL-017 | Reset filters | All filters return to default |
+| FIL-018 | Missing CGPA | Unknown CGPA is not silently treated as a verified score |
+
+---
+
+# 8. Candidate Profile Testing
+
+**Target:** `CandidateDrawer.tsx`
+
+| Test ID | Test Scenario | Expected Result |
+|---|---|---|
+| PROF-001 | Open candidate profile | Correct profile appears |
+| PROF-002 | View overview | Summary and candidate information appear |
+| PROF-003 | View academics | Academic records appear |
+| PROF-004 | View work history | Experience records appear |
+| PROF-005 | View projects | Project information appears |
+| PROF-006 | View skills | Skills are displayed |
+| PROF-007 | View resume preview | Resume preview appears when available |
+| PROF-008 | View timeline | Recruitment activity appears |
+| PROF-009 | Edit profile | Updated details are saved |
+| PROF-010 | Update hiring stage | Correct stage is applied |
+| PROF-011 | Add recruiter note | Note appears in profile |
+| PROF-012 | Close profile drawer | Drawer closes |
+| PROF-013 | Open another candidate | Correct new candidate data appears |
+| PROF-014 | Missing candidate field | UI displays an appropriate unavailable state |
+
+---
+
+# 9. Job Management Testing
+
+**Target:** Job management views and `lib/atsApi.ts`.
+
+## 9.1 Job CRUD
+
+| Test ID | Test Scenario | Expected Result |
+|---|---|---|
+| JOB-001 | Open job management | Job records appear |
+| JOB-002 | Create job | New job is created |
+| JOB-003 | Add job title | Title is retained |
+| JOB-004 | Add department | Department is retained |
+| JOB-005 | Add location | Location is retained |
+| JOB-006 | Add job description | Description is retained |
+| JOB-007 | Add required skills | Skills are retained |
+| JOB-008 | Add preferred skills | Skills are retained |
+| JOB-009 | Add experience requirements | Requirements are retained |
+| JOB-010 | Add minimum CGPA | Correct value is retained |
+| JOB-011 | Edit job | Changes are saved |
+| JOB-012 | Pause job | Job status changes |
+| JOB-013 | Close job | Job status changes |
+| JOB-014 | Delete job | Job is removed after confirmation |
+| JOB-015 | Cancel deletion | Job remains |
+| JOB-016 | Create incomplete job | Required field validation appears |
+| JOB-017 | Create duplicate title | Behavior is consistent with application rules |
+| JOB-018 | Open job details | Correct job details appear |
+
+## 9.2 AI Job Description Analyzer
+
+| Test ID | Test Scenario | Expected Result |
+|---|---|---|
+| JD-001 | Analyze valid job description | Structured requirements returned |
+| JD-002 | Extract required skills | Required skills are identified |
+| JD-003 | Extract preferred skills | Preferred skills are identified |
+| JD-004 | Extract experience range | Minimum and maximum experience extracted |
+| JD-005 | Extract minimum CGPA | CGPA requirement extracted if present |
+| JD-006 | Extract qualification | Qualification extracted |
+| JD-007 | Extract responsibilities | Responsibilities extracted |
+| JD-008 | Analyze short JD | Clear validation or partial extraction |
+| JD-009 | Analyze empty JD | Request rejected |
+| JD-010 | Analyze unrelated text | No fabricated job requirements |
+| JD-011 | Analyze JD without Gemini | Deterministic fallback executes |
+| JD-012 | Analyze JD with Gemini failure | Graceful fallback or clear error |
+| JD-013 | Edit extracted requirements | User changes are retained |
+| JD-014 | Save analyzed JD | Job is saved correctly |
+
+---
+
+# 10. AI Integration and Fallback Testing
+
+**Target:** `lib/atsApi.ts`, `server.ts`, `netlify/functions/api.ts`
+
+Two processing modes must be tested independently.
+
+### Mode A – Gemini Enabled
+
+Requires a valid `GEMINI_API_KEY`.
+
+### Mode B – Deterministic Fallback
+
+Run without a Gemini key.
+
+## 10.1 Gemini Integration
+
+| Test ID | Test Scenario | Expected Result |
+|---|---|---|
+| AI-001 | Valid API key | Health endpoint reports AI configured |
+| AI-002 | Parse resume | Gemini structured extraction succeeds |
+| AI-003 | Analyze job | Gemini returns structured JD requirements |
+| AI-004 | Analyze candidate match | AI rationale is returned |
+| AI-005 | Generate skill gap | Skill gap recommendations returned |
+| AI-006 | Generate interview questions | Relevant questions returned |
+| AI-007 | Missing API key | Fallback mode is activated |
+| AI-008 | Invalid API key | Graceful error/fallback |
+| AI-009 | Expired or revoked key | No application crash |
+| AI-010 | Network unavailable | Clear error or fallback |
+| AI-011 | Gemini rate limit | Retry/fallback behavior is correct |
+| AI-012 | Gemini server error | Retry/fallback behavior is correct |
+| AI-013 | Malformed AI response | Invalid output is rejected safely |
+| AI-014 | Incomplete AI response | Missing information is handled safely |
+| AI-015 | Long resume | Supported input processed or clear limit reported |
+| AI-016 | API timeout | Request fails gracefully |
+| AI-017 | API key exposure | Key never appears in browser bundle or frontend network payload |
+| AI-018 | Candidate data grounding | Explanation does not invent candidate credentials |
+
+## 10.2 Deterministic Fallback
+
+| Test ID | Test Scenario | Expected Result |
+|---|---|---|
+| FALL-001 | Parse resume without API key | Fallback parser runs |
+| FALL-002 | Extract email with regex | Correct email |
+| FALL-003 | Extract phone with regex | Correct phone where supported |
+| FALL-004 | Extract known skills | Known skills detected |
+| FALL-005 | Analyze job without API key | Fallback JD analysis runs |
+| FALL-006 | Missing CGPA | Remains unknown |
+| FALL-007 | Missing experience | Not invented |
+| FALL-008 | Empty resume text | Clear validation error |
+| FALL-009 | Invalid payload | Correct validation response |
+| FALL-010 | Gemini request failure | Fallback is invoked where designed |
+
+**Important:** A fallback parser must not be treated as equivalent to Gemini extraction. Record which source produced each result and compare its accuracy separately.
+
+---
+
+# 11. AI Matching and Weighted Scoring Testing
+
+**Target:** `src/utils/atsEngine.ts`, matching views and backend matching endpoints.
+
+## 11.1 Default Matching Weights
+
+| Matching Factor | Weight |
+|---|---:|
+| Technical Skills | 35% |
+| Experience | 20% |
+| Education | 15% |
+| Projects | 15% |
+| Certifications | 5% |
+| Responsibilities | 10% |
+| Total | 100% |
+
+## 11.2 Scoring Validation
+
+| Test ID | Test Scenario | Expected Result |
+|---|---|---|
+| SCORE-001 | Perfect match fixture | Score reaches expected maximum |
+| SCORE-002 | No matching skills | Skill sub-score reflects no overlap |
+| SCORE-003 | Partial required skills | Correct coverage score |
+| SCORE-004 | Preferred skills only | Preferred-skill contribution is calculated correctly |
+| SCORE-005 | Required skills coverage | 80% of skills component applied as specified |
+| SCORE-006 | Preferred skills coverage | 20% of skills component applied as specified |
+| SCORE-007 | Exact experience match | Correct experience sub-score |
+| SCORE-008 | Below minimum experience | Correct experience evaluation |
+| SCORE-009 | Above maximum experience | Correct experience evaluation |
+| SCORE-010 | Internship-only candidate | Internship handling follows job requirements |
+| SCORE-011 | Missing CGPA | Neutral handling as documented |
+| SCORE-012 | CGPA below requirement | Correct education evaluation |
+| SCORE-013 | Matching projects | Project score reflects relevant evidence |
+| SCORE-014 | Matching certifications | Certification score reflects relevant evidence |
+| SCORE-015 | Responsibility keywords | Responsibility fit is evaluated |
+| SCORE-016 | Change weights | Overall score recalculates |
+| SCORE-017 | Weight sum not 100 | Weights normalize correctly |
+| SCORE-018 | All weights zero | Prevent invalid configuration |
+| SCORE-019 | Decimal weights | Consistent rounding |
+| SCORE-020 | Repeated identical input | Identical deterministic result |
+| SCORE-021 | Score bounds | No score below 0 or above 100 |
+| SCORE-022 | Missing all candidate fields | No fabricated qualifications or invalid arithmetic |
+
+## 11.3 Skill Alias Normalization
+
+Test the following aliases against canonical skill names:
+
+| Input | Expected Canonical Skill |
+|---|---|
+| py | python |
+| python3 | python |
+| js | javascript |
+| reactjs | react |
+| react.js | react |
+| postgres | postgresql |
+| psql | postgresql |
+| k8s | kubernetes |
+| genai | generative ai |
+
+Additional test cases:
+
+- Uppercase versus lowercase.
+- Leading/trailing spaces.
+- Duplicate skill names.
+- Similar but unrelated skill names.
+- Partial word matches.
+
+The system must not award skill credit for unrelated substring matches.
+
+## 11.4 Match Tier Validation
+
+| Score | Expected Tier |
+|---|---|
+| 95 | Excellent Match |
+| 90 | Excellent Match |
+| 89 | Strong Match |
+| 80 | Strong Match |
+| 79 | Good Match |
+| 70 | Good Match |
+| 69 | Moderate Match |
+| 60 | Moderate Match |
+| 59 | Low Match |
+| 40 | Low Match |
+| 39 | Poor Match |
+| 0 | Poor Match |
+
+## 11.5 Matching Explainability
+
+| Test ID | Scenario | Expected Result |
+|---|---|---|
+| EXPL-001 | View match rationale | Rationale is visible |
+| EXPL-002 | View matched skills | Correct matched skills |
+| EXPL-003 | View missing skills | Correct missing skills |
+| EXPL-004 | View score breakdown | Six factors displayed |
+| EXPL-005 | View candidate strengths | Supported by actual profile data |
+| EXPL-006 | View concerns | Relevant gaps identified |
+| EXPL-007 | Generate interview questions | Questions relate to job requirements |
+| EXPL-008 | Gemini unavailable | Deterministic result remains usable |
+| EXPL-009 | Compare explanation to score | Explanation does not contradict deterministic score |
+
+---
+
+# 12. Candidate Ranking Testing
+
+| Test ID | Test Scenario | Expected Result |
+|---|---|---|
+| RANK-001 | Open ranking page | Candidates appear |
+| RANK-002 | Select a job | Correct job candidates are shown |
+| RANK-003 | Sort by score | Highest score appears first |
+| RANK-004 | Sort by name | Alphabetical ordering |
+| RANK-005 | Adjust skill weight | Ranking recalculates |
+| RANK-006 | Adjust experience weight | Ranking recalculates |
+| RANK-007 | Adjust education weight | Ranking recalculates |
+| RANK-008 | Adjust all weights | Final weights normalize |
+| RANK-009 | Equal score candidates | Stable tie handling |
+| RANK-010 | Candidate without skills | No crash |
+| RANK-011 | Export ranking | CSV downloads |
+| RANK-012 | Advance candidate stage | Correct candidate is updated |
+| RANK-013 | Switch job | Ranking reflects the selected job |
+| RANK-014 | Empty job applicants | Empty state appears |
+
+**Acceptance Criteria:** Ranking order must be consistent with the deterministic score and selected job.
+
+---
+
+# 13. Hiring Pipeline Testing
+
+**Target:** `TalentWorkflowViews.tsx`, ATS context.
+
+The expected stages are:
+
+Applied → Shortlisted → Interview → Offer → Rejected.
+
+| Test ID | Test Scenario | Expected Result |
+|---|---|---|
+| PIPE-001 | Open pipeline | All implemented columns render |
+| PIPE-002 | Applied candidate | Candidate appears in Applied |
+| PIPE-003 | Shortlist candidate | Candidate moves to Shortlisted |
+| PIPE-004 | Schedule interview | Interview details can be saved |
+| PIPE-005 | Move to Interview | Candidate appears in Interview |
+| PIPE-006 | Move to Offer | Candidate appears in Offer |
+| PIPE-007 | Reject candidate | Candidate appears in Rejected |
+| PIPE-008 | Drag candidate | Candidate moves to target stage |
+| PIPE-009 | Use quick stage action | Stage updates correctly |
+| PIPE-010 | Add recruiter note | Note persists according to storage rules |
+| PIPE-011 | Add rejection reason | Reason is retained |
+| PIPE-012 | Update interview date | Correct date appears |
+| PIPE-013 | Refresh page | Persisted stage is restored |
+| PIPE-014 | Clear session | Pipeline resets as designed |
+| PIPE-015 | Move candidate repeatedly | No duplicate pipeline cards |
+| PIPE-016 | Invalid stage transition | Invalid state is prevented where required |
+
+---
+
+# 14. Candidate Comparison Testing
+
+| Test ID | Test Scenario | Expected Result |
+|---|---|---|
+| COMP-001 | Select two candidates | Comparison appears |
+| COMP-002 | Select three candidates | All three appear |
+| COMP-003 | Select four candidates | All four appear |
+| COMP-004 | Attempt to select five | Application enforces maximum of four |
+| COMP-005 | Compare match scores | Correct scores |
+| COMP-006 | Compare skills | Correct skill differences |
+| COMP-007 | Compare education | Correct academic information |
+| COMP-008 | Compare experience | Correct experience information |
+| COMP-009 | Compare projects | Correct project information |
+| COMP-010 | Remove candidate | Comparison updates |
+| COMP-011 | Missing candidate data | Unknown data is clearly represented |
+| COMP-012 | Switch selected job | Job-specific scores update correctly |
+
+**Acceptance Criteria:** Comparison must display actual candidate data and must not invent values for missing information.
+
+---
+
+# 15. Skill Gap Analysis Testing
+
+| Test ID | Test Scenario | Expected Result |
+|---|---|---|
+| GAP-001 | Select candidate and job | Analysis starts |
+| GAP-002 | Required skills | Matched required skills displayed |
+| GAP-003 | Missing required skills | Correct missing skills displayed |
+| GAP-004 | Preferred skills | Optional skills identified |
+| GAP-005 | Transferable skills | Relevant transferable skills displayed |
+| GAP-006 | Recommendations | Actionable recommendations appear |
+| GAP-007 | No missing skills | Appropriate no-gap state |
+| GAP-008 | Missing candidate skills | No fabricated matches |
+| GAP-009 | Gemini disabled | Fallback or clear limitation |
+| GAP-010 | Change candidate | Results update |
+| GAP-011 | Change job | Results update |
+| GAP-012 | API failure | Error displayed without crashing |
+
+---
+
+# 16. Email Center Testing
+
+**Target:** `OperationsViews.tsx`
+
+The current project implements email drafting, clipboard copying and `mailto:` links. Do not assume that direct SMTP delivery exists.
+
+| Test ID | Test Scenario | Expected Result |
+|---|---|---|
+| MAIL-001 | Open Email Center | Email interface appears |
+| MAIL-002 | Select interview template | Correct template loads |
+| MAIL-003 | Select shortlist template | Correct template loads |
+| MAIL-004 | Select offer template | Correct template loads |
+| MAIL-005 | Select rejection template | Correct template loads |
+| MAIL-006 | Select candidate | Correct candidate details populate |
+| MAIL-007 | Populate candidate name | Name is substituted correctly |
+| MAIL-008 | Populate job title | Job title is substituted correctly |
+| MAIL-009 | Edit subject | Subject changes |
+| MAIL-010 | Edit email body | Body changes |
+| MAIL-011 | Copy email | Clipboard contains correct content |
+| MAIL-012 | Open mailto link | Default email client opens when supported |
+| MAIL-013 | Missing email address | Invalid recipient is handled |
+| MAIL-014 | Preview email | Preview matches final draft |
+| MAIL-015 | Multiple recipients | Each draft uses correct candidate details |
+| MAIL-016 | Send email claim | UI must not falsely claim SMTP delivery |
+
+If `.eml` export is claimed in documentation, separately test it. If no implementation exists, classify it as NOT IMPLEMENTED and correct the documentation.
+
+---
+
+# 17. Dashboard and Analytics Testing
+
+**Target:** `DashboardView.tsx`
+
+| Test ID | Test Scenario | Expected Result |
+|---|---|---|
+| DASH-001 | Open dashboard | Dashboard renders |
+| DASH-002 | Total candidates | Count matches dataset |
+| DASH-003 | Active jobs | Count matches job records |
+| DASH-004 | Applications received | Count matches application data |
+| DASH-005 | Shortlisted count | Count matches pipeline |
+| DASH-006 | Interviews count | Count matches pipeline |
+| DASH-007 | Offers count | Count matches pipeline |
+| DASH-008 | Rejected count | Count matches pipeline |
+| DASH-009 | Average match score | Correct average |
+| DASH-010 | Application trends | Chart renders |
+| DASH-011 | Hiring funnel | Funnel reflects application data |
+| DASH-012 | Stage distribution | Chart values are correct |
+| DASH-013 | Top skills | Correct skill distribution |
+| DASH-014 | Top matching candidates | Candidates sorted correctly |
+| DASH-015 | Recent activity | Activity records display correctly |
+| DASH-016 | Import demo dataset | Demo data loads |
+| DASH-017 | Reset demo dataset | Demo data resets |
+| DASH-018 | Empty dataset | Zero-state dashboard works |
+| DASH-019 | Large dataset | Charts remain responsive |
+
+**Important validation:** Dashboard metrics must be calculated from the same underlying records used by the candidate and pipeline views.
+
+---
+
+# 18. Reports and Export Testing
+
+| Test ID | Test Scenario | Expected Result |
+|---|---|---|
+| REP-001 | Open reports page | Reports render |
+| REP-002 | Hiring funnel chart | Correct data |
+| REP-003 | Candidate source chart | Correct data |
+| REP-004 | Skill distribution | Correct data |
+| REP-005 | Export candidate CSV | Valid CSV file |
+| REP-006 | Export job CSV | Valid job data |
+| REP-007 | Export JSON summary | Valid JSON |
+| REP-008 | Export empty dataset | Valid empty report or clear message |
+| REP-009 | Special characters | CSV values remain valid |
+| REP-010 | Large export | All expected rows included |
+| REP-011 | Reopen JSON | Valid JSON parses successfully |
+| REP-012 | Verify export completeness | No selected fields silently omitted |
+
+---
+
+# 19. Settings and Application State Testing
+
+**Target:** `AtsContext.tsx`, settings views.
+
+| Test ID | Test Scenario | Expected Result |
+|---|---|---|
+| SET-001 | Open settings | Settings render |
+| SET-002 | Change matching weights | New weights are applied |
+| SET-003 | Set invalid weight values | Invalid values are rejected or corrected |
+| SET-004 | Change upload size limit | New limit is applied |
+| SET-005 | Import demo dataset | Demo candidates and jobs appear |
+| SET-006 | Reset demo data | Initial demo dataset restored |
+| SET-007 | Export session JSON | JSON backup downloads |
+| SET-008 | Clear session | Application data is cleared |
+| SET-009 | Cancel clear session | Data remains |
+| SET-010 | Confirm clear session | Session is cleared |
+| SET-011 | Refresh after settings update | Settings restore as designed |
+| SET-012 | Invalid stored JSON | Application recovers safely |
+| SET-013 | localStorage unavailable | Application reports or handles persistence failure |
+| SET-014 | localStorage quota exceeded | Application avoids an unhandled crash |
+| SET-015 | Restore backup | Only test if import/restore is implemented |
+
+---
+
+# 20. Data Persistence and Privacy Testing
+
+HireSwift AI does not use a database or authentication system.
+
+The current application uses in-memory state and browser localStorage. Test this behavior explicitly.
+
+| Test ID | Test Scenario | Expected Result |
+|---|---|---|
+| DATA-001 | Add candidate | Candidate appears in current session |
+| DATA-002 | Refresh browser | Supported saved state is restored |
+| DATA-003 | Restart development server | Browser-persisted data behaves as documented |
+| DATA-004 | Clear browser storage | Application recovers to initial state |
+| DATA-005 | Clear application session | Stored application data is removed |
+| DATA-006 | Export session backup | JSON is valid |
+| DATA-007 | Import demo dataset | Correct demo records appear |
+| DATA-008 | Upload resume | Original binary preview is handled according to documented lifecycle |
+| DATA-009 | Inspect localStorage | Sensitive resume content is not persisted unexpectedly |
+| DATA-010 | Inspect browser console | No sensitive API key or resume content is logged unnecessarily |
+| DATA-011 | Inspect frontend build | Gemini API key is not embedded in client bundle |
+| DATA-012 | Inspect API request | Only required document information is transmitted |
+| DATA-013 | Reload after candidate update | Candidate state is restored according to persistence design |
+| DATA-014 | Clear all data | Dashboard and pipeline update consistently |
+
+**Privacy acceptance criteria:**
+
+- No database is introduced.
+- No login or registration requirement is introduced.
+- Gemini API keys remain on the backend.
+- The user is informed about browser-based data persistence.
+- Clearing the session actually removes the intended data.
+- Resume information is not retained unexpectedly.
+
+---
+
+# 21. Backend API Testing
+
+**Target:** `server.ts`, `lib/atsApi.ts`, `netlify/functions/api.ts`
+
+## 21.1 API Endpoint Inventory
+
+| HTTP Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/api/health` | Health and Gemini configuration |
+| POST | `/api/resumes/parse` | Resume extraction |
+| POST | `/api/jobs/analyze` | Job description analysis |
+| POST | `/api/matching/analyze` | Candidate match explanation |
+| POST | `/api/matching/skill-gap` | Skill gap analysis |
+
+## 21.2 Health Endpoint
+
+**GET /api/health**
+
+Expected successful response:
+
+```json
+{
+  "ok": true,
+  "aiConfigured": true
+}
+```
+
+Tests:
+
+| Test ID | Scenario | Expected Result |
+|---|---|---|
+| API-001 | Health request | HTTP 200 |
+| API-002 | Gemini configured | `aiConfigured` is true |
+| API-003 | Gemini not configured | `aiConfigured` is false |
+| API-004 | Server unavailable | Connection error is handled |
+| API-005 | Invalid route | HTTP 404 |
+
+## 21.3 Resume Parsing Endpoint
+
+**POST /api/resumes/parse**
+
+Test payload:
+
+```json
+{
+  "fileName": "sample_resume.pdf",
+  "mimeType": "application/pdf",
+  "extractedText": "Rahul Sharma. Python Developer. Skills: Python, React, SQL. B.E. Computer Science."
+}
+```
+
+Tests:
+
+| Test ID | Scenario | Expected Result |
+|---|---|---|
+| API-006 | Valid resume text | HTTP 200 |
+| API-007 | Valid base64 PDF | Processing follows supported OCR path |
+| API-008 | Empty payload | Validation response |
+| API-009 | Missing filename | Validation behavior matches implementation |
+| API-010 | Unsupported MIME type | Clear error |
+| API-011 | Invalid base64 | Clear error |
+| API-012 | Extremely long input | Safe limit or graceful response |
+| API-013 | Gemini unavailable | Deterministic fallback |
+| API-014 | Invalid AI response | Safe failure or fallback |
+
+## 21.4 Job Analysis Endpoint
+
+**POST /api/jobs/analyze**
+
+Test payload:
+
+```json
+{
+  "description": "We are looking for a Python Developer with 0-2 years of experience. Required skills: Python, Flask, SQL. Preferred skills: Docker, AWS. Bachelor's degree in Computer Science preferred."
+}
+```
+
+Tests:
+
+| Test ID | Scenario | Expected Result |
+|---|---|---|
+| API-015 | Valid job description | HTTP 200 |
+| API-016 | Empty description | Validation error |
+| API-017 | Missing description | Validation error |
+| API-018 | Long job description | Safe processing |
+| API-019 | Gemini disabled | Fallback analysis |
+| API-020 | Invalid AI output | Error/fallback handling |
+
+## 21.5 Candidate Matching Endpoint
+
+**POST /api/matching/analyze**
+
+Tests:
+
+| Test ID | Scenario | Expected Result |
+|---|---|---|
+| API-021 | Valid candidate and job | Analysis returned |
+| API-022 | Missing candidate | Validation error |
+| API-023 | Missing job | Validation error |
+| API-024 | Empty candidate profile | Safe handling |
+| API-025 | Gemini unavailable | Deterministic explanation/fallback as implemented |
+| API-026 | Invalid input types | Validation error |
+| API-027 | Malformed AI response | Safe handling |
+
+## 21.6 Skill Gap Endpoint
+
+**POST /api/matching/skill-gap**
+
+Tests:
+
+| Test ID | Scenario | Expected Result |
+|---|---|---|
+| API-028 | Valid candidate and job | Skill gap analysis returned |
+| API-029 | Missing candidate skills | No fabricated matches |
+| API-030 | Missing job requirements | Safe handling |
+| API-031 | Empty request | Validation error |
+| API-032 | Gemini unavailable | Fallback or clear limitation |
+| API-033 | Invalid AI response | Safe handling |
+
+## 21.7 API Security and Reliability
+
+- Check whether the API key is exposed to the frontend.
+- Verify request-size handling.
+- Verify appropriate HTTP status codes.
+- Verify malformed JSON handling.
+- Verify error messages do not expose secrets.
+- Verify the API handles repeated requests.
+- Verify the server remains available after an individual request fails.
+- Verify CORS and preflight behavior for the Netlify function.
+- Verify unsupported HTTP methods return an appropriate status.
+- Verify unknown endpoints return 404.
+- Verify request payload validation is consistent between Express and Netlify.
+
+---
+
+# 22. Netlify Deployment Testing
+
+**Target:** `netlify.toml`, `netlify/functions/api.ts`
+
+| Test ID | Scenario | Expected Result |
+|---|---|---|
+| NET-001 | Netlify build | Build completes |
+| NET-002 | Homepage | Application loads |
+| NET-003 | Health function | `/api/health` works |
+| NET-004 | Resume parsing | `/api/resumes/parse` works |
+| NET-005 | Job analysis | `/api/jobs/analyze` works |
+| NET-006 | Matching analysis | `/api/matching/analyze` works |
+| NET-007 | Skill gap | `/api/matching/skill-gap` works |
+| NET-008 | Unknown endpoint | 404 response |
+| NET-009 | Missing Gemini key | Fallback behavior |
+| NET-010 | Valid Gemini key | AI request works |
+| NET-011 | Large PDF request | Request limits are handled |
+| NET-012 | Refresh nested frontend route | Correct frontend page loads |
+| NET-013 | Browser console | No critical deployment errors |
+
+**Important:** Netlify function behavior must be tested separately from local Express behavior. Passing local API tests does not automatically establish serverless deployment compatibility.
+
+---
+
+# 23. Performance Testing
+
+Test the following workloads.
+
+| Test ID | Workload | Expected Result |
+|---|---|---|
+| PERF-001 | Open landing page | Loads without critical delay |
+| PERF-002 | Open dashboard | Charts and metrics render |
+| PERF-003 | Load 30 demo candidates | Directory remains responsive |
+| PERF-004 | Load 100 candidates | Search and filtering remain usable |
+| PERF-005 | Load 500 candidate records | No crash or severe UI blocking |
+| PERF-006 | Upload 5 resumes | Queue processes correctly |
+| PERF-007 | Upload 10 resumes | Queue remains stable |
+| PERF-008 | Recalculate ranking | Correct results without UI freeze |
+| PERF-009 | Compare 4 candidates | Comparison renders |
+| PERF-010 | Export large candidate list | File downloads correctly |
+| PERF-011 | Repeated page switching | No obvious memory or rendering problems |
+| PERF-012 | Repeated upload/remove | No uncontrolled resource accumulation |
+
+Record actual performance measurements instead of inventing benchmark results.
+
+Measure:
+
+- Initial page load time.
+- API response time.
+- Resume extraction time.
+- Gemini response time.
+- Candidate scoring time.
+- Candidate directory rendering time.
+- Export generation time.
+- Browser memory behavior.
+
+---
+
+# 24. Responsive and Cross-Browser Testing
+
+## 24.1 Viewport Sizes
+
+| Test ID | Viewport | Expected Result |
+|---|---|---|
+| UI-001 | Desktop 1920 × 1080 | Layout renders correctly |
+| UI-002 | Desktop 1440 × 900 | Layout renders correctly |
+| UI-003 | Laptop 1366 × 768 | No critical clipping |
+| UI-004 | Tablet 768 × 1024 | Responsive navigation |
+| UI-005 | Mobile 430 × 932 | Usable mobile layout |
+| UI-006 | Mobile 375 × 812 | No horizontal overflow |
+| UI-007 | Mobile 320 × 700 | Critical controls remain accessible |
+
+## 24.2 Browsers
+
+- Google Chrome.
+- Microsoft Edge.
+- Firefox, if included in the supported browser scope.
+
+Verify:
+
+- Navigation.
+- Upload controls.
+- File previews.
+- Charts.
+- Modals.
+- Drag and drop.
+- Clipboard.
+- Downloads.
+- Theme controls.
+- Form inputs.
+
+---
+
+# 25. Accessibility Testing
+
+| Test ID | Scenario | Expected Result |
+|---|---|---|
+| ACC-001 | Keyboard navigation | Interactive controls reachable |
+| ACC-002 | Tab navigation | Logical focus order |
+| ACC-003 | Visible focus | Focus indicators visible |
+| ACC-004 | Modal keyboard handling | Focus behavior is usable |
+| ACC-005 | Form labels | Inputs have meaningful labels |
+| ACC-006 | Button labels | Buttons have meaningful accessible names |
+| ACC-007 | Color contrast | Text remains readable |
+| ACC-008 | Status indicators | Status is not communicated by color alone |
+| ACC-009 | Error messages | Errors are understandable |
+| ACC-010 | Screen reader basics | Major landmarks and controls are identifiable |
+
+---
+
+# 26. Error Handling and Negative Testing
+
+| Test ID | Failure Scenario | Expected Result |
+|---|---|---|
+| ERR-001 | Backend offline | Clear connection error |
+| ERR-002 | Gemini API unavailable | Fallback or clear error |
+| ERR-003 | Invalid API key | No application crash |
+| ERR-004 | Empty candidate profile | Safe UI state |
+| ERR-005 | Empty job description | Validation message |
+| ERR-006 | Invalid upload | File rejected |
+| ERR-007 | Unsupported file format | Clear message |
+| ERR-008 | Corrupted localStorage | Safe recovery |
+| ERR-009 | Export failure | User receives an error |
+| ERR-010 | Clipboard unavailable | Alternative action or clear error |
+| ERR-011 | Browser refresh during operation | No inconsistent saved record |
+| ERR-012 | Double-click action | No unintended duplicate action |
+| ERR-013 | Slow API response | Loading state remains visible |
+| ERR-014 | API returns 500 | Application does not crash |
+| ERR-015 | API returns malformed JSON | Safe error handling |
+| ERR-016 | Large file exceeds request limit | Clear size-related error |
+| ERR-017 | User removes file during queue | Queue remains consistent |
+| ERR-018 | Invalid numeric input | Validation prevents invalid scoring |
+
+---
+
+# 27. End-to-End Business Workflow Testing
+
+These are the most important full-system scenarios. They validate that separate modules work together rather than only working individually.
+
+## E2E-001: Complete Recruitment Workflow
+
+**Objective:** Verify a complete recruitment cycle.
+
+Steps:
+
+1. Launch HireSwift AI.
+2. Open the workspace.
+3. Open Job Management.
+4. Create a Python Developer job.
+5. Enter required skills: Python, Flask and SQL.
+6. Enter preferred skills: Docker and AWS.
+7. Set experience requirements.
+8. Save the job.
+9. Open Resume Upload.
+10. Upload a valid PDF resume.
+11. Upload a valid DOCX resume.
+12. Verify document extraction.
+13. Review parsed candidate profiles.
+14. Correct any extraction errors.
+15. Save both candidates.
+16. Open Candidates.
+17. Verify both records.
+18. Open AI Matching.
+19. Select the Python Developer job.
+20. Generate candidate matching results.
+21. Review deterministic score breakdowns.
+22. Open Candidate Ranking.
+23. Verify ranking order.
+24. Open a candidate profile.
+25. Review AI Decision Rationale.
+26. Open Skill Gap Analysis.
+27. Verify missing skills.
+28. Open Candidate Comparison.
+29. Compare the two candidates.
+30. Move the strongest candidate to Shortlisted.
+31. Open Hiring Pipeline.
+32. Move the candidate to Interview.
+33. Add interview details.
+34. Prepare an interview invitation email.
+35. Open Reports.
+36. Export a recruitment summary.
+37. Verify dashboard metrics.
+38. Refresh the browser.
+39. Verify persistence behavior.
+
+**Expected Result:**
+
+The full recruitment workflow completes without application crashes, lost candidate information, incorrect job associations, inconsistent scores, or incorrect pipeline counts.
+
+## E2E-002: Bulk Resume Processing
+
+1. Open Resume Upload.
+2. Select 10 supported resumes.
+3. Upload multiple PDF and DOCX files.
+4. Verify each file enters the queue.
+5. Verify progress indicators.
+6. Verify extraction results.
+7. Review every parsed candidate.
+8. Save valid candidates.
+9. Verify candidate count.
+10. Open the candidate directory.
+11. Verify all saved profiles.
+
+**Expected Result:** All valid files are processed individually and correctly associated with their respective candidate records. Failed files are reported separately.
+
+## E2E-003: Duplicate Resolution
+
+1. Upload a candidate resume.
+2. Save the candidate.
+3. Upload the exact same resume again.
+4. Verify exact duplicate detection.
+5. Upload a modified version with the same email.
+6. Verify potential duplicate detection.
+7. Inspect the duplicate information.
+8. Merge only after review.
+9. Verify that the original candidate record is updated appropriately.
+10. Verify no unwanted duplicate pipeline entry exists.
+
+## E2E-004: AI and Fallback Comparison
+
+1. Start the application with a valid Gemini API key.
+2. Parse the same test resume.
+3. Save the extraction result.
+4. Analyze the same job description.
+5. Generate a matching explanation.
+6. Record the AI source and response.
+7. Restart without a Gemini API key.
+8. Parse the same resume again.
+9. Analyze the same job description.
+10. Generate matching information.
+11. Compare both outputs against the source documents.
+
+**Expected Result:**
+
+Both modes should handle supported operations safely. The output source must be distinguishable. Gemini and heuristic extraction must be evaluated separately for factual accuracy.
+
+## E2E-005: Candidate Filtering and Ranking
+
+1. Load the demo dataset.
+2. Open Candidates.
+3. Filter by CGPA.
+4. Filter by graduation year.
+5. Filter by skills.
+6. Filter by experience.
+7. Apply combined filters.
+8. Reset filters.
+9. Open Candidate Ranking.
+10. Select a job.
+11. Change scoring weights.
+12. Verify score recalculation.
+13. Export the ranking.
+14. Verify exported rows.
+
+## E2E-006: Hiring Pipeline and Analytics
+
+1. Load demo data.
+2. Select a candidate.
+3. Move to Shortlisted.
+4. Move to Interview.
+5. Add interview information.
+6. Move to Offer.
+7. Verify the candidate's stage.
+8. Open Dashboard.
+9. Verify stage counts.
+10. Open Reports.
+11. Verify funnel and distribution charts.
+12. Export JSON summary.
+
+## E2E-007: Session Persistence and Reset
+
+1. Add a candidate.
+2. Create a job.
+3. Update candidate stage.
+4. Change scoring settings.
+5. Refresh the browser.
+6. Verify restored state.
+7. Export the session JSON.
+8. Clear application session.
+9. Verify candidate and job records are removed.
+10. Verify dashboard counts reset.
+11. Verify the application remains usable.
+
+## E2E-008: Recovery From Failures
+
+1. Start the application.
+2. Temporarily disable the backend.
+3. Attempt resume parsing.
+4. Verify error feedback.
+5. Restore the backend.
+6. Test an invalid Gemini key.
+7. Verify fallback behavior.
+8. Upload an invalid PDF.
+9. Verify that the application remains operational.
+10. Continue using unrelated modules.
+
+**Expected Result:** An individual operation failure must not corrupt unrelated application state or make the entire application unusable.
+
+---
+
+# 28. Test Data and Validation Dataset
+
+Prepare a controlled dataset to validate the system.
+
+## 28.1 Resume Dataset
+
+Include at least:
+
+- 5 fresh graduate resumes.
+- 5 experienced candidate resumes.
+- 5 internship-focused resumes.
+- 5 resumes with academic details.
+- 5 resumes with missing academic information.
+- 5 resumes with project-heavy profiles.
+- 5 resumes with certification-heavy profiles.
+- 5 resumes with scanned PDF content.
+- 5 DOCX resumes.
+- 5 resumes containing duplicate or near-duplicate information.
+
+Use fictional candidate information for synthetic test records.
+
+The recruiter's own resume can be used as a separate manually authorized test input, but do not include personal data in shared test reports without consent.
+
+## 28.2 Job Description Dataset
+
+Create at least six test jobs:
+
+1. Python Developer.
+2. Full Stack Developer.
+3. AI/ML Engineer.
+4. Data Analyst.
+5. Frontend Developer.
+6. Junior Java Developer.
+
+Each JD should contain:
+
+- Job title.
+- Required skills.
+- Preferred skills.
+- Experience requirement.
+- Education requirement.
+- Responsibilities.
+- Minimum CGPA if applicable.
+
+## 28.3 Controlled Scoring Fixtures
+
+Create known candidate/job combinations:
+
+| Fixture | Candidate Profile | Expected Behavior |
+|---|---|---|
+| FIX-001 | All required and preferred skills match | High skill score |
+| FIX-002 | Required skills partially match | Partial skill score |
+| FIX-003 | No required skills match | Low skill score |
+| FIX-004 | Missing CGPA | Neutral documented handling |
+| FIX-005 | No experience information | Unknown-data handling |
+| FIX-006 | Internship-only candidate | Internship rules applied |
+| FIX-007 | Project-heavy fresher | Project evidence considered |
+| FIX-008 | High experience, low skills | Weighted score reflects both |
+| FIX-009 | Alias skills such as py and reactjs | Canonicalized matching |
+| FIX-010 | All candidate data missing | Safe result without fabricated data |
+
+For deterministic scoring fixtures, calculate the expected score independently using the exact implementation formula. Do not invent a target score merely because a candidate is described as a strong or weak match.
+
+---
+
+# 29. Test Execution and Evidence Collection
+
+Every test must have a recorded result.
+
+Use the following report format:
+
+| Field | Description |
+|---|---|
+| Test ID | Unique identifier |
+| Module | Feature being tested |
+| Test Scenario | What is being tested |
+| Preconditions | Required setup |
+| Test Data | Input used |
+| Execution Steps | Actions performed |
+| Expected Result | Correct behavior |
+| Actual Result | Observed behavior |
+| Status | PASS / FAIL / BLOCKED / PARTIAL / NOT IMPLEMENTED |
+| Severity | Critical / High / Medium / Low |
+| Evidence | Screenshot, logs, API response |
+| Defect ID | Reference to issue |
+| Notes | Additional observations |
+
+## 29.1 Defect Severity
+
+**Critical**
+- Application cannot start.
+- Data corruption.
+- API key exposed.
+- Core recruitment workflow unusable.
+- Candidate records incorrectly assigned or merged.
+
+**High**
+- Resume extraction systematically incorrect.
+- Matching calculation incorrect.
+- Candidate ranking incorrect.
+- Pipeline changes do not persist as designed.
+- Major API endpoints fail.
+
+**Medium**
+- A secondary module does not work correctly.
+- Filtering produces incorrect results.
+- Export fields are missing.
+- Responsive layout has significant usability problems.
+
+**Low**
+- Minor visual defects.
+- Spacing inconsistencies.
+- Noncritical icon or label problems.
+
+---
+
+# 30. Automated Testing Requirements
+
+The current ZIP does not provide a dedicated automated test script or complete automated test suite. Add testing infrastructure before claiming automated coverage.
+
+Recommended testing tools:
+
+| Tool | Purpose |
+|---|---|
+| Vitest | Unit testing |
+| React Testing Library | React component testing |
+| Supertest | Express API testing |
+| Playwright | Browser end-to-end testing |
+| TypeScript compiler | Type checking |
+| ESLint | Static code quality checks |
+
+## 30.1 Required Unit Tests
+
+Test:
+
+- `normalizeSkillName()`.
+- Matching score calculations.
+- Weight normalization.
+- Match tier classification.
+- Duplicate matching.
+- Candidate filtering.
+- Candidate ranking.
+- CSV/JSON exports.
+- File validation.
+- Data transformations.
+
+## 30.2 Required API Tests
+
+Test all five existing API routes:
+
+- GET `/api/health`
+- POST `/api/resumes/parse`
+- POST `/api/jobs/analyze`
+- POST `/api/matching/analyze`
+- POST `/api/matching/skill-gap`
+
+Include:
+
+- Valid requests.
+- Missing fields.
+- Invalid data types.
+- Malformed payloads.
+- API failures.
+- Gemini-disabled mode.
+- Gemini-enabled mode where credentials are available.
+
+## 30.3 Required Browser Tests
+
+Use Playwright to automate:
+
+- Landing page navigation.
+- Resume upload.
+- Candidate review.
+- Job creation.
+- Matching workflow.
+- Candidate filtering.
+- Ranking.
+- Pipeline movement.
+- Comparison.
+- Reports.
+- Settings.
+- Browser refresh and persistence.
+
+**Do not treat a TypeScript compilation success as proof that the application passes functional or end-to-end tests.**
+
+---
+
+# 31. Acceptance Criteria
+
+The project can be considered ready for submission only when the following conditions are met.
+
+## 31.1 Application Stability
+
+- Development server starts successfully.
+- Production build completes.
+- Production server starts using the documented command.
+- No critical uncaught browser errors.
+- Backend endpoints respond as expected.
+
+## 31.2 Functional Completeness
+
+- All implemented workspace modules work.
+- All primary navigation actions work.
+- Resume uploads are validated.
+- Candidate records are created and updated correctly.
+- Job management works.
+- Candidate matching is reproducible.
+- Ranking is consistent with calculated scores.
+- Pipeline transitions work.
+- Reports and exports are valid.
+
+## 31.3 AI Correctness
+
+- Gemini requests work with a valid key.
+- Missing-key fallback works.
+- AI output follows the expected structured schema.
+- Missing information is not invented.
+- Candidate explanations are grounded in actual data.
+- AI failures do not crash the application.
+
+## 31.4 Data Integrity
+
+- Duplicate detection works.
+- Candidate-to-job associations remain correct.
+- Candidate edits persist as designed.
+- Pipeline and dashboard values remain consistent.
+- Clear-session behavior works.
+- No unexpected permanent database is introduced.
+
+## 31.5 Quality Targets
+
+These are proposed QA targets, not previously verified results:
+
+| Metric | Target |
+|---|---:|
+| Critical test pass rate | 100% |
+| High-priority test pass rate | 100% |
+| Overall executed test pass rate | At least 95% |
+| Deterministic score fixture correctness | 100% |
+| Valid API endpoint tests | 100% |
+| Resume extraction accuracy on clearly readable test fields | At least 90% |
+| Critical runtime errors | 0 |
+| Unhandled application crashes | 0 |
+| API key exposure in frontend | 0 |
+| Invalid candidate data fabrication | 0 |
+
+Do not include BLOCKED or NOT IMPLEMENTED tests in the denominator for executed-test pass rate. Report them separately.
+
+---
+
+# 32. Final QA Report Format
+
+After executing all tests, generate a final report in this structure.
+
+## Project Testing Summary
+
+| Metric | Result |
+|---|---|
+| Total test cases defined | Actual count |
+| Total executed | Actual count |
+| Passed | Actual count |
+| Failed | Actual count |
+| Blocked | Actual count |
+| Partial | Actual count |
+| Not implemented | Actual count |
+| Pass percentage | Actual calculation |
+| Critical defects | Actual count |
+| High defects | Actual count |
+| Medium defects | Actual count |
+| Low defects | Actual count |
+
+## Module-wise Test Summary
+
+| Module | Total | Passed | Failed | Blocked | Status |
+|---|---:|---:|---:|---:|---|
+| Landing Page | | | | | |
+| Navigation | | | | | |
+| Resume Upload | | | | | |
+| Resume Extraction | | | | | |
+| Duplicate Detection | | | | | |
+| Candidate Management | | | | | |
+| Candidate Profiles | | | | | |
+| Job Management | | | | | |
+| Gemini Integration | | | | | |
+| Deterministic Fallback | | | | | |
+| AI Matching | | | | | |
+| Candidate Ranking | | | | | |
+| Hiring Pipeline | | | | | |
+| Candidate Comparison | | | | | |
+| Skill Gap Analysis | | | | | |
+| Email Center | | | | | |
+| Dashboard | | | | | |
+| Reports and Exports | | | | | |
+| Settings and Persistence | | | | | |
+| Backend APIs | | | | | |
+| Netlify Deployment | | | | | |
+| Responsive UI | | | | | |
+| Performance | | | | | |
+| Security and Privacy | | | | | |
+
+## Final Project Verdict
+
+Select exactly one:
+
+**1. PASS – READY FOR SUBMISSION**
+
+All critical and high-priority tests pass. No release-blocking defects remain.
+
+**2. PASS WITH MINOR ISSUES – CONDITIONALLY READY**
+
+All critical workflows pass, but only low-severity or accepted medium-severity issues remain.
+
+**3. NEEDS IMPROVEMENT – NOT READY**
+
+One or more important features, API integrations, or workflows fail.
+
+**4. FAIL – MAJOR REWORK REQUIRED**
+
+The application cannot run reliably, or core recruitment functionality is broken.
+
+**5. INCONCLUSIVE – TESTING INCOMPLETE**
+
+Essential tests remain blocked or have not been executed.
+
+Include a clear explanation and supporting evidence for the selected verdict.
+
+---
+
+# 33. Final Instructions to the Testing Agent
+
+Perform the testing in a structured, evidence-based manner.
+
+1. Inspect the complete existing source code before modifying anything.
+2. Understand the current implementation and its intended workflows.
+3. Do not replace the application with a new implementation.
+4. Do not change the UI design unnecessarily.
+5. Do not introduce a database or authentication system.
+6. Preserve the existing React, TypeScript, Vite, Express and Gemini architecture.
+7. Install the required dependencies.
+8. Run the application.
+9. Run the TypeScript check and production build.
+10. Execute all applicable manual and automated test cases.
+11. Test Gemini-enabled and fallback modes independently.
+12. Test both local Express and Netlify function paths where applicable.
+13. Record screenshots, API responses, logs and execution results.
+14. Identify the exact file and function responsible for every defect.
+15. Fix defects only after documenting their original behavior.
+16. Rerun affected tests after every fix.
+17. Run regression tests after corrections.
+18. Update README and technical documentation when they do not match the actual implementation.
+19. Never fabricate test results, performance numbers, accuracy figures or test coverage.
+20. Generate the final QA report with actual execution results.
+
+**Final objective: Establish with verifiable evidence whether the existing HireSwift AI project works correctly from end to end, identify every significant issue, correct the implementation where required, and determine whether the project is ready for hackathon submission.**

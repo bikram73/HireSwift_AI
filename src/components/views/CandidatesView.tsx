@@ -8,8 +8,6 @@ interface CandidatesViewProps {
   onSelectCandidate: (candidate: CandidateProfile) => void;
 }
 
-const PAGE_SIZE = 10;
-
 export const CandidatesView: React.FC<CandidatesViewProps> = ({
   onNavigate,
   onSelectCandidate,
@@ -66,11 +64,13 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
   const [maxScoreFilter, setMaxScoreFilter] = useState<string>('');
 
   // Sorting & Pagination & Selection
-  const [sortBy, setSortBy] = useState<'score' | 'experience' | 'cgpa' | 'gradYear' | 'recent'>('score');
+  const [sortBy, setSortBy] = useState<'score' | 'experience' | 'cgpa' | 'gradYear' | 'recent' | 'name'>('score');
   const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [drawerVisible, setDrawerVisible] = useState(true);
   const [duplicateReviewCand, setDuplicateReviewCand] = useState<CandidateProfile | null>(null);
+  const [confirmDeleteCandId, setConfirmDeleteCandId] = useState<string | null>(null);
 
   useEffect(() => {
     if (stageFilterPreset) {
@@ -280,6 +280,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
         return (b.cand.educationDetail.cgpa ?? -1) - (a.cand.educationDetail.cgpa ?? -1);
       if (sortBy === 'gradYear')
         return (b.cand.educationDetail.graduationYear ?? 0) - (a.cand.educationDetail.graduationYear ?? 0);
+      if (sortBy === 'name') return a.cand.name.localeCompare(b.cand.name);
       return b.cand.appliedAt.localeCompare(a.cand.appliedAt);
     });
 
@@ -314,11 +315,11 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
     sortBy,
   ]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredCandidates.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(filteredCandidates.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const paginatedRows = filteredCandidates.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
   );
 
   const toggleSelect = (id: string) => {
@@ -541,6 +542,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                 className="h-10 px-3 rounded-xl bg-surface-container-highest text-on-surface text-xs outline-none border border-[#263449]"
               >
                 <option value="score">Sort: Match Score</option>
+                <option value="name">Sort: Name (A–Z)</option>
                 <option value="experience">Sort: Experience</option>
                 <option value="cgpa">Sort: CGPA</option>
                 <option value="gradYear">Sort: Graduation Year</option>
@@ -808,14 +810,36 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                                   visibility
                                 </span>
                               </button>
-                              <button
-                                type="button"
-                                onClick={() => deleteCandidate(cand.id)}
-                                title="Delete Candidate"
-                                className="p-1.5 rounded-lg text-outline hover:text-rose-400 hover:bg-surface-container-high cursor-pointer"
-                              >
-                                <span className="material-symbols-outlined text-[16px]">delete</span>
-                              </button>
+                              {confirmDeleteCandId === cand.id ? (
+                                <span className="inline-flex items-center gap-1 ml-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      deleteCandidate(cand.id);
+                                      setConfirmDeleteCandId(null);
+                                    }}
+                                    className="px-2 py-0.5 rounded bg-rose-600 text-white text-[10px] font-semibold cursor-pointer"
+                                  >
+                                    Confirm
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setConfirmDeleteCandId(null)}
+                                    className="px-2 py-0.5 rounded bg-surface-container-high text-on-surface text-[10px] cursor-pointer"
+                                  >
+                                    Cancel
+                                  </button>
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setConfirmDeleteCandId(cand.id)}
+                                  title="Delete Candidate"
+                                  className="p-1.5 rounded-lg text-outline hover:text-rose-400 hover:bg-surface-container-high cursor-pointer"
+                                >
+                                  <span className="material-symbols-outlined text-[16px]">delete</span>
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -829,11 +853,26 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
             {/* Pagination Footer */}
             {filteredCandidates.length > 0 && (
               <div className="px-4 py-3 border-t border-[#263449] bg-surface-container-low/40 flex items-center justify-between flex-wrap gap-3 text-xs text-on-surface-variant">
-                <span>
-                  Showing {(currentPage - 1) * PAGE_SIZE + 1}–
-                  {Math.min(currentPage * PAGE_SIZE, filteredCandidates.length)} of{' '}
-                  {filteredCandidates.length} candidates
-                </span>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span>
+                    Showing {(currentPage - 1) * pageSize + 1}–
+                    {Math.min(currentPage * pageSize, filteredCandidates.length)} of{' '}
+                    {filteredCandidates.length} candidates
+                  </span>
+                  <select
+                    aria-label="Rows per page"
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(parseInt(e.target.value, 10));
+                      setPage(1);
+                    }}
+                    className="h-7 px-2 rounded-lg bg-surface-container-high border border-[#263449] text-xs text-on-surface outline-none cursor-pointer"
+                  >
+                    <option value={10}>10 / page</option>
+                    <option value={20}>20 / page</option>
+                    <option value={50}>50 / page</option>
+                  </select>
+                </div>
                 <div className="flex items-center gap-1.5">
                   <button
                     type="button"
@@ -957,13 +996,23 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                 />
                 <input
                   type="number"
+                  placeholder="Max 12th %"
+                  value={maxTwelfth}
+                  onChange={(e) => {
+                    setMaxTwelfth(e.target.value);
+                    setPage(1);
+                  }}
+                  className="h-8 px-2.5 rounded-lg bg-surface-container-highest text-on-surface outline-none"
+                />
+                <input
+                  type="number"
                   placeholder="Grad Year (2025)"
                   value={gradYearFilter}
                   onChange={(e) => {
                     setGradYearFilter(e.target.value);
                     setPage(1);
                   }}
-                  className="h-8 px-2.5 rounded-lg bg-surface-container-highest text-on-surface outline-none"
+                  className="col-span-2 h-8 px-2.5 rounded-lg bg-surface-container-highest text-on-surface outline-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-2">

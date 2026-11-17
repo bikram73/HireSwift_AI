@@ -85,7 +85,11 @@ export async function validateAndExtractResume(
 
   if (isDocx) {
     try {
-      const result = await mammoth.extractRawText({ arrayBuffer: buffer });
+      const mammothInput =
+        typeof Buffer !== 'undefined'
+          ? { arrayBuffer: buffer, buffer: Buffer.from(buffer) }
+          : { arrayBuffer: buffer };
+      const result = await mammoth.extractRawText(mammothInput as { arrayBuffer: ArrayBuffer });
       const text = (result.value || '').trim();
       if (!text) {
         throw new DocumentValidationError(

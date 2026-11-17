@@ -1,8 +1,16 @@
 import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
 
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-4-hydrogen';
-const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'openai/gpt-4o-mini';
-const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+function getGeminiModel(): string {
+  return process.env.GEMINI_MODEL || 'gemini-4-hydrogen';
+}
+
+function getOpenRouterModel(): string {
+  return process.env.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free';
+}
+
+function getGroqModel(): string {
+  return process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
+}
 
 export type AiSource =
   | 'gemini-ai'
@@ -173,7 +181,7 @@ async function callOpenRouterJson<T extends Record<string, unknown>>(
     callOpenAiCompatibleJson<T>({
       endpoint: 'https://openrouter.ai/api/v1/chat/completions',
       apiKey,
-      model: OPENROUTER_MODEL,
+      model: getOpenRouterModel(),
       systemInstruction,
       userPrompt,
       extraHeaders: {
@@ -196,7 +204,7 @@ async function callGroqJson<T extends Record<string, unknown>>(
     callOpenAiCompatibleJson<T>({
       endpoint: 'https://api.groq.com/openai/v1/chat/completions',
       apiKey,
-      model: GROQ_MODEL,
+      model: getGroqModel(),
       systemInstruction,
       userPrompt,
     })
@@ -337,7 +345,7 @@ export function heuristicParseResume(text: string, fileName: string) {
       current_title: null,
       previous_titles: [],
       previous_companies: [],
-      internships: /intern/i.test(text)
+      internships: /\bintern(?:ship)?s?\b/i.test(text)
         ? [{ role: 'Intern', company: 'Listed in Resume', duration: 'Extracted', description: 'Internship referenced in uploaded resume.' }]
         : [],
       work_history: [],
@@ -384,27 +392,43 @@ export function heuristicAnalyzeJd(description: string) {
   const detected = KNOWN_SKILLS.filter((s) => lower.includes(s.toLowerCase()));
   const firstLine = description.split(/\r?\n/).find((l) => l.trim().length > 2)?.trim() || 'Software Engineer';
   const expMatch = description.match(/(\d+)\s*[-–to]+\s*(\d+)\s*(?:years|yrs)/i);
-  const cgpaMatch = description.match(/(?:CGPA|GPA)\s*(?:of|above|>=|>)?\s*(\d(?:\.\d)?)/i);
-  const splitIdx = Math.max(1, Math.ceil(detected.length * 0.7));
+  const singleExpMatch = description.match(/(\d+(?:\.\d+)?)\+?\s*(?:years|yrs)/i);
+  const cgpaMatch = description.match(/(?:CGPA|GPA)\s*(?:of|above|>=|>|:)?\s*(\d(?:\.\d)?)/i);
+  const cityMatch = description.match(/\b(Bengaluru|Bangalore|Pune|Hyderabad|Mumbai|Delhi|Chennai|Noida|Gurgaon|Gurugram|Kolkata)\b/i);
+  const splitIdx = detected.length > 0 ? Math.max(1, Math.ceil(detected.length * 0.7)) : 0;
 
   return {
     title: firstLine.slice(0, 70),
     requiredSkills: detected.slice(0, splitIdx),
     preferredSkills: detected.slice(splitIdx),
-    educationalQualifications: /\bB\.?Tech|Bachelor|Degree/i.test(description)
+    educationalQualifications: /\bB\.?\s?Tech|B\.?\s?E\.?|Bachelor|M\.?\s?Tech|MCA|Degree\b/i.test(description)
       ? ['B.Tech / B.E. or equivalent technical degree']
-      : ['Relevant Bachelor degree or equivalent practical experience'],
-    minimumExperience: expMatch ? parseInt(expMatch[1], 10) : 0,
-    maximumExperience: expMatch ? parseInt(expMatch[2], 10) : 3,
-    minimumCGPA: cgpaMatch ? parseFloat(cgpaMatch[1]) : 7.0,
+      : [],
+    minimumExperience: expMatch
+      ? parseInt(expMatch[1], 10)
+      : singleExpMatch
+        ? parseFloat(singleExpMatch[1])
+        : 0,
+    maximumExperience: expMatch
+      ? parseInt(expMatch[2], 10)
+      : singleExpMatch
+        ? Math.ceil(parseFloat(singleExpMatch[1]) + 2)
+        : 0,
+    minimumCGPA: cgpaMatch ? parseFloat(cgpaMatch[1]) : null,
     responsibilities: description
       .split(/\r?\n/)
       .filter((l) => l.trim().startsWith('-') || l.trim().startsWith('•'))
       .map((l) => l.replace(/^[-•]\s*/, '').trim())
       .slice(0, 5),
     certifications: [],
-    location: /remote/i.test(description) ? 'Remote' : /hybrid/i.test(description) ? 'Hybrid' : 'Bengaluru / Hybrid',
-    employmentType: /intern/i.test(description)
+    location: /remote/i.test(description)
+      ? 'Remote'
+      : /hybrid/i.test(description)
+        ? 'Hybrid'
+        : cityMatch
+          ? cityMatch[1]
+          : 'Not Specified',
+    employmentType: /\bintern(?:ship)?\b/i.test(description)
       ? 'Internship'
       : /remote/i.test(description)
         ? 'Remote'
@@ -444,8 +468,14 @@ export async function parseResumePayload(body: {
 }) {
   const { fileName, mimeType, extractedText, base64Pdf } = body || {};
 
-  if (!fileName || (!extractedText && !base64Pdf)) {
+  if (typeof fileName !== 'string' || !fileName.trim() || (!extractedText && !base64Pdf)) {
     throw new ApiValidationError(400, 'Resume file content or extracted text is required.');
+  }
+  if (extractedText !== undefined && typeof extractedText !== 'string') {
+    throw new ApiValidationError(400, 'extractedText must be a valid string.');
+  }
+  if (base64Pdf !== undefined && typeof base64Pdf !== 'string') {
+    throw new ApiValidationError(400, 'base64Pdf must be a valid base64 string.');
   }
 
   const safeText = (extractedText || '').trim();
@@ -489,7 +519,7 @@ Rules:
 
       const response = await withRetry(() =>
         ai.models.generateContent({
-          model: GEMINI_MODEL,
+          model: getGeminiModel(),
           contents: { parts },
           config: {
             systemInstruction,
@@ -620,15 +650,22 @@ Rules:
     return { parsed: fallback, source: 'fallback-parser' as const };
   }
 
+  if (!safeText && base64Pdf) {
+    throw new ApiValidationError(
+      422,
+      'Scanned or image-only PDF requires AI OCR, which is currently unavailable. Please upload a text-searchable PDF/DOCX or configure an AI API key.'
+    );
+  }
+
   throw new ApiValidationError(
-    500,
-    'Unable to extract structured fields from this document. Please ensure the file is readable and not password-protected.'
+    400,
+    'Unable to extract structured fields from this document. Ensure extractedText contains readable resume text.'
   );
 }
 
 export async function analyzeJobPayload(body: { description?: string }) {
   const { description } = body || {};
-  if (!description || description.trim().length < 15) {
+  if (typeof description !== 'string' || description.trim().length < 15) {
     throw new ApiValidationError(400, 'Please provide a job description with at least 15 characters.');
   }
 
@@ -645,7 +682,7 @@ export async function analyzeJobPayload(body: { description?: string }) {
     runGemini: async (ai) => {
       const response = await withRetry(() =>
         ai.models.generateContent({
-          model: GEMINI_MODEL,
+          model: getGeminiModel(),
           contents: `Analyze this job description and extract structured hiring requirements without inventing requirements not present in the text:\n\n${description.slice(0, 12000)}`,
           config: {
             systemInstruction,
@@ -690,8 +727,8 @@ export async function analyzeMatchingPayload(body: {
 }) {
   const { candidate, job, deterministicScore } = body || {};
 
-  if (!candidate || !job) {
-    throw new ApiValidationError(400, 'Candidate profile and job description are required.');
+  if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate) || !job || typeof job !== 'object' || Array.isArray(job)) {
+    throw new ApiValidationError(400, 'Candidate profile object and job object are required.');
   }
 
   const fallback = {
@@ -726,7 +763,7 @@ export async function analyzeMatchingPayload(body: {
     runGemini: async (ai) => {
       const response = await withRetry(() =>
         ai.models.generateContent({
-          model: GEMINI_MODEL,
+          model: getGeminiModel(),
           contents: payloadStr,
           config: {
             systemInstruction,
@@ -765,6 +802,19 @@ export async function analyzeSkillGapPayload(body: {
   jobTitle?: string;
 }) {
   const { candidateName, candidateSkills, requiredSkills, preferredSkills, jobTitle } = body || {};
+
+  const hasInputs =
+    (typeof jobTitle === 'string' && jobTitle.trim().length > 0) ||
+    (Array.isArray(requiredSkills) && requiredSkills.length > 0) ||
+    (Array.isArray(preferredSkills) && preferredSkills.length > 0) ||
+    (Array.isArray(candidateSkills) && candidateSkills.length > 0);
+
+  if (!hasInputs) {
+    throw new ApiValidationError(
+      400,
+      'Provide candidateSkills, requiredSkills/preferredSkills, or jobTitle to run skill gap analysis.'
+    );
+  }
 
   const missingReq = (requiredSkills || []).filter(
     (r) => !(candidateSkills || []).some((c) => c.toLowerCase() === r.toLowerCase())
@@ -805,7 +855,7 @@ export async function analyzeSkillGapPayload(body: {
     runGemini: async (ai) => {
       const response = await withRetry(() =>
         ai.models.generateContent({
-          model: GEMINI_MODEL,
+          model: getGeminiModel(),
           contents: payloadStr,
           config: {
             systemInstruction,

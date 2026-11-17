@@ -214,7 +214,9 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
           ? `${tenthVal}% / ${twelfthVal}%`
           : tenthVal !== null
             ? `${tenthVal}% / N/A`
-            : 'Not Listed',
+            : twelfthVal !== null
+              ? `N/A / ${twelfthVal}%`
+              : 'Not Listed',
       experience: totalExp === 0 ? 'Fresher (0 yrs)' : `${totalExp.toFixed(1)} yrs`,
       experienceYears: totalExp,
       role: exp.current_title || assignedJob?.title || 'Applicant',
@@ -223,7 +225,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
       previousCompanies: exp.previous_companies ?? [],
       workHistory: exp.work_history ?? [],
       internships: exp.internships ?? [],
-      skills: allSkills.length > 0 ? allSkills : ['Communication'],
+      skills: allSkills,
       categorizedSkills: {
         programmingLanguages: sk.programming_languages ?? [],
         frameworks: sk.frameworks ?? [],

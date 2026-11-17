@@ -134,6 +134,10 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
       .map((p) => p[0]?.toUpperCase() || '')
       .join('');
 
+    const safeTenth = parsedTenth !== null && !Number.isNaN(parsedTenth) ? parsedTenth : null;
+    const safeTwelfth =
+      parsedTwelfth !== null && !Number.isNaN(parsedTwelfth) ? parsedTwelfth : null;
+
     const updated: CandidateProfile = {
       ...liveCandidate,
       name: editName.trim() || liveCandidate.name,
@@ -148,20 +152,21 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
       education: `${editDegree.trim()} ${editBranch.trim()}`.trim(),
       cgpa: parsedCgpa !== null && !Number.isNaN(parsedCgpa) ? `${parsedCgpa.toFixed(1)} CGPA` : 'Not Listed',
       tenthTwelfth:
-        parsedTenth !== null && parsedTwelfth !== null
-          ? `${parsedTenth}% / ${parsedTwelfth}%`
-          : parsedTenth !== null
-            ? `${parsedTenth}% / N/A`
-            : 'Not Listed',
+        safeTenth !== null && safeTwelfth !== null
+          ? `${safeTenth}% / ${safeTwelfth}%`
+          : safeTenth !== null
+            ? `${safeTenth}% / N/A`
+            : safeTwelfth !== null
+              ? `N/A / ${safeTwelfth}%`
+              : 'Not Listed',
       educationDetail: {
         ...liveCandidate.educationDetail,
         degree: editDegree.trim(),
         branch: editBranch.trim(),
         college: editCollege.trim(),
         cgpa: parsedCgpa !== null && !Number.isNaN(parsedCgpa) ? parsedCgpa : null,
-        tenthPercentage: parsedTenth !== null && !Number.isNaN(parsedTenth) ? parsedTenth : null,
-        twelfthPercentage:
-          parsedTwelfth !== null && !Number.isNaN(parsedTwelfth) ? parsedTwelfth : null,
+        tenthPercentage: safeTenth,
+        twelfthPercentage: safeTwelfth,
         graduationYear: parsedGrad !== null && !Number.isNaN(parsedGrad) ? parsedGrad : null,
       },
       skills: updatedSkills.length > 0 ? updatedSkills : liveCandidate.skills,

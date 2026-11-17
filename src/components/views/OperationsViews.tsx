@@ -418,6 +418,27 @@ export const EmailCenterView: React.FC = () => {
     }
   };
 
+  const handleDownloadEml = () => {
+    if (!activePreview) return;
+    const safeSlug = activePreview.name.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+    const emlContent = [
+      `To: ${activePreview.email}`,
+      `Subject: ${activeSubject}`,
+      'MIME-Version: 1.0',
+      'Content-Type: text/plain; charset=UTF-8',
+      '',
+      activeBody,
+    ].join('\r\n');
+    const blob = new Blob([emlContent], { type: 'message/rfc822;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `hireswift_${safeSlug}.eml`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(`Downloaded hireswift_${safeSlug}.eml`);
+  };
+
   return (
     <div className="flex flex-col w-full gap-space-xl">
       <div>
@@ -610,6 +631,13 @@ export const EmailCenterView: React.FC = () => {
                       className="px-3.5 py-2 rounded-lg bg-surface-container-high hover:bg-surface-bright text-white font-medium cursor-pointer"
                     >
                       Copy Draft
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDownloadEml}
+                      className="px-3.5 py-2 rounded-lg bg-surface-container-high hover:bg-surface-bright text-tertiary font-medium cursor-pointer"
+                    >
+                      Download .eml
                     </button>
                     {isValidEmail(activePreview.email) && (
                       <a
@@ -840,11 +868,13 @@ export const SettingsView: React.FC = () => {
     clearSessionData,
     importDemoDataset,
     exportSessionJson,
+    showToast,
     candidates,
     jobs,
   } = useAts();
 
   const [draftWeights, setDraftWeights] = useState<ScoringWeights>(scoringWeights);
+  const [confirmClearSession, setConfirmClearSession] = useState(false);
 
   useEffect(() => {
     setDraftWeights(scoringWeights);
@@ -860,6 +890,10 @@ export const SettingsView: React.FC = () => {
 
   const handleSaveWeights = (e: React.FormEvent) => {
     e.preventDefault();
+    if (totalWeight <= 0) {
+      showToast('Total scoring weight must be greater than 0%.', 'error');
+      return;
+    }
     updateScoringWeights(draftWeights);
   };
 
@@ -1001,13 +1035,35 @@ export const SettingsView: React.FC = () => {
           >
             Export Session JSON
           </button>
-          <button
-            type="button"
-            onClick={clearSessionData}
-            className="px-3.5 py-2 rounded-xl bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 font-medium cursor-pointer"
-          >
-            Clear Session Data
-          </button>
+          {confirmClearSession ? (
+            <div className="inline-flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  clearSessionData();
+                  setConfirmClearSession(false);
+                }}
+                className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold cursor-pointer"
+              >
+                Confirm Clear All
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmClearSession(false)}
+                className="px-3 py-2 rounded-xl bg-surface-container-high text-on-surface cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirmClearSession(true)}
+              className="px-3.5 py-2 rounded-xl bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 font-medium cursor-pointer"
+            >
+              Clear Session Data
+            </button>
+          )}
         </div>
       </div>
     </div>

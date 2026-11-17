@@ -37,6 +37,7 @@
 | Understand the REST API endpoints, request parameters, response formats, and usage examples. 👉 | <a href="#-api-documentation"><img src="https://img.shields.io/badge/🌐%20API%20Documentation-0EA5E9?style=for-the-badge" /></a> |
 | Explore the system architecture, application modules, AI integration, processing pipeline, and technical design. 👉 | <a href="./ARCHITECTURE.md"><img src="https://img.shields.io/badge/🏗️%20Architecture%20Document-DC2626?style=for-the-badge" /></a> |
 | Review the detailed technical implementation, AI processing methodology, validation strategy, and engineering decisions. 👉 | <a href="./TECHNICAL_REPORT.md"><img src="https://img.shields.io/badge/📊%20Technical%20Report-2563EB?style=for-the-badge" /></a> |
+| Inspect the complete end-to-end QA test report, regression coverage, defect fixes, and browser verification evidence. 👉 | <a href="./QA_TEST_REPORT.md"><img src="https://img.shields.io/badge/🧪%20QA%20Test%20Report-16A34A?style=for-the-badge" /></a> |
 | Understand candidate profile fields, resume extraction, job requirements, and application data handling. 👉 | <a href="#-candidate-data-management"><img src="https://img.shields.io/badge/👥%20Candidate%20Data%20Management-0D9488?style=for-the-badge" /></a> |
 | Learn how candidates are filtered, compared, ranked, and managed throughout the recruitment pipeline. 👉 | <a href="#-recruitment-workflow"><img src="https://img.shields.io/badge/📋%20Recruitment%20Workflow-2563EB?style=for-the-badge" /></a> |
 | Review application performance, resume processing time, AI response latency, and optimization strategies. 👉 | <a href="#-performance"><img src="https://img.shields.io/badge/⚡%20Performance-F59E0B?style=for-the-badge" /></a> |
@@ -420,11 +421,11 @@ Every candidate profile (`CandidateProfile` in `src/data/atsData.ts`) captures c
 
 ## 🧪 Testing & Quality Assurance
 
-Verified continuously across the codebase:
-- **Static Type Checking**: `npm run lint` runs `tsc --noEmit` across frontend, shared API handlers, Express server, and Netlify functions with zero errors.
-- **Production Bundle Verification**: `npm run build` validates Vite asset compilation, CSS bundling, and PDF.js worker resolution into `dist/`.
-- **API & Fallback Verification**: All REST endpoints (`/api/health`, `/api/resumes/parse`, `/api/jobs/analyze`, `/api/matching/analyze`, `/api/matching/skill-gap`) are verified for both live Gemini AI JSON schema output and deterministic offline fallback behavior.
-- **Edge Case Validation**: Tested against empty files, oversized files (configurable MB limit), password-protected PDFs, image-only scanned PDFs, duplicate SHA-256 uploads, and missing academic fields.
+Verified continuously across the codebase (full report in [QA_TEST_REPORT.md](./QA_TEST_REPORT.md)):
+- **Static Type Checking (`npm run lint`)**: Runs `tsc --noEmit` across frontend, shared API handlers, Express server, Netlify functions, and test suites with zero errors.
+- **Unit, Integration & API Suite (`npm test`)**: Vitest + Supertest + React Testing Library covering weighted scoring, skill aliases, duplicate detection, DOCX/PDF validation, Express & Netlify Function parity, 3-tier AI failover, and UI workflows.
+- **Browser End-to-End Suite (`npm run test:e2e`)**: Playwright headless Chromium verifying responsive viewports (`320px`–`1920px`), all 14 workspace views, `⌘K`/`Ctrl+K` navigation, real PDF/DOCX extraction, duplicate detection, `localStorage` persistence, and security checks.
+- **Production Bundle Verification (`npm run build`)**: Validates Vite asset compilation, CSS bundling, and PDF.js worker resolution into `dist/`.
 
 ---
 

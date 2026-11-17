@@ -483,6 +483,17 @@ export const AtsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateScoringWeights = (weights: ScoringWeights) => {
+    const sum =
+      weights.skills +
+      weights.experience +
+      weights.education +
+      weights.projects +
+      weights.certifications +
+      weights.responsibilities;
+    if (sum <= 0) {
+      showToast('Total scoring weight must be greater than 0%.', 'error');
+      return;
+    }
     setScoringWeights(weights);
     showToast('Updated matching score weights and recalculated rankings');
   };

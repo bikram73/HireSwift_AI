@@ -597,6 +597,7 @@ export const JobManagementView: React.FC<{ onNavigate: (r: WorkspaceRoute) => vo
   const [showModal, setShowModal] = useState(false);
   const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const [analyzingJd, setAnalyzingJd] = useState(false);
+  const [confirmDeleteJobId, setConfirmDeleteJobId] = useState<string | null>(null);
 
   const [title, setTitle] = useState('');
   const [department, setDepartment] = useState('Engineering');
@@ -681,7 +682,7 @@ export const JobManagementView: React.FC<{ onNavigate: (r: WorkspaceRoute) => vo
           if (a.preferredSkills?.length) setPrefSkills(a.preferredSkills.join(', '));
           if (typeof a.minimumExperience === 'number') setMinExp(String(a.minimumExperience));
           if (typeof a.maximumExperience === 'number') setMaxExp(String(a.maximumExperience));
-          if (typeof a.minimumCGPA === 'number') setMinCgpa(String(a.minimumCGPA));
+          setMinCgpa(typeof a.minimumCGPA === 'number' ? String(a.minimumCGPA) : '');
           if (a.location) setLocation(a.location);
           if (a.responsibilities?.length) setResponsibilities(a.responsibilities.join('\n'));
           showToast('JD requirements extracted! Review and edit before saving.');
@@ -865,14 +866,36 @@ export const JobManagementView: React.FC<{ onNavigate: (r: WorkspaceRoute) => vo
                   >
                     Match
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => deleteJob(job.id)}
-                    className="p-1.5 rounded-lg text-outline hover:text-rose-400 cursor-pointer"
-                    title="Delete job"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">delete</span>
-                  </button>
+                  {confirmDeleteJobId === job.id ? (
+                    <div className="inline-flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          deleteJob(job.id);
+                          setConfirmDeleteJobId(null);
+                        }}
+                        className="px-2 py-1 rounded-lg bg-rose-600 text-white text-[11px] font-semibold cursor-pointer"
+                      >
+                        Confirm
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDeleteJobId(null)}
+                        className="px-2 py-1 rounded-lg bg-surface-container-high text-on-surface text-[11px] cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDeleteJobId(job.id)}
+                      className="p-1.5 rounded-lg text-outline hover:text-rose-400 cursor-pointer"
+                      title="Delete job"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">delete</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -1262,7 +1285,7 @@ export const CandidateRankingView: React.FC<ViewProps> = ({ onSelectCandidate })
     useAts();
 
   const activeJob = selectedJob ?? jobs[0];
-  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc' | 'name'>('desc');
   const [topN, setTopN] = useState<number>(0); // 0 = All
 
   const ranked = useMemo(() => {
@@ -1272,6 +1295,9 @@ export const CandidateRankingView: React.FC<ViewProps> = ({ onSelectCandidate })
       match: getMatchFor(cand, activeJob.id)!,
     }));
     list.sort((a, b) => {
+      if (sortOrder === 'name') {
+        return a.cand.name.localeCompare(b.cand.name);
+      }
       const diff =
         sortOrder === 'desc'
           ? b.match.overallScore - a.match.overallScore
@@ -1341,13 +1367,16 @@ export const CandidateRankingView: React.FC<ViewProps> = ({ onSelectCandidate })
             <option value={10}>Top 10</option>
             <option value={20}>Top 20</option>
           </select>
-          <button
-            type="button"
-            onClick={() => setSortOrder((o) => (o === 'desc' ? 'asc' : 'desc'))}
-            className="h-9 px-3 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs cursor-pointer"
+          <select
+            aria-label="Ranking Sort Order"
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value as 'desc' | 'asc' | 'name')}
+            className="h-9 px-3 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs outline-none"
           >
-            Order: {sortOrder === 'desc' ? 'Highest → Lowest' : 'Lowest → Highest'}
-          </button>
+            <option value="desc">Order: Highest → Lowest</option>
+            <option value="asc">Order: Lowest → Highest</option>
+            <option value="name">Order: Name (A–Z)</option>
+          </select>
           <button
             type="button"
             onClick={handleExportRanked}

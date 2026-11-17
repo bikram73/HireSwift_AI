@@ -494,7 +494,9 @@ function buildSeedCandidate(seed: SeedCandidateInput, idx: number): CandidatePro
       ? `${seed.tenth}% / ${seed.twelfth}%`
       : seed.tenth !== null
         ? `${seed.tenth}% / N/A`
-        : 'Not Listed';
+        : seed.twelfth !== null
+          ? `N/A / ${seed.twelfth}%`
+          : 'Not Listed';
   const expStr = seed.expYears === 0 ? 'Fresher (0 yrs)' : `${seed.expYears.toFixed(1)} yrs`;
   const matchLabel =
     seed.matchScore >= 90

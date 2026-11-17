@@ -6,6 +6,7 @@
 
 <a href="./README.md"><img src="https://img.shields.io/badge/⬅️%20Back%20to%20README-4F46E5?style=for-the-badge" /></a>
 <a href="./ARCHITECTURE.md"><img src="https://img.shields.io/badge/🏗️%20Architecture%20Document-DC2626?style=for-the-badge" /></a>
+<a href="./QA_TEST_REPORT.md"><img src="https://img.shields.io/badge/🧪%20QA%20Test%20Report-16A34A?style=for-the-badge" /></a>
 
 </div>
 
@@ -22,8 +23,8 @@ Resume parsing combines **client-side binary decoding** with **schema-constraine
 2. **Strict Schema Enforcement (`lib/atsApi.ts`)**:
    - Calls `ai.models.generateContent` with `responseMimeType: 'application/json'` and an explicit `responseSchema` defining scalar fields as `nullable: true`.
    - System instructions enforce factual grounding: unavailable scalar values return `null`, absent lists return `[]`, and `missing_fields` flags omitted contact or academic items rather than inventing estimates.
-3. **Deterministic Fallback Guarantee**:
-   - If no `GEMINI_API_KEY` is present or an upstream request fails after retries (`withRetry`, max 2 retries with backoff), `heuristicParseResume` and `heuristicAnalyzeJd` extract contact regexes, academic metrics, and canonical skills from a curated dictionary (`KNOWN_SKILLS`).
+3. **3-Tier AI Chain & Deterministic Fallback Guarantee**:
+   - Requests execute across **Gemini → OpenRouter → Groq** with retry backoff (`withRetry`, 1 retry per upstream request; 25s timeout on OpenRouter/Groq). If all configured AI keys are absent or fail, `heuristicParseResume` and `heuristicAnalyzeJd` extract contact regexes, academic metrics, and canonical skills from `KNOWN_SKILLS` without fabricating unstated CGPA, location, or skills. Scanned image-only PDFs without AI OCR return HTTP `422`.
 
 ---
 
@@ -51,14 +52,14 @@ $$\text{Overall Score} = \text{round}\left(\frac{\sum_{i=1}^{6} S_i \cdot W_i}{\
 ## 3. Deduplication Logic
 
 When ingesting batches in `ResumeUploadView.tsx`:
-1. **Hash Match (`Exact Duplicate`)**: Matches SHA-256 digest of the raw file bytes against existing session candidates.
-2. **Identity Match (`Potential Duplicate`)**: Matches normalized lowercase `email` or `(name + phone)` tuple across distinct file versions.
-3. **Resolution Options**: Recruiters can inspect flagged items and merge non-empty skills/contact metadata into the canonical record (`mergeDuplicateCandidate`) without duplicating pipeline entries.
+1. **Hash & Email Match (`Exact Duplicate`)**: Matches SHA-256 digest of the raw file bytes OR case-insensitive trimmed email address against existing session candidates.
+2. **Phone & Academic Identity Match (`Potential Duplicate`)**: Matches normalized 10-digit phone numbers combined with matching name, OR matching name + college + `>= 3` shared canonical skills across distinct files.
+3. **Resolution Options**: Recruiters can inspect flagged items and merge non-empty skills/contact metadata into the canonical record (`mergeDuplicateCandidate`), skip, or add for review without losing pipeline integrity.
 
 ---
 
 ## 4. Verification & Build Assurance
 
-- **TypeScript Strictness**: Verified via `tsc --noEmit` covering `src/`, `lib/`, `server.ts`, and `netlify/functions/`.
-- **Bundling**: Production frontend compiles cleanly with `vite build` into `dist/`, including code-split assets and the PDF.js worker bundle.
-- **Serverless Compatibility**: `netlify/functions/api.ts` bundles via `esbuild` with `@google/genai` kept external (`netlify.toml`), verified against simulated Web `Request`/`Response` invocations across `/api/health` and `/api/jobs/analyze`.
+- **TypeScript Strictness**: Verified via `npm run lint` (`tsc --noEmit`) covering `src/`, `lib/`, `server.ts`, `netlify/functions/`, `tests/`, and `e2e/`.
+- **Bundling & Serverless Compilation**: Production frontend compiles via `npm run build` into `dist/`, and `netlify/functions/api.ts` compiles via `esbuild` with `@google/genai` kept external.
+- **Automated Unit, API & Browser E2E Suites**: Executed via `npm test` (Vitest + Supertest + React Testing Library + Netlify Function handler tests) and `npm run test:e2e` (Playwright headless Chromium across responsive viewports, real PDF/DOCX uploads, persistence, and zero-error navigation). See [QA_TEST_REPORT.md](./QA_TEST_REPORT.md) for the full audit trail.
