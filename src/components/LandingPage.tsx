@@ -817,7 +817,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
               </a>
               <a
                 className="inline-flex items-center gap-2 hover:text-white transition-colors"
-                href="https://www.youtube.com"
+                href="https://www.youtube.com/@bikramtechzzz"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="HireSwift AI on YouTube"
