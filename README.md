@@ -283,13 +283,19 @@ HireSwift AI keeps API keys **strictly on the server side** (`server.ts` / `netl
 
 ### 📝 Environment Variables (`.env`)
 
+HireSwift AI implements a **3-tier automatic AI fallback chain**: **Gemini → OpenRouter → Groq → Deterministic Local Parser**.
+
 | Variable | Required | Description |
 |:---|:---:|:---|
-| `GEMINI_API_KEY` | Optional (Recommended) | Server-side key for `@google/genai`. Enables AI resume OCR/parsing, JD extraction, match rationales, and skill-gap coaching. |
-| `GEMINI_MODEL` | Optional | Override default model alias (`gemini-4-hydrogen`). |
+| `GEMINI_API_KEY` | Tier 1 (Primary) | Server-side key for primary AI resume OCR/parsing, JD analysis, matching rationales, and skill-gap coaching. |
+| `GEMINI_MODEL` | Optional | Override default Tier 1 Gemini model (`gemini-4-hydrogen`). |
+| `OPENROUTER_API_KEY` | Tier 2 (Fallback) | Automatically used when Tier 1 fails or is unconfigured (`https://openrouter.ai/api/v1/chat/completions`). |
+| `OPENROUTER_MODEL` | Optional | Override default Tier 2 OpenRouter model (`openai/gpt-4o-mini`). |
+| `GROQ_API_KEY` | Tier 3 (Final AI Fallback) | Automatically used when Tier 2 fails (`https://api.groq.com/openai/v1/chat/completions`). |
+| `GROQ_MODEL` | Optional | Override default Tier 3 Groq model (`llama-3.3-70b-versatile`). |
 | `PORT` | Optional | Local Express port (defaults to `3000`). |
 
-> 🛡️ **Graceful Fallback**: If `GEMINI_API_KEY` is missing or unset (`MY_GEMINI_API_KEY`), all API routes automatically fall back to built-in deterministic regex/skill parsers so the application stays 100% functional without errors.
+> 🛡️ **Zero-Downtime Fallback**: If a provider returns an error, rate limit (`429`), timeout, or missing key, requests cascade smoothly **Gemini → OpenRouter → Groq**, with a deterministic heuristic parser as the final safety net.
 
 ---
 

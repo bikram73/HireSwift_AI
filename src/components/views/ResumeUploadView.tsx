@@ -402,7 +402,13 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
                 parsingStatus: 'parsed',
                 parsingProgress: 100,
                 parsedCandidateDraft: cand,
-                hashOrNote: `${cand.name} · ${cand.matchScore}% match (${json.source === 'gemini-ai' ? 'AI Engine' : 'Parser'})`,
+                hashOrNote: `${cand.name} · ${cand.matchScore}% match (${
+                  json.source === 'gemini-ai' ||
+                  json.source === 'openrouter-ai' ||
+                  json.source === 'groq-ai'
+                    ? 'AI Engine'
+                    : 'Parser'
+                })`,
               }
             : f
         )

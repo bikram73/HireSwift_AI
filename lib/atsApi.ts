@@ -1,6 +1,21 @@
 import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-4-hydrogen';
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'openai/gpt-4o-mini';
+const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+
+export type AiSource =
+  | 'gemini-ai'
+  | 'openrouter-ai'
+  | 'groq-ai'
+  | 'deterministic-parser'
+  | 'fallback-parser'
+  | 'deterministic-analyzer'
+  | 'fallback-analyzer'
+  | 'deterministic-rubric'
+  | 'fallback-rubric'
+  | 'deterministic-gap'
+  | 'fallback-gap';
 
 export class ApiValidationError extends Error {
   status: number;
@@ -26,7 +41,23 @@ export function getAiClient(): GoogleGenAI | null {
   });
 }
 
-async function withRetry<T>(fn: () => Promise<T>, maxRetries = 2): Promise<T> {
+function getOpenRouterApiKey(): string | null {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey || apiKey === 'MY_OPENROUTER_API_KEY') {
+    return null;
+  }
+  return apiKey;
+}
+
+function getGroqApiKey(): string | null {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey || apiKey === 'MY_GROQ_API_KEY') {
+    return null;
+  }
+  return apiKey;
+}
+
+async function withRetry<T>(fn: () => Promise<T>, maxRetries = 1): Promise<T> {
   let lastError: unknown;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
@@ -34,21 +65,195 @@ async function withRetry<T>(fn: () => Promise<T>, maxRetries = 2): Promise<T> {
     } catch (err) {
       lastError = err;
       if (attempt < maxRetries) {
-        await new Promise((res) => setTimeout(res, 500 * (attempt + 1)));
+        await new Promise((res) => setTimeout(res, 450 * (attempt + 1)));
       }
     }
   }
   throw lastError;
 }
 
-function safeParseJson<T>(raw: string | undefined, fallback: T): T {
-  if (!raw) return fallback;
+function tryParseJsonObject<T extends Record<string, unknown>>(raw: string | undefined): T | null {
+  if (!raw) return null;
   try {
     const cleaned = raw.replace(/^```json\s*/i, '').replace(/```$/i, '').trim();
-    return JSON.parse(cleaned) as T;
+    const firstBrace = cleaned.indexOf('{');
+    const lastBrace = cleaned.lastIndexOf('}');
+    const jsonSlice =
+      firstBrace !== -1 && lastBrace > firstBrace
+        ? cleaned.slice(firstBrace, lastBrace + 1)
+        : cleaned;
+    const parsed = JSON.parse(jsonSlice);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return parsed as T;
+    }
+    return null;
   } catch {
-    return fallback;
+    return null;
   }
+}
+
+function mergeWithFallback<T extends Record<string, unknown>>(parsed: Partial<T>, fallback: T): T {
+  const result = { ...fallback };
+  for (const key of Object.keys(parsed) as Array<keyof T>) {
+    const val = parsed[key];
+    if (val !== undefined) {
+      if (
+        val !== null &&
+        typeof val === 'object' &&
+        !Array.isArray(val) &&
+        fallback[key] &&
+        typeof fallback[key] === 'object' &&
+        !Array.isArray(fallback[key])
+      ) {
+        result[key] = {
+          ...(fallback[key] as Record<string, unknown>),
+          ...(val as Record<string, unknown>),
+        } as T[keyof T];
+      } else {
+        result[key] = val as T[keyof T];
+      }
+    }
+  }
+  return result;
+}
+
+async function callOpenAiCompatibleJson<T extends Record<string, unknown>>(params: {
+  endpoint: string;
+  apiKey: string;
+  model: string;
+  systemInstruction: string;
+  userPrompt: string;
+  extraHeaders?: Record<string, string>;
+}): Promise<T> {
+  const { endpoint, apiKey, model, systemInstruction, userPrompt, extraHeaders = {} } = params;
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+      ...extraHeaders,
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: 'system', content: `${systemInstruction}\nAlways reply with valid JSON only.` },
+        { role: 'user', content: userPrompt },
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.1,
+    }),
+    signal: AbortSignal.timeout(25000),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text().catch(() => '');
+    throw new Error(`HTTP ${response.status}: ${errText.slice(0, 240)}`);
+  }
+
+  const data = (await response.json()) as {
+    choices?: Array<{ message?: { content?: string } }>;
+  };
+  const content = data?.choices?.[0]?.message?.content;
+  const parsed = tryParseJsonObject<T>(content);
+  if (!parsed) {
+    throw new Error('Provider returned invalid or empty JSON.');
+  }
+  return parsed;
+}
+
+async function callOpenRouterJson<T extends Record<string, unknown>>(
+  systemInstruction: string,
+  userPrompt: string
+): Promise<T> {
+  const apiKey = getOpenRouterApiKey();
+  if (!apiKey) {
+    throw new Error('OPENROUTER_API_KEY not configured');
+  }
+  return withRetry(() =>
+    callOpenAiCompatibleJson<T>({
+      endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      apiKey,
+      model: OPENROUTER_MODEL,
+      systemInstruction,
+      userPrompt,
+      extraHeaders: {
+        'HTTP-Referer': process.env.APP_URL || 'https://hireswift-ai.netlify.app',
+        'X-Title': 'HireSwift AI ATS',
+      },
+    })
+  );
+}
+
+async function callGroqJson<T extends Record<string, unknown>>(
+  systemInstruction: string,
+  userPrompt: string
+): Promise<T> {
+  const apiKey = getGroqApiKey();
+  if (!apiKey) {
+    throw new Error('GROQ_API_KEY not configured');
+  }
+  return withRetry(() =>
+    callOpenAiCompatibleJson<T>({
+      endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+      apiKey,
+      model: GROQ_MODEL,
+      systemInstruction,
+      userPrompt,
+    })
+  );
+}
+
+/**
+ * Runs 3-tier AI model fallback chain:
+ * 1. Gemini (@google/genai)
+ * 2. OpenRouter API
+ * 3. Groq API
+ * Returns null if all configured AI providers fail or no keys are set.
+ */
+async function executeModelFallbackChain<T extends Record<string, unknown>>(options: {
+  taskName: string;
+  systemInstruction: string;
+  openAiPrompt: string;
+  fallback: T;
+  runGemini: (ai: GoogleGenAI) => Promise<T | null>;
+}): Promise<{ data: T; source: 'gemini-ai' | 'openrouter-ai' | 'groq-ai' } | null> {
+  const { taskName, systemInstruction, openAiPrompt, fallback, runGemini } = options;
+
+  // Tier 1: Gemini
+  const geminiClient = getAiClient();
+  if (geminiClient) {
+    try {
+      const parsed = await runGemini(geminiClient);
+      if (parsed) {
+        return { data: mergeWithFallback(parsed, fallback), source: 'gemini-ai' };
+      }
+      console.warn(`[${taskName}] Gemini returned empty JSON, falling back to OpenRouter.`);
+    } catch (err) {
+      console.warn(`[${taskName}] Gemini failed, falling back to OpenRouter:`, err);
+    }
+  }
+
+  // Tier 2: OpenRouter
+  if (getOpenRouterApiKey()) {
+    try {
+      const parsed = await callOpenRouterJson<T>(systemInstruction, openAiPrompt);
+      return { data: mergeWithFallback(parsed, fallback), source: 'openrouter-ai' };
+    } catch (err) {
+      console.warn(`[${taskName}] OpenRouter failed, falling back to Groq:`, err);
+    }
+  }
+
+  // Tier 3: Groq
+  if (getGroqApiKey()) {
+    try {
+      const parsed = await callGroqJson<T>(systemInstruction, openAiPrompt);
+      return { data: mergeWithFallback(parsed, fallback), source: 'groq-ai' };
+    } catch (err) {
+      console.warn(`[${taskName}] Groq failed, falling back to deterministic handler:`, err);
+    }
+  }
+
+  return null;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -215,7 +420,20 @@ export function heuristicAnalyzeJd(description: string) {
 /* -------------------------------------------------------------------------- */
 
 export function getHealthPayload() {
-  return { ok: true, aiConfigured: Boolean(getAiClient()) };
+  const geminiConfigured = Boolean(getAiClient());
+  const openrouterConfigured = Boolean(getOpenRouterApiKey());
+  const groqConfigured = Boolean(getGroqApiKey());
+
+  return {
+    ok: true,
+    aiConfigured: geminiConfigured || openrouterConfigured || groqConfigured,
+    providers: {
+      gemini: geminiConfigured,
+      openrouter: openrouterConfigured,
+      groq: groqConfigured,
+    },
+    fallbackOrder: ['gemini', 'openrouter', 'groq', 'deterministic'],
+  };
 }
 
 export async function parseResumePayload(body: {
@@ -235,14 +453,9 @@ export async function parseResumePayload(body: {
     throw new ApiValidationError(400, 'Uploaded document appears empty or unreadable.');
   }
 
-  const ai = getAiClient();
-  if (!ai) {
-    const parsed = heuristicParseResume(safeText || fileName, fileName);
-    return { parsed, source: 'deterministic-parser' as const };
-  }
+  const fallback = heuristicParseResume(safeText || fileName, fileName);
 
-  try {
-    const systemInstruction = `You are an expert resume information extraction system.
+  const systemInstruction = `You are an expert resume information extraction system.
 Extract structured candidate information from the provided resume text or PDF document.
 Rules:
 1. Extract only information explicitly supported by the document.
@@ -253,154 +466,164 @@ Rules:
 6. Return a missing_fields list for key absent details.
 7. Provide extraction confidence scores between 0 and 1.`;
 
-    const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [];
-    if (base64Pdf && mimeType === 'application/pdf') {
-      parts.push({
-        inlineData: {
-          mimeType: 'application/pdf',
-          data: base64Pdf,
-        },
-      });
-    }
-    parts.push({
-      text: `File Name: ${fileName}\n\nExtracted Document Text:\n${safeText.slice(0, 28000) || '[Use attached PDF OCR/document layers]'}`,
-    });
+  const textPrompt = `File Name: ${fileName}\n\nExtracted Document Text:\n${safeText.slice(0, 28000) || '[Use attached PDF OCR/document layers]'}`;
 
-    const response = await withRetry(() =>
-      ai.models.generateContent({
-        model: GEMINI_MODEL,
-        contents: { parts },
-        config: {
-          systemInstruction,
-          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
-          responseMimeType: 'application/json',
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              personal_information: {
-                type: Type.OBJECT,
-                properties: {
-                  full_name: { type: Type.STRING, nullable: true },
-                  email: { type: Type.STRING, nullable: true },
-                  phone: { type: Type.STRING, nullable: true },
-                  location: { type: Type.STRING, nullable: true },
-                  linkedin_url: { type: Type.STRING, nullable: true },
-                  github_url: { type: Type.STRING, nullable: true },
-                  portfolio_url: { type: Type.STRING, nullable: true },
-                },
-              },
-              education: {
-                type: Type.OBJECT,
-                properties: {
-                  tenth_school: { type: Type.STRING, nullable: true },
-                  tenth_percentage: { type: Type.NUMBER, nullable: true },
-                  tenth_year: { type: Type.INTEGER, nullable: true },
-                  twelfth_school: { type: Type.STRING, nullable: true },
-                  twelfth_percentage: { type: Type.NUMBER, nullable: true },
-                  twelfth_year: { type: Type.INTEGER, nullable: true },
-                  diploma_details: { type: Type.STRING, nullable: true },
-                  diploma_score: { type: Type.STRING, nullable: true },
-                  degree: { type: Type.STRING, nullable: true },
-                  branch: { type: Type.STRING, nullable: true },
-                  college: { type: Type.STRING, nullable: true },
-                  cgpa: { type: Type.NUMBER, nullable: true },
-                  graduation_year: { type: Type.INTEGER, nullable: true },
-                  postgraduate_details: { type: Type.STRING, nullable: true },
-                },
-              },
-              experience: {
-                type: Type.OBJECT,
-                properties: {
-                  total_years: { type: Type.NUMBER, nullable: true },
-                  current_title: { type: Type.STRING, nullable: true },
-                  previous_titles: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  previous_companies: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  internships: {
-                    type: Type.ARRAY,
-                    items: {
-                      type: Type.OBJECT,
-                      properties: {
-                        role: { type: Type.STRING },
-                        company: { type: Type.STRING },
-                        duration: { type: Type.STRING },
-                        description: { type: Type.STRING },
-                      },
-                    },
-                  },
-                  work_history: {
-                    type: Type.ARRAY,
-                    items: {
-                      type: Type.OBJECT,
-                      properties: {
-                        role: { type: Type.STRING },
-                        company: { type: Type.STRING },
-                        duration: { type: Type.STRING },
-                        description: { type: Type.STRING },
-                      },
-                    },
-                  },
-                },
-              },
-              skills: {
-                type: Type.OBJECT,
-                properties: {
-                  programming_languages: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  frameworks: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  libraries: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  databases: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  cloud_technologies: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  developer_tools: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  ai_ml_technologies: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  other_skills: { type: Type.ARRAY, items: { type: Type.STRING } },
-                },
-              },
-              projects: {
-                type: Type.ARRAY,
-                items: {
+  const openAiPrompt = `${textPrompt}\n\nReturn a single JSON object strictly matching this structure:\n${JSON.stringify(fallback)}`;
+
+  const chainResult = await executeModelFallbackChain<typeof fallback>({
+    taskName: 'parseResume',
+    systemInstruction,
+    openAiPrompt,
+    fallback,
+    runGemini: async (ai) => {
+      const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [];
+      if (base64Pdf && mimeType === 'application/pdf') {
+        parts.push({
+          inlineData: {
+            mimeType: 'application/pdf',
+            data: base64Pdf,
+          },
+        });
+      }
+      parts.push({ text: textPrompt });
+
+      const response = await withRetry(() =>
+        ai.models.generateContent({
+          model: GEMINI_MODEL,
+          contents: { parts },
+          config: {
+            systemInstruction,
+            thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                personal_information: {
                   type: Type.OBJECT,
                   properties: {
-                    name: { type: Type.STRING },
-                    description: { type: Type.STRING },
-                    technologies: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    full_name: { type: Type.STRING, nullable: true },
+                    email: { type: Type.STRING, nullable: true },
+                    phone: { type: Type.STRING, nullable: true },
+                    location: { type: Type.STRING, nullable: true },
+                    linkedin_url: { type: Type.STRING, nullable: true },
+                    github_url: { type: Type.STRING, nullable: true },
+                    portfolio_url: { type: Type.STRING, nullable: true },
                   },
                 },
-              },
-              certifications: { type: Type.ARRAY, items: { type: Type.STRING } },
-              achievements: { type: Type.ARRAY, items: { type: Type.STRING } },
-              soft_skills: { type: Type.ARRAY, items: { type: Type.STRING } },
-              languages_known: { type: Type.ARRAY, items: { type: Type.STRING } },
-              resume_summary: { type: Type.STRING },
-              key_strengths: { type: Type.ARRAY, items: { type: Type.STRING } },
-              missing_fields: { type: Type.ARRAY, items: { type: Type.STRING } },
-              confidence: {
-                type: Type.OBJECT,
-                properties: {
-                  name: { type: Type.NUMBER },
-                  email: { type: Type.NUMBER },
-                  education: { type: Type.NUMBER },
-                  skills: { type: Type.NUMBER },
+                education: {
+                  type: Type.OBJECT,
+                  properties: {
+                    tenth_school: { type: Type.STRING, nullable: true },
+                    tenth_percentage: { type: Type.NUMBER, nullable: true },
+                    tenth_year: { type: Type.INTEGER, nullable: true },
+                    twelfth_school: { type: Type.STRING, nullable: true },
+                    twelfth_percentage: { type: Type.NUMBER, nullable: true },
+                    twelfth_year: { type: Type.INTEGER, nullable: true },
+                    diploma_details: { type: Type.STRING, nullable: true },
+                    diploma_score: { type: Type.STRING, nullable: true },
+                    degree: { type: Type.STRING, nullable: true },
+                    branch: { type: Type.STRING, nullable: true },
+                    college: { type: Type.STRING, nullable: true },
+                    cgpa: { type: Type.NUMBER, nullable: true },
+                    graduation_year: { type: Type.INTEGER, nullable: true },
+                    postgraduate_details: { type: Type.STRING, nullable: true },
+                  },
+                },
+                experience: {
+                  type: Type.OBJECT,
+                  properties: {
+                    total_years: { type: Type.NUMBER, nullable: true },
+                    current_title: { type: Type.STRING, nullable: true },
+                    previous_titles: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    previous_companies: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    internships: {
+                      type: Type.ARRAY,
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          role: { type: Type.STRING },
+                          company: { type: Type.STRING },
+                          duration: { type: Type.STRING },
+                          description: { type: Type.STRING },
+                        },
+                      },
+                    },
+                    work_history: {
+                      type: Type.ARRAY,
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          role: { type: Type.STRING },
+                          company: { type: Type.STRING },
+                          duration: { type: Type.STRING },
+                          description: { type: Type.STRING },
+                        },
+                      },
+                    },
+                  },
+                },
+                skills: {
+                  type: Type.OBJECT,
+                  properties: {
+                    programming_languages: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    frameworks: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    libraries: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    databases: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    cloud_technologies: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    developer_tools: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    ai_ml_technologies: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    other_skills: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  },
+                },
+                projects: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      name: { type: Type.STRING },
+                      description: { type: Type.STRING },
+                      technologies: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    },
+                  },
+                },
+                certifications: { type: Type.ARRAY, items: { type: Type.STRING } },
+                achievements: { type: Type.ARRAY, items: { type: Type.STRING } },
+                soft_skills: { type: Type.ARRAY, items: { type: Type.STRING } },
+                languages_known: { type: Type.ARRAY, items: { type: Type.STRING } },
+                resume_summary: { type: Type.STRING },
+                key_strengths: { type: Type.ARRAY, items: { type: Type.STRING } },
+                missing_fields: { type: Type.ARRAY, items: { type: Type.STRING } },
+                confidence: {
+                  type: Type.OBJECT,
+                  properties: {
+                    name: { type: Type.NUMBER },
+                    email: { type: Type.NUMBER },
+                    education: { type: Type.NUMBER },
+                    skills: { type: Type.NUMBER },
+                  },
                 },
               },
             },
           },
-        },
-      })
-    );
+        })
+      );
 
-    const fallback = heuristicParseResume(safeText || fileName, fileName);
-    const parsed = safeParseJson(response.text, fallback);
-    return { parsed, source: 'gemini-ai' as const };
-  } catch (error) {
-    console.error('Resume parse error:', error);
-    if (safeText.length > 10) {
-      const parsed = heuristicParseResume(safeText, fileName);
-      return { parsed, source: 'fallback-parser' as const };
-    }
-    throw new ApiValidationError(
-      500,
-      'Unable to extract structured fields from this document. Please ensure the file is readable and not password-protected.'
-    );
+      return tryParseJsonObject<typeof fallback>(response.text);
+    },
+  });
+
+  if (chainResult) {
+    return { parsed: chainResult.data, source: chainResult.source };
   }
+
+  if (safeText.length > 10) {
+    return { parsed: fallback, source: 'fallback-parser' as const };
+  }
+
+  throw new ApiValidationError(
+    500,
+    'Unable to extract structured fields from this document. Please ensure the file is readable and not password-protected.'
+  );
 }
 
 export async function analyzeJobPayload(body: { description?: string }) {
@@ -409,49 +632,55 @@ export async function analyzeJobPayload(body: { description?: string }) {
     throw new ApiValidationError(400, 'Please provide a job description with at least 15 characters.');
   }
 
-  const ai = getAiClient();
   const fallback = heuristicAnalyzeJd(description);
-  if (!ai) {
-    return { analysis: fallback, source: 'deterministic-analyzer' as const };
-  }
+  const systemInstruction =
+    'You are an expert recruitment job description analyzer. Differentiate mandatory required skills from preferred optional skills. Return valid JSON only.';
+  const openAiPrompt = `Analyze this job description and extract structured hiring requirements without inventing requirements not present in the text:\n\n${description.slice(0, 12000)}\n\nReturn JSON with exact keys: title, requiredSkills, preferredSkills, educationalQualifications, minimumExperience, maximumExperience, minimumCGPA, responsibilities, certifications, location, employmentType, keywords.`;
 
-  try {
-    const response = await withRetry(() =>
-      ai.models.generateContent({
-        model: GEMINI_MODEL,
-        contents: `Analyze this job description and extract structured hiring requirements without inventing requirements not present in the text:\n\n${description.slice(0, 12000)}`,
-        config: {
-          systemInstruction:
-            'You are an expert recruitment job description analyzer. Differentiate mandatory required skills from preferred optional skills. Return valid JSON only.',
-          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
-          responseMimeType: 'application/json',
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              title: { type: Type.STRING },
-              requiredSkills: { type: Type.ARRAY, items: { type: Type.STRING } },
-              preferredSkills: { type: Type.ARRAY, items: { type: Type.STRING } },
-              educationalQualifications: { type: Type.ARRAY, items: { type: Type.STRING } },
-              minimumExperience: { type: Type.NUMBER },
-              maximumExperience: { type: Type.NUMBER },
-              minimumCGPA: { type: Type.NUMBER, nullable: true },
-              responsibilities: { type: Type.ARRAY, items: { type: Type.STRING } },
-              certifications: { type: Type.ARRAY, items: { type: Type.STRING } },
-              location: { type: Type.STRING },
-              employmentType: { type: Type.STRING },
-              keywords: { type: Type.ARRAY, items: { type: Type.STRING } },
+  const chainResult = await executeModelFallbackChain<typeof fallback>({
+    taskName: 'analyzeJob',
+    systemInstruction,
+    openAiPrompt,
+    fallback,
+    runGemini: async (ai) => {
+      const response = await withRetry(() =>
+        ai.models.generateContent({
+          model: GEMINI_MODEL,
+          contents: `Analyze this job description and extract structured hiring requirements without inventing requirements not present in the text:\n\n${description.slice(0, 12000)}`,
+          config: {
+            systemInstruction,
+            thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                title: { type: Type.STRING },
+                requiredSkills: { type: Type.ARRAY, items: { type: Type.STRING } },
+                preferredSkills: { type: Type.ARRAY, items: { type: Type.STRING } },
+                educationalQualifications: { type: Type.ARRAY, items: { type: Type.STRING } },
+                minimumExperience: { type: Type.NUMBER },
+                maximumExperience: { type: Type.NUMBER },
+                minimumCGPA: { type: Type.NUMBER, nullable: true },
+                responsibilities: { type: Type.ARRAY, items: { type: Type.STRING } },
+                certifications: { type: Type.ARRAY, items: { type: Type.STRING } },
+                location: { type: Type.STRING },
+                employmentType: { type: Type.STRING },
+                keywords: { type: Type.ARRAY, items: { type: Type.STRING } },
+              },
             },
           },
-        },
-      })
-    );
+        })
+      );
 
-    const analysis = safeParseJson(response.text, fallback);
-    return { analysis, source: 'gemini-ai' as const };
-  } catch (error) {
-    console.error('JD analyze error:', error);
-    return { analysis: fallback, source: 'fallback-analyzer' as const };
+      return tryParseJsonObject<typeof fallback>(response.text);
+    },
+  });
+
+  if (chainResult) {
+    return { analysis: chainResult.data, source: chainResult.source };
   }
+
+  return { analysis: fallback, source: 'fallback-analyzer' as const };
 }
 
 export async function analyzeMatchingPayload(body: {
@@ -465,7 +694,6 @@ export async function analyzeMatchingPayload(body: {
     throw new ApiValidationError(400, 'Candidate profile and job description are required.');
   }
 
-  const ai = getAiClient();
   const fallback = {
     explanation: `Candidate aligns with ${job.title ?? 'this role'} based on verified skills and experience history.`,
     decisionRationale:
@@ -485,40 +713,48 @@ export async function analyzeMatchingPayload(body: {
     ],
   };
 
-  if (!ai) {
-    return { insights: fallback, source: 'deterministic-rubric' as const };
-  }
+  const payloadStr = JSON.stringify({ candidate, job, deterministicScore });
+  const systemInstruction =
+    'You are an AI recruitment analysis assistant. Provide evidence-based, unbiased matching explanations grounded strictly in the provided candidate and job data, plus 4 tailored technical and behavioral interview questions. Never invent credentials.';
+  const openAiPrompt = `${payloadStr}\n\nReturn JSON with exact keys: explanation (string), decisionRationale (string), strongestAreas (string[]), potentialConcerns (string[]), interviewQuestions (string[]).`;
 
-  try {
-    const response = await withRetry(() =>
-      ai.models.generateContent({
-        model: GEMINI_MODEL,
-        contents: JSON.stringify({ candidate, job, deterministicScore }),
-        config: {
-          systemInstruction:
-            'You are an AI recruitment analysis assistant. Provide evidence-based, unbiased matching explanations grounded strictly in the provided candidate and job data, plus 4 tailored technical and behavioral interview questions. Never invent credentials.',
-          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
-          responseMimeType: 'application/json',
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              explanation: { type: Type.STRING },
-              decisionRationale: { type: Type.STRING },
-              strongestAreas: { type: Type.ARRAY, items: { type: Type.STRING } },
-              potentialConcerns: { type: Type.ARRAY, items: { type: Type.STRING } },
-              interviewQuestions: { type: Type.ARRAY, items: { type: Type.STRING } },
+  const chainResult = await executeModelFallbackChain<typeof fallback>({
+    taskName: 'analyzeMatching',
+    systemInstruction,
+    openAiPrompt,
+    fallback,
+    runGemini: async (ai) => {
+      const response = await withRetry(() =>
+        ai.models.generateContent({
+          model: GEMINI_MODEL,
+          contents: payloadStr,
+          config: {
+            systemInstruction,
+            thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                explanation: { type: Type.STRING },
+                decisionRationale: { type: Type.STRING },
+                strongestAreas: { type: Type.ARRAY, items: { type: Type.STRING } },
+                potentialConcerns: { type: Type.ARRAY, items: { type: Type.STRING } },
+                interviewQuestions: { type: Type.ARRAY, items: { type: Type.STRING } },
+              },
             },
           },
-        },
-      })
-    );
+        })
+      );
 
-    const insights = safeParseJson(response.text, fallback);
-    return { insights, source: 'gemini-ai' as const };
-  } catch (error) {
-    console.error('Matching analyze error:', error);
-    return { insights: fallback, source: 'fallback-rubric' as const };
+      return tryParseJsonObject<typeof fallback>(response.text);
+    },
+  });
+
+  if (chainResult) {
+    return { insights: chainResult.data, source: chainResult.source };
   }
+
+  return { insights: fallback, source: 'fallback-rubric' as const };
 }
 
 export async function analyzeSkillGapPayload(body: {
@@ -550,44 +786,51 @@ export async function analyzeSkillGapPayload(body: {
     summary: `${candidateName || 'Candidate'} covers ${(requiredSkills || []).length - missingReq.length} of ${(requiredSkills || []).length} required skills for ${jobTitle || 'the selected role'}.`,
   };
 
-  const ai = getAiClient();
-  if (!ai) {
-    return { gapAnalysis: fallback, source: 'deterministic-gap' as const };
-  }
+  const payloadStr = JSON.stringify({
+    candidateName,
+    candidateSkills,
+    requiredSkills,
+    preferredSkills,
+    jobTitle,
+  });
+  const systemInstruction =
+    'You are a technical skill gap analysis assistant. Distinguish mandatory required gaps from optional preferred gaps, identify transferable skills, and suggest practical learning and project steps.';
+  const openAiPrompt = `${payloadStr}\n\nReturn JSON with exact keys: transferableSkills (string[]), recommendedLearningAreas (string[]), practicalProjectRecommendations (string[]), summary (string).`;
 
-  try {
-    const response = await withRetry(() =>
-      ai.models.generateContent({
-        model: GEMINI_MODEL,
-        contents: JSON.stringify({
-          candidateName,
-          candidateSkills,
-          requiredSkills,
-          preferredSkills,
-          jobTitle,
-        }),
-        config: {
-          systemInstruction:
-            'You are a technical skill gap analysis assistant. Distinguish mandatory required gaps from optional preferred gaps, identify transferable skills, and suggest practical learning and project steps.',
-          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
-          responseMimeType: 'application/json',
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              transferableSkills: { type: Type.ARRAY, items: { type: Type.STRING } },
-              recommendedLearningAreas: { type: Type.ARRAY, items: { type: Type.STRING } },
-              practicalProjectRecommendations: { type: Type.ARRAY, items: { type: Type.STRING } },
-              summary: { type: Type.STRING },
+  const chainResult = await executeModelFallbackChain<typeof fallback>({
+    taskName: 'analyzeSkillGap',
+    systemInstruction,
+    openAiPrompt,
+    fallback,
+    runGemini: async (ai) => {
+      const response = await withRetry(() =>
+        ai.models.generateContent({
+          model: GEMINI_MODEL,
+          contents: payloadStr,
+          config: {
+            systemInstruction,
+            thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                transferableSkills: { type: Type.ARRAY, items: { type: Type.STRING } },
+                recommendedLearningAreas: { type: Type.ARRAY, items: { type: Type.STRING } },
+                practicalProjectRecommendations: { type: Type.ARRAY, items: { type: Type.STRING } },
+                summary: { type: Type.STRING },
+              },
             },
           },
-        },
-      })
-    );
+        })
+      );
 
-    const gapAnalysis = safeParseJson(response.text, fallback);
-    return { gapAnalysis, source: 'gemini-ai' as const };
-  } catch (error) {
-    console.error('Skill gap API error:', error);
-    return { gapAnalysis: fallback, source: 'fallback-gap' as const };
+      return tryParseJsonObject<typeof fallback>(response.text);
+    },
+  });
+
+  if (chainResult) {
+    return { gapAnalysis: chainResult.data, source: chainResult.source };
   }
+
+  return { gapAnalysis: fallback, source: 'fallback-gap' as const };
 }
