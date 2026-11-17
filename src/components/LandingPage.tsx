@@ -89,7 +89,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
       {/* HeroSection */}
       <section className="relative z-10 pt-12 pb-24 lg:pt-20 lg:pb-32 overflow-hidden">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] h-[500px] glow-conic pointer-events-none blur-3xl opacity-80" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 page-enter">
           {/* Announcement Pill Badge */}
           <div className="flex justify-center mb-6">
             <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-[#151E32]/90 border border-[#263449] shadow-inner text-xs sm:text-sm font-medium text-[#F8FAFC]">
@@ -194,7 +194,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                   src="/screen_630d9ae4.png"
                 />
                 {/* Floating Badge 1 (Top Left) */}
-                <div className="hidden sm:flex absolute top-5 left-5 items-center gap-3 p-3 rounded-xl bg-[#151E32]/90 backdrop-blur-md border border-[#263449] shadow-xl">
+                <div className="hidden sm:flex absolute top-5 left-5 items-center gap-3 p-3 rounded-xl bg-[#151E32]/90 backdrop-blur-md border border-[#263449] shadow-xl animate-float-slow">
                   <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
                     <Zap className="w-4 h-4" />
                   </div>
@@ -204,7 +204,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                   </div>
                 </div>
                 {/* Floating Badge 2 (Bottom Right) */}
-                <div className="hidden sm:flex absolute bottom-5 right-5 items-center gap-3 p-3.5 rounded-xl bg-[#151E32]/95 backdrop-blur-md border border-[#8B5CF6]/50 shadow-2xl">
+                <div className="hidden sm:flex absolute bottom-5 right-5 items-center gap-3 p-3.5 rounded-xl bg-[#151E32]/95 backdrop-blur-md border border-[#8B5CF6]/50 shadow-2xl animate-float-slow-reverse">
                   <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-[#4F46E5] to-[#8B5CF6] text-white flex items-center justify-center font-bold">
                     <Target className="w-4 h-4" />
                   </div>
