@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { WorkspaceRoute } from '../data/atsData';
 import { BrandLogo } from './BrandLogo';
+import { AmbientBackground } from './AmbientBackground';
 
 interface LandingPageProps {
   onEnterWorkspace: (route?: WorkspaceRoute) => void;
@@ -38,7 +39,8 @@ interface LandingPageProps {
 export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) => {
 
   return (
-    <div className="min-h-screen bg-[#0B1020] text-[#F8FAFC] antialiased subtle-grid">
+    <div className="relative min-h-screen bg-[#0B1020] text-[#F8FAFC] antialiased subtle-grid overflow-x-hidden">
+      <AmbientBackground />
       {/* MainHeader */}
       <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-[#0B1020]/80 border-b border-[#263449]/70 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
@@ -85,7 +87,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
       </header>
 
       {/* HeroSection */}
-      <section className="relative pt-12 pb-24 lg:pt-20 lg:pb-32 overflow-hidden">
+      <section className="relative z-10 pt-12 pb-24 lg:pt-20 lg:pb-32 overflow-hidden">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] h-[500px] glow-conic pointer-events-none blur-3xl opacity-80" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           {/* Announcement Pill Badge */}
@@ -400,7 +402,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
       </section>
 
       {/* WorkflowSection */}
-      <section className="py-20 bg-[#151E32]/30 border-y border-[#263449]" id="how-it-works">
+      <section className="py-20 bg-[#151E32]/30 border-y border-[#263449] relative z-10" id="how-it-works">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <span className="text-xs font-bold tracking-widest text-[#3B82F6] uppercase">
@@ -683,7 +685,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#263449] bg-[#0B1020] pt-16 pb-12 text-[#94A3B8] text-sm">
+      <footer className="border-t border-[#263449] bg-[#0B1020]/90 backdrop-blur-xs pt-16 pb-12 text-[#94A3B8] text-sm relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
             <div className="col-span-2">

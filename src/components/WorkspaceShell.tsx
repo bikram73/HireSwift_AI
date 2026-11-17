@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrandLogo } from './BrandLogo';
+import { AmbientBackground } from './AmbientBackground';
 import { CandidateProfile, WorkspaceRoute } from '../data/atsData';
 import { useAts } from '../context/AtsContext';
 
@@ -237,6 +238,7 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
         {/* Main Viewport */}
         <main className="relative pt-16 bg-[#0B1020] subtle-grid min-h-screen p-4 sm:p-6 lg:p-margin-desktop overflow-x-hidden">
           <div className="pointer-events-none fixed top-16 left-0 lg:left-[250px] right-0 h-[420px] glow-conic blur-3xl opacity-60" />
+          <AmbientBackground className="fixed top-16 left-0 lg:left-[250px] right-0 bottom-0" />
           <div className="pt-4 relative z-10">{children}</div>
         </main>
       </div>
