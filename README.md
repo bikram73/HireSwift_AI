@@ -11,6 +11,11 @@
 ![Express](https://img.shields.io/badge/Express-4.21.2-000000?style=for-the-badge&logo=express&logoColor=white)
 ![Netlify](https://img.shields.io/badge/Netlify-Serverless_Ready-00C7B7?style=for-the-badge&logo=netlify&logoColor=white)
 
+<br />
+
+<a href="https://hireswift-ai.netlify.app/" target="_blank"><img src="https://img.shields.io/badge/🚀%20Live%20Demo-hireswift--ai.netlify.app-4F46E5?style=for-the-badge" /></a>
+<a href="https://github.com/bikram73/HireSwift_AI" target="_blank"><img src="https://img.shields.io/badge/💻%20GitHub-bikram73%2FHireSwift__AI-181717?style=for-the-badge&logo=github" /></a>
+
 </div>
 
 ---
@@ -229,8 +234,8 @@ hireswift-ai/
 
 1. **Clone the repository**
    ```bash
-   git clone <your-repository-url>
-   cd hireswift-ai
+   git clone https://github.com/bikram73/HireSwift_AI.git
+   cd HireSwift_AI
    ```
 
 2. **Install dependencies**
@@ -262,6 +267,8 @@ hireswift-ai/
    ```
 
 ### ☁️ Deploying to Netlify
+**Live Deployment**: [https://hireswift-ai.netlify.app/](https://hireswift-ai.netlify.app/)
+
 This repository is pre-configured with `netlify.toml` and `netlify/functions/api.ts`:
 - **Build command**: `npm run build`
 - **Publish directory**: `dist`
@@ -421,5 +428,7 @@ This project uses the **Apache License 2.0** (`SPDX-License-Identifier: Apache-2
 ## 📬 Contact & Acknowledgements
 
 - **Project**: **HireSwift AI — Smart Applicant Tracking System**
+- **Live App**: [https://hireswift-ai.netlify.app/](https://hireswift-ai.netlify.app/)
+- **GitHub Repository**: [https://github.com/bikram73/HireSwift_AI](https://github.com/bikram73/HireSwift_AI)
 - **Maintainer**: Bikram (`bikram8548@gmail.com`)
 - **Acknowledgements**: Built with **React 19**, **Tailwind CSS**, **Recharts**, **PDF.js**, **Mammoth**, **Express**, **Netlify Functions**, and the **Google GenAI SDK**.
