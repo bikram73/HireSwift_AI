@@ -318,7 +318,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
                 ...f,
                 parsingProgress: 70,
                 hashOrNote: payload.isScannedPdfFallback
-                  ? `Scanned PDF detected · Sending to Gemini OCR...`
+                  ? `Scanned PDF detected · Sending to AI OCR...`
                   : `Hash ${payload.sha256Hash.slice(0, 10)}… · Extracting entities...`,
               }
             : f
@@ -402,7 +402,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
                 parsingStatus: 'parsed',
                 parsingProgress: 100,
                 parsedCandidateDraft: cand,
-                hashOrNote: `${cand.name} · ${cand.matchScore}% match (${json.source === 'gemini-ai' ? 'Gemini AI' : 'Parser'})`,
+                hashOrNote: `${cand.name} · ${cand.matchScore}% match (${json.source === 'gemini-ai' ? 'AI Engine' : 'Parser'})`,
               }
             : f
         )
@@ -517,7 +517,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
             Resume Upload
           </h1>
           <p className="font-body-md text-body-md text-[#94A3B8]">
-            Upload multiple PDF or DOCX resumes for real text extraction, Gemini AI parsing, and duplicate checks.
+            Upload multiple PDF or DOCX resumes for real text extraction, smart AI parsing, and duplicate checks.
           </p>
         </div>
 
@@ -621,7 +621,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
               </label>
 
               <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5 text-on-surface-variant font-mono-code text-[11px]">
-                <span className="bg-surface-container px-2.5 py-1 rounded">✓ PDF.js + Gemini OCR</span>
+                <span className="bg-surface-container px-2.5 py-1 rounded">✓ PDF.js + Smart AI OCR</span>
                 <span className="bg-surface-container px-2.5 py-1 rounded">✓ Mammoth DOCX Parser</span>
                 <span className="bg-surface-container px-2.5 py-1 rounded">✓ SHA-256 Deduplication</span>
               </div>
@@ -795,7 +795,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
                 </h3>
               </div>
               <span className="px-2.5 py-1 rounded-full bg-primary-container text-on-primary-container font-mono-code text-[11px] font-bold">
-                Gemini AI
+                Smart AI
               </span>
             </div>
 

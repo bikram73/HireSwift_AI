@@ -1060,7 +1060,7 @@ export const HelpCenterView: React.FC<{ onNavigate: (r: WorkspaceRoute) => void 
           <span className="material-symbols-outlined text-tertiary">upload_file</span>
           <h3 className="font-headline-sm text-on-surface font-semibold">Bulk Resume Upload</h3>
           <p className="font-body-sm text-on-surface-variant text-xs">
-            Drop multiple PDF or DOCX resumes into Resume Upload for automatic text extraction, Gemini entity parsing, and duplicate checks.
+            Drop multiple PDF or DOCX resumes into Resume Upload for automatic text extraction, smart entity parsing, and duplicate checks.
           </p>
           <button
             type="button"

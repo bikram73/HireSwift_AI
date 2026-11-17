@@ -217,7 +217,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             No candidates in current workspace session
           </h2>
           <p className="font-body-sm text-on-surface-variant max-w-lg mx-auto">
-            Upload PDF or DOCX resumes to parse profiles with Gemini AI, or load the sample recruitment dataset to explore filtering, matching, and pipeline workflows.
+            Upload PDF or DOCX resumes to parse profiles with HireSwift AI, or load the sample recruitment dataset to explore filtering, matching, and pipeline workflows.
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap pt-2">
             <button

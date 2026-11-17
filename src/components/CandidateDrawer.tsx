@@ -250,7 +250,7 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
               <span className={`material-symbols-outlined text-[14px] ${isEvaluating ? 'animate-spin' : ''}`}>
                 {isEvaluating ? 'refresh' : 'auto_awesome'}
               </span>
-              <span>{isEvaluating ? 'Analyzing...' : 'Evaluate with Gemini AI'}</span>
+              <span>{isEvaluating ? 'Analyzing...' : 'Evaluate with AI'}</span>
             </button>
           </div>
         )}
@@ -283,7 +283,7 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
                     Candidate Executive Summary
                   </span>
                   <span className="font-mono-code text-[11px] text-outline">
-                    Gemini AI Parser
+                    Smart AI Parser
                   </span>
                 </div>
                 <p className="font-body-sm text-on-surface-variant leading-relaxed">

@@ -75,7 +75,7 @@ export const AIMatchingView: React.FC<ViewProps> = ({
             Talent Pipeline &amp; Matching
           </h1>
           <p className="font-body-md text-body-md text-[#94A3B8]">
-            Select any open job to compute deterministic weighted fit scores and grounded Gemini explanations.
+            Select any open job to compute deterministic weighted fit scores and grounded AI explanations.
           </p>
         </div>
         <div className="flex items-center gap-space-sm flex-wrap">
@@ -916,14 +916,14 @@ export const JobManagementView: React.FC<{ onNavigate: (r: WorkspaceRoute) => vo
                   <span className={`material-symbols-outlined text-[14px] ${analyzingJd ? 'animate-spin' : ''}`}>
                     {analyzingJd ? 'refresh' : 'auto_awesome'}
                   </span>
-                  <span>{analyzingJd ? 'Analyzing JD...' : 'Analyze JD with Gemini AI'}</span>
+                  <span>{analyzingJd ? 'Analyzing JD...' : 'Analyze JD with AI'}</span>
                 </button>
               </div>
               <textarea
                 rows={4}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Paste job description here and click 'Analyze JD with Gemini AI' to extract required/preferred skills, experience, and qualifications..."
+                placeholder="Paste job description here and click 'Analyze JD with AI' to extract required/preferred skills, experience, and qualifications..."
                 className="w-full p-3 rounded-lg bg-surface-container-highest text-on-surface outline-none resize-none"
               />
             </div>

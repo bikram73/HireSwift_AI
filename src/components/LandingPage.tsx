@@ -91,7 +91,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
           <div className="flex justify-center mb-6">
             <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-[#151E32]/90 border border-[#263449] shadow-inner text-xs sm:text-sm font-medium text-[#F8FAFC]">
               <span className="inline-flex items-center justify-center w-2 h-2 rounded-full bg-[#8B5CF6] animate-pulse" />
-              <span>Powered by Gemini AI ATS Parser</span>
+              <span>Smart AI ATS Parser Engine</span>
               <span className="text-[#263449]">•</span>
               <span className="text-[#8B5CF6] font-semibold">99.4% Extraction Accuracy</span>
             </div>
@@ -311,7 +311,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                 Bulk AI Resume Parsing &amp; OCR
               </h3>
               <p className="text-sm text-[#94A3B8] leading-relaxed">
-                Drag &amp; drop hundreds of PDF, DOCX, or scanned portfolios. Our Gemini parser extracts deep vector tokens, cleans noisy text, and automatically resolves identity duplicates in seconds.
+                Drag &amp; drop hundreds of PDF, DOCX, or scanned portfolios. Our smart AI parser extracts deep vector tokens, cleans noisy text, and automatically resolves identity duplicates in seconds.
               </p>
             </button>
 
@@ -429,7 +429,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
               </div>
               <h3 className="text-lg font-bold text-white mb-2">Neural JD Alignment</h3>
               <p className="text-sm text-[#94A3B8]">
-                Gemini AI compares applicant technical histories against your role&apos;s specific tech stack, assigning a clear % fit score with itemized reasoning.
+                HireSwift AI compares applicant technical histories against your role&apos;s specific tech stack, assigning a clear % fit score with itemized reasoning.
               </p>
             </div>
 
@@ -552,7 +552,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                 <div className="p-4 rounded-xl bg-[#0B1020]/90 border border-[#263449] mb-5">
                   <div className="flex items-center gap-2 mb-2 text-xs font-semibold text-[#8B5CF6]">
                     <Bot className="w-4 h-4" />
-                    <span>Gemini ATS Rationale Summary</span>
+                    <span>AI ATS Rationale Summary</span>
                   </div>
                   <p className="text-xs text-[#94A3B8] leading-relaxed">
                     &quot;Sarah has directed 3 microservice transformations at scale with verifiable metrics (reduced latency by 42%). Meets 9/10 core JD requirements with verified production Kubernetes mastery.&quot;
