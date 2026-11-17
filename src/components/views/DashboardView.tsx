@@ -247,7 +247,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <img
                 alt="AI Engine Visualization"
                 className="w-full h-full object-cover"
-                src="/assets/aistudio/screen_630d9ae4.png"
+                src="/screen_630d9ae4.png"
               />
               <div className="absolute inset-0 bg-primary-container/15 mix-blend-overlay" />
             </div>

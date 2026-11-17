@@ -188,7 +188,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                 <img
                   alt="HireSwift AI Interactive Talent Pipeline & Semantic Matching Dashboard"
                   className="w-full h-full object-cover object-top"
-                  src="/assets/aistudio/screen_630d9ae4.png"
+                  src="/screen_630d9ae4.png"
                 />
                 {/* Floating Badge 1 (Top Left) */}
                 <div className="hidden sm:flex absolute top-5 left-5 items-center gap-3 p-3 rounded-xl bg-[#151E32]/90 backdrop-blur-md border border-[#263449] shadow-xl">
