@@ -100,9 +100,11 @@
    └── Mammoth DOCX raw text extraction
            │
            ▼
-  [3. Structured Entity Parsing (/api/resumes/parse)]
-   ├── Live Gemini AI structured JSON extraction (when GEMINI_API_KEY is configured)
-   └── Automatic Deterministic Regex/NLP Parser fallback (zero downtime without key)
+  [3. 3-Tier AI Entity Parsing (/api/resumes/parse)]
+   ├── Tier 1 (Primary): Gemini (`gemini-3.5-flash-lite` via GEMINI_API_KEY)
+   ├── Tier 2 (Fallback): OpenRouter (`meta-llama/llama-3.3-70b-instruct:free` via OPENROUTER_API_KEY)
+   ├── Tier 3 (Final AI Fallback): Groq (`llama-3.1-8b-instant` via GROQ_API_KEY)
+   └── Tier 4 (Safety Net): Deterministic Regex/NLP Parser (zero downtime without keys)
            │
            ▼
   [4. Weighted Matching & Ranking Engine (atsEngine.ts)]
@@ -169,7 +171,10 @@ HireSwift AI enforces **strict factual grounding**: unverified fields stay `null
 
 ### ⚙️ Backend & AI
 - **Node.js `20+`** & **Express `4.21.2`** — Local/cloud full-stack server with Vite dev middleware
-- **Google GenAI SDK (`@google/genai 3.3.0`)** — Structured JSON schema extraction & analysis
+- **Multi-Provider 3-Tier AI Stack** — Automatic cascading fallback across:
+  - **Tier 1 — Google Gemini (`@google/genai 3.3.0`)**: `gemini-3.5-flash-lite` *(primary multimodal PDF OCR & structured JSON extraction)*
+  - **Tier 2 — OpenRouter API**: `meta-llama/llama-3.3-70b-instruct:free` *(zero-cost cloud JSON fallback)*
+  - **Tier 3 — Groq API**: `llama-3.1-8b-instant` *(ultra-fast low-latency final AI fallback)*
 - **Netlify Functions (`netlify/functions/api.ts`)** — Zero-config serverless API deployment bundled via `esbuild`
 - **Vite `8.3.0`**, **TSX `4.21.0`**, **Dotenv `17.2.3`** — Fast dev server, bundling & environment management
 
@@ -273,29 +278,58 @@ This repository is pre-configured with `netlify.toml` and `netlify/functions/api
 - **Build command**: `npm run build`
 - **Publish directory**: `dist`
 - **Functions directory**: `netlify/functions`
-- **Environment Variable**: Set `GEMINI_API_KEY` inside **Netlify Site Configuration → Environment Variables**.
+- **Environment Variables**: Set your API keys and chosen model IDs (`GEMINI_API_KEY`, `GEMINI_MODEL`, `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`, `GROQ_API_KEY`, `GROQ_MODEL`, `APP_URL`) inside **Netlify Site Configuration → Environment Variables**.
 
 ---
 
 ## 🔑 Gemini API Configuration
 
-HireSwift AI keeps API keys **strictly on the server side** (`server.ts` / `netlify/functions/api.ts`)—never exposed to browser bundles or local storage.
+HireSwift AI keeps all API keys **strictly on the server side** (`server.ts` / `netlify/functions/api.ts`)—never exposed to browser bundles or local storage.
 
-### 📝 Environment Variables (`.env`)
+### 🤖 Configured 3-Tier AI Model Stack
 
-HireSwift AI implements a **3-tier automatic AI fallback chain**: **Gemini → OpenRouter → Groq → Deterministic Local Parser**.
+HireSwift AI implements a **3-tier automatic AI fallback chain** (**Gemini → OpenRouter → Groq → Deterministic Local Parser**):
 
-| Variable | Required | Description |
+| Tier | Provider | Chosen Model ID | Role in HireSwift AI |
+|:---:|:---|:---|:---|
+| **1 (Primary)** | **Google Gemini** | `gemini-3.5-flash-lite` | Primary multimodal PDF OCR, structured resume JSON parsing, JD analysis, matching rationales, and skill-gap coaching. |
+| **2 (Fallback)** | **OpenRouter** | `meta-llama/llama-3.3-70b-instruct:free` | Automatic cloud fallback if Gemini fails, times out, or hits quota limits. |
+| **3 (Final AI)** | **Groq** | `llama-3.1-8b-instant` | Ultra-fast inference safety fallback when both Gemini and OpenRouter fail or are unavailable. |
+| **4 (Local)** | **Heuristic Engine** | Built-in Deterministic Parser | Zero-downtime regex/NLP extraction fallback when no AI provider is reachable. |
+
+### 📝 Environment Variables (`.env` / Netlify)
+
+> ⚠️ **Important**: Put your secret API credentials in the `*_API_KEY` variables and the model names in the `*_MODEL` variables:
+
+```env
+# Tier 1: Primary AI Provider (Gemini)
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=gemini-3.5-flash-lite
+
+# Tier 2: First Model Fallback (OpenRouter)
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+OPENROUTER_MODEL=meta-llama/llama-3.3-70b-instruct:free
+
+# Tier 3: Final AI Model Fallback (Groq)
+GROQ_API_KEY=your_groq_api_key_here
+GROQ_MODEL=llama-3.1-8b-instant
+
+# Optional public app URL (used for OpenRouter HTTP-Referer header)
+APP_URL=https://hireswift-ai.netlify.app
+```
+
+| Variable | Role | Configured Value / Notes |
 |:---|:---:|:---|
-| `GEMINI_API_KEY` | Tier 1 (Primary) | Server-side key for primary AI resume OCR/parsing, JD analysis, matching rationales, and skill-gap coaching. |
-| `GEMINI_MODEL` | Optional | Override default Tier 1 Gemini model (`gemini-4-hydrogen`). |
-| `OPENROUTER_API_KEY` | Tier 2 (Fallback) | Automatically used when Tier 1 fails or is unconfigured (`https://openrouter.ai/api/v1/chat/completions`). |
-| `OPENROUTER_MODEL` | Optional | Override default Tier 2 OpenRouter model (`openai/gpt-4o-mini`). |
-| `GROQ_API_KEY` | Tier 3 (Final AI Fallback) | Automatically used when Tier 2 fails (`https://api.groq.com/openai/v1/chat/completions`). |
-| `GROQ_MODEL` | Optional | Override default Tier 3 Groq model (`llama-3.3-70b-versatile`). |
+| `GEMINI_API_KEY` | Tier 1 Secret | Your Google AI API key from Google AI Studio. |
+| `GEMINI_MODEL` | Tier 1 Model | `gemini-3.5-flash-lite` *(project configured primary model)* |
+| `OPENROUTER_API_KEY` | Tier 2 Secret | Your OpenRouter API key (`https://openrouter.ai/api/v1/chat/completions`). |
+| `OPENROUTER_MODEL` | Tier 2 Model | `meta-llama/llama-3.3-70b-instruct:free` *(project configured fallback model)* |
+| `GROQ_API_KEY` | Tier 3 Secret | Your Groq API key (`https://api.groq.com/openai/v1/chat/completions`). |
+| `GROQ_MODEL` | Tier 3 Model | `llama-3.1-8b-instant` *(project configured final AI fallback model)* |
+| `APP_URL` | Optional | Public deployment URL (e.g. `https://hireswift-ai.netlify.app`). |
 | `PORT` | Optional | Local Express port (defaults to `3000`). |
 
-> 🛡️ **Zero-Downtime Fallback**: If a provider returns an error, rate limit (`429`), timeout, or missing key, requests cascade smoothly **Gemini → OpenRouter → Groq**, with a deterministic heuristic parser as the final safety net.
+> 🛡️ **Zero-Downtime Fallback**: If a provider returns an error, rate limit (`429`), timeout, or missing key, requests cascade smoothly **Gemini (`gemini-3.5-flash-lite`) → OpenRouter (`meta-llama/llama-3.3-70b-instruct:free`) → Groq (`llama-3.1-8b-instant`)**, with a deterministic heuristic parser as the final safety net.
 
 ---
 
@@ -304,11 +338,17 @@ HireSwift AI implements a **3-tier automatic AI fallback chain**: **Gemini → O
 All endpoints are served identically by **Express** (`server.ts`) and **Netlify Functions** (`netlify/functions/api.ts` via `/api/*` rewrite).
 
 ### `GET /api/health`
-Returns server readiness and whether a live Gemini key is configured.
+Returns server readiness, configured AI providers, and active fallback order.
 ```json
 {
   "ok": true,
-  "aiConfigured": true
+  "aiConfigured": true,
+  "providers": {
+    "gemini": true,
+    "openrouter": true,
+    "groq": true
+  },
+  "fallbackOrder": ["gemini", "openrouter", "groq", "deterministic"]
 }
 ```
 
@@ -323,7 +363,7 @@ Extracts structured candidate profile entities from extracted document text or b
     "base64Pdf": "<optional base64 string for scanned PDFs>"
   }
   ```
-- **Response (`200 OK`)**: `{ "parsed": { ...structuredCandidateSchema }, "source": "gemini-ai" | "deterministic-parser" | "fallback-parser" }`
+- **Response (`200 OK`)**: `{ "parsed": { ...structuredCandidateSchema }, "source": "gemini-ai" | "openrouter-ai" | "groq-ai" | "deterministic-parser" | "fallback-parser" }`
 
 ### `POST /api/jobs/analyze`
 Parses raw job description text into structured hiring requirements.
@@ -333,17 +373,17 @@ Parses raw job description text into structured hiring requirements.
     "description": "Senior Full-Stack Engineer (3-5 yrs). Required: React, TypeScript, Node.js, PostgreSQL. Minimum CGPA 7.5..."
   }
   ```
-- **Response (`200 OK`)**: `{ "analysis": { "title": "...", "requiredSkills": [...], "preferredSkills": [...], "minimumExperience": 3, "maximumExperience": 5, "minimumCGPA": 7.5, ... }, "source": "gemini-ai" }`
+- **Response (`200 OK`)**: `{ "analysis": { "title": "...", "requiredSkills": [...], "preferredSkills": [...], "minimumExperience": 3, "maximumExperience": 5, "minimumCGPA": 7.5, ... }, "source": "gemini-ai" | "openrouter-ai" | "groq-ai" | "deterministic-analyzer" }`
 
 ### `POST /api/matching/analyze`
 Generates grounded matching rationale, strengths, potential concerns, and tailored interview questions.
 - **Request Body**: `{ "candidate": { ... }, "job": { ... }, "deterministicScore": { ... } }`
-- **Response (`200 OK`)**: `{ "insights": { "explanation": "...", "decisionRationale": "...", "strongestAreas": [...], "potentialConcerns": [...], "interviewQuestions": [...] }, "source": "gemini-ai" }`
+- **Response (`200 OK`)**: `{ "insights": { "explanation": "...", "decisionRationale": "...", "strongestAreas": [...], "potentialConcerns": [...], "interviewQuestions": [...] }, "source": "gemini-ai" | "openrouter-ai" | "groq-ai" | "deterministic-rubric" }`
 
 ### `POST /api/matching/skill-gap`
 Produces actionable learning paths and portfolio project recommendations based on missing skills.
 - **Request Body**: `{ "candidateName": "...", "candidateSkills": [...], "requiredSkills": [...], "preferredSkills": [...], "jobTitle": "..." }`
-- **Response (`200 OK`)**: `{ "gapAnalysis": { "transferableSkills": [...], "recommendedLearningAreas": [...], "practicalProjectRecommendations": [...], "summary": "..." }, "source": "gemini-ai" }`
+- **Response (`200 OK`)**: `{ "gapAnalysis": { "transferableSkills": [...], "recommendedLearningAreas": [...], "practicalProjectRecommendations": [...], "summary": "..." }, "source": "gemini-ai" | "openrouter-ai" | "groq-ai" | "deterministic-gap" }`
 
 ---
 
@@ -391,7 +431,7 @@ Verified continuously across the codebase:
 ## 🔒 Data Storage & Security
 
 - **Session & Browser Storage**: Candidate profiles, jobs, scoring weights, and activity events are stored cleanly in React state and persisted locally in browser `localStorage`—no external user accounts or remote databases store PII.
-- **Zero Client-Side Secret Exposure**: `GEMINI_API_KEY` is read strictly by server-side Node/serverless handlers (`lib/atsApi.ts`) and never prefixed with `VITE_` or included in frontend JavaScript bundles.
+- **Zero Client-Side Secret Exposure**: `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, and `GROQ_API_KEY` are read strictly by server-side Node/serverless handlers (`lib/atsApi.ts`) and never prefixed with `VITE_` or included in frontend JavaScript bundles.
 - **Transient Document Processing**: Uploaded files stay in browser memory (`URL.createObjectURL` for local preview); only extracted text (or temporary base64 for OCR fallback) is transmitted over `/api/*` during parsing.
 
 ---
