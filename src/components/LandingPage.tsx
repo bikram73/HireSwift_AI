@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Sparkles,
   ChevronRight,
@@ -27,6 +27,7 @@ import {
   ShieldCheck,
   Bot,
   Calendar,
+  X,
 } from 'lucide-react';
 import { WorkspaceRoute } from '../data/atsData';
 import { BrandLogo } from './BrandLogo';
@@ -36,7 +37,26 @@ interface LandingPageProps {
   onEnterWorkspace: (route?: WorkspaceRoute) => void;
 }
 
+type FooterInfoTab = 'privacy' | 'terms' | 'security';
+
 export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) => {
+  const [infoModal, setInfoModal] = useState<FooterInfoTab | null>(null);
+
+  useEffect(() => {
+    if (!infoModal) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setInfoModal(null);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [infoModal]);
+
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
+    e.preventDefault();
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
     <div className="relative min-h-screen bg-[#0B1020] text-[#F8FAFC] antialiased subtle-grid overflow-x-hidden">
@@ -742,7 +762,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                   </button>
                 </li>
                 <li>
-                  <button type="button" onClick={() => onEnterWorkspace('resume-upload')} className="hover:text-white transition-colors cursor-pointer">
+                  <button type="button" onClick={() => onEnterWorkspace('help-center')} className="hover:text-white transition-colors cursor-pointer">
                     ATS Migration Guide
                   </button>
                 </li>
@@ -757,7 +777,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                   </button>
                 </li>
                 <li>
-                  <a className="hover:text-white transition-colors" href="#testimonials">
+                  <a
+                    className="hover:text-white transition-colors"
+                    href="#testimonials"
+                    onClick={(e) => scrollToSection(e, 'testimonials')}
+                  >
                     Customer Stories
                   </a>
                 </li>
@@ -768,7 +792,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
               <p className="text-xs font-bold uppercase tracking-wider text-white mb-4">Company</p>
               <ul className="space-y-2.5 text-xs">
                 <li>
-                  <a className="hover:text-white transition-colors" href="#features">
+                  <a
+                    className="hover:text-white transition-colors"
+                    href="#features"
+                    onClick={(e) => scrollToSection(e, 'features')}
+                  >
                     About Us
                   </a>
                 </li>
@@ -778,17 +806,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                   </button>
                 </li>
                 <li>
-                  <button type="button" onClick={() => onEnterWorkspace('settings')} className="hover:text-white transition-colors cursor-pointer">
+                  <button type="button" onClick={() => setInfoModal('privacy')} className="hover:text-white transition-colors cursor-pointer">
                     Privacy Policy
                   </button>
                 </li>
                 <li>
-                  <button type="button" onClick={() => onEnterWorkspace('settings')} className="hover:text-white transition-colors cursor-pointer">
+                  <button type="button" onClick={() => setInfoModal('terms')} className="hover:text-white transition-colors cursor-pointer">
                     Terms of Service
                   </button>
                 </li>
                 <li>
-                  <button type="button" onClick={() => onEnterWorkspace('settings')} className="hover:text-white transition-colors cursor-pointer">
+                  <button type="button" onClick={() => setInfoModal('security')} className="hover:text-white transition-colors cursor-pointer">
                     Security &amp; SOC2
                   </button>
                 </li>
@@ -831,6 +859,130 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
           </div>
         </div>
       </footer>
+
+      {/* Footer Info / Policy / Security Modal */}
+      {infoModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="footer-info-modal-title"
+          onClick={() => setInfoModal(null)}
+        >
+          <div
+            className="w-full max-w-2xl rounded-2xl bg-[#0F172A] border border-[#263449] shadow-2xl overflow-hidden text-left"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-6 py-4 border-b border-[#263449] flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2.5">
+                <ShieldCheck className="w-5 h-5 text-[#8B5CF6]" />
+                <h2 id="footer-info-modal-title" className="font-heading font-bold text-base text-white">
+                  {infoModal === 'privacy'
+                    ? 'Privacy Policy & Data Handling'
+                    : infoModal === 'terms'
+                      ? 'Terms of Service'
+                      : 'Security Controls & Architecture'}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setInfoModal(null)}
+                aria-label="Close modal"
+                className="p-1.5 rounded-lg text-[#94A3B8] hover:text-white hover:bg-[#1E293B] transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="px-6 pt-4 flex flex-wrap gap-2">
+              {(
+                [
+                  ['privacy', 'Privacy Policy'],
+                  ['terms', 'Terms of Service'],
+                  ['security', 'Security & Controls'],
+                ] as [FooterInfoTab, string][]
+              ).map(([tab, label]) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setInfoModal(tab)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                    infoModal === tab
+                      ? 'bg-[#4F46E5] text-white'
+                      : 'bg-[#151E32] text-[#94A3B8] hover:text-white'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <div className="p-6 space-y-4 text-xs text-[#CBD5E1] leading-relaxed max-h-[60vh] overflow-y-auto">
+              {infoModal === 'privacy' && (
+                <>
+                  <p>
+                    <strong className="text-white">Zero External Database Persistence:</strong> HireSwift AI stores structured recruitment workspace state (jobs, parsed candidate summaries, match scores, and pipeline stages) strictly within your browser session and localStorage.
+                  </p>
+                  <p>
+                    <strong className="text-white">Volatile Raw Resume Text:</strong> Raw extracted resume text previews and uploaded file object URLs stay in volatile memory during your active tab session only and are automatically excluded from browser localStorage and exported session JSON files.
+                  </p>
+                  <p>
+                    <strong className="text-white">Controlled Data Portability:</strong> You can export structured candidate reports (CSV/JSON) or permanently purge all local workspace state at any time from Workspace Settings.
+                  </p>
+                </>
+              )}
+
+              {infoModal === 'terms' && (
+                <>
+                  <p>
+                    <strong className="text-white">Permitted Use:</strong> HireSwift AI is provided as an intelligent applicant tracking and candidate-evaluation workspace to assist recruiting and engineering hiring teams.
+                  </p>
+                  <p>
+                    <strong className="text-white">Transparent Scoring Responsibility:</strong> Automated keyword matching, weighted category rubrics, and AI-extracted summaries are decision-support aids. Final shortlisting, interview, and hiring determinations remain the responsibility of authorized reviewers.
+                  </p>
+                  <p>
+                    <strong className="text-white">Document Limits:</strong> Supported uploads include digital PDF and DOCX resumes (default 4 MB cap for serverless OCR payload compatibility) and exclude encrypted/password-locked documents unless unlocked prior to upload.
+                  </p>
+                </>
+              )}
+
+              {infoModal === 'security' && (
+                <>
+                  <p>
+                    <strong className="text-white">Server-Side AI Key Isolation:</strong> All AI provider credentials (Gemini, OpenRouter, Groq) reside strictly on server endpoints (`/api/*`) and serverless functions, never in the browser bundle or client storage.
+                  </p>
+                  <p>
+                    <strong className="text-white">Resilient Multi-Model & Deterministic Fallback:</strong> Extraction requests execute sequentially across configured AI providers with automatic deterministic rule-based fallback so hiring workflows stay available even without external model connectivity.
+                  </p>
+                  <p>
+                    <strong className="text-white">Integrity & Validation Controls:</strong> SHA-256 content hashing detects duplicate resume submissions, uploaded binaries are validated by header/format signature, and base64 OCR payloads enforce strict size bounds.
+                  </p>
+                </>
+              )}
+            </div>
+
+            <div className="px-6 py-4 border-t border-[#263449] bg-[#0B1020]/60 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setInfoModal(null);
+                  onEnterWorkspace('settings');
+                }}
+                className="text-xs font-medium text-[#8B5CF6] hover:text-white transition-colors cursor-pointer"
+              >
+                Manage Data in Settings →
+              </button>
+              <button
+                type="button"
+                onClick={() => setInfoModal(null)}
+                className="px-4 py-2 rounded-lg bg-[#151E32] hover:bg-[#1E293B] border border-[#263449] text-white text-xs font-semibold cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

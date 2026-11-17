@@ -2,9 +2,10 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CandidateDrawer } from '../src/components/CandidateDrawer';
+import { LandingPage } from '../src/components/LandingPage';
 import { CandidatesView } from '../src/components/views/CandidatesView';
 import { DashboardView } from '../src/components/views/DashboardView';
-import { EmailCenterView, SettingsView } from '../src/components/views/OperationsViews';
+import { EmailCenterView, HelpCenterView, SettingsView } from '../src/components/views/OperationsViews';
 import { ResumeUploadView } from '../src/components/views/ResumeUploadView';
 import {
   CompareCandidatesView,
@@ -283,5 +284,54 @@ describe('UI Integration & Defect Verification (PRD Modules 4–23)', () => {
     );
     expect(screen.getByText('Workspace Settings')).toBeInTheDocument();
     spy.mockRestore();
+  });
+
+  it('LAND-FOOTER: All footer buttons, social links, and Privacy/Terms/Security modal tabs work', () => {
+    const onEnterWorkspace = vi.fn();
+    render(<LandingPage onEnterWorkspace={onEnterWorkspace} />);
+
+    // Social links: GitHub + YouTube only (Twitter/X and LinkedIn removed)
+    expect(screen.queryByText(/Twitter \/ X/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^LinkedIn$/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /HireSwift AI on GitHub/i })).toHaveAttribute(
+      'href',
+      'https://github.com/bikram73/HireSwift_AI'
+    );
+    expect(screen.getByRole('link', { name: /HireSwift AI on YouTube/i })).toHaveAttribute(
+      'href',
+      'https://www.youtube.com/@bikramtechzzz'
+    );
+
+    // Product / Resources / Company workspace buttons
+    fireEvent.click(screen.getByRole('button', { name: 'Resume Parser OCR' }));
+    expect(onEnterWorkspace).toHaveBeenCalledWith('resume-upload');
+    fireEvent.click(screen.getByRole('button', { name: 'API & Integrations' }));
+    expect(onEnterWorkspace).toHaveBeenCalledWith('settings');
+    fireEvent.click(screen.getByRole('button', { name: 'ATS Migration Guide' }));
+    expect(onEnterWorkspace).toHaveBeenCalledWith('help-center');
+
+    // Privacy Policy -> Terms -> Security modal
+    fireEvent.click(screen.getByRole('button', { name: 'Privacy Policy' }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText(/Volatile Raw Resume Text/i)).toBeInTheDocument();
+
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Terms of Service' }));
+    expect(screen.getByText(/Transparent Scoring Responsibility/i)).toBeInTheDocument();
+
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: /Security & Controls/i }));
+    expect(screen.getByText(/Server-Side AI Key Isolation/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close modal' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    // HelpCenter & Settings API reference destination content
+    render(
+      <AtsProvider>
+        <HelpCenterView onNavigate={onEnterWorkspace} />
+        <SettingsView />
+      </AtsProvider>
+    );
+    expect(screen.getByText('Documentation, Migration & Shortcuts')).toBeInTheDocument();
+    expect(screen.getByText('POST /api/resumes/parse')).toBeInTheDocument();
   });
 });

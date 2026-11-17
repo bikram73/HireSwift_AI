@@ -1056,14 +1056,44 @@ export const SettingsView: React.FC = () => {
               </button>
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={() => setConfirmClearSession(true)}
-              className="px-3.5 py-2 rounded-xl bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 font-medium cursor-pointer"
-            >
-              Clear Session Data
-            </button>
-          )}
+              <button
+                type="button"
+                onClick={() => setConfirmClearSession(true)}
+                className="px-3.5 py-2 rounded-xl bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 font-medium cursor-pointer"
+              >
+                Clear Session Data
+              </button>
+            )}
+        </div>
+      </div>
+
+      {/* API & Model Pipeline Reference (for Footer "API & Integrations") */}
+      <div className="rounded-2xl glass-card p-5 space-y-3 text-xs">
+        <div>
+          <h3 className="font-headline-sm text-on-surface font-semibold">
+            API &amp; Multi-Model Fallback Integration
+          </h3>
+          <p className="text-on-surface-variant mt-1">
+            Server-side endpoints route AI extraction requests sequentially through Gemini, OpenRouter, Groq, and deterministic fallback logic so API keys remain isolated on the backend.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 font-mono-code text-[11px]">
+          <div className="p-3 rounded-xl bg-surface-container border border-[#263449]/70">
+            <span className="text-primary font-semibold block">POST /api/resumes/parse</span>
+            <span className="text-outline">Structured PDF/DOCX &amp; scanned OCR parsing</span>
+          </div>
+          <div className="p-3 rounded-xl bg-surface-container border border-[#263449]/70">
+            <span className="text-primary font-semibold block">POST /api/jobs/analyze</span>
+            <span className="text-outline">Automated JD skill, CGPA &amp; experience extraction</span>
+          </div>
+          <div className="p-3 rounded-xl bg-surface-container border border-[#263449]/70">
+            <span className="text-primary font-semibold block">POST /api/matching/analyze</span>
+            <span className="text-outline">Weighted candidate-to-job scoring breakdown</span>
+          </div>
+          <div className="p-3 rounded-xl bg-surface-container border border-[#263449]/70">
+            <span className="text-primary font-semibold block">POST /api/matching/skill-gap</span>
+            <span className="text-outline">Transferable skills &amp; upskilling recommendations</span>
+          </div>
         </div>
       </div>
     </div>
@@ -1080,10 +1110,10 @@ export const HelpCenterView: React.FC<{ onNavigate: (r: WorkspaceRoute) => void 
     <div className="flex flex-col w-full gap-space-xl max-w-4xl">
       <div>
         <h1 className="font-heading font-extrabold text-headline-lg text-white">
-          Help Center &amp; Shortcuts
+          Documentation, Migration &amp; Shortcuts
         </h1>
         <p className="font-body-md text-body-md text-[#94A3B8]">
-          Quick guide to using HireSwift AI across resume parsing, weighted scoring, and pipeline tracking.
+          Quick guide to using HireSwift AI across resume parsing, ATS migration, weighted scoring, and pipeline tracking.
         </p>
       </div>
 
@@ -1095,6 +1125,7 @@ export const HelpCenterView: React.FC<{ onNavigate: (r: WorkspaceRoute) => void 
             Press <kbd className="px-1.5 py-0.5 rounded bg-surface-container-high font-mono-code">⌘K</kbd> or <kbd className="px-1.5 py-0.5 rounded bg-surface-container-high font-mono-code">Ctrl+K</kbd> anywhere to jump directly to candidates, jobs, or modules.
           </p>
         </div>
+
         <div className="rounded-2xl glass-card p-5 space-y-2">
           <span className="material-symbols-outlined text-tertiary">upload_file</span>
           <h3 className="font-headline-sm text-on-surface font-semibold">Bulk Resume Upload</h3>
@@ -1108,6 +1139,54 @@ export const HelpCenterView: React.FC<{ onNavigate: (r: WorkspaceRoute) => void 
           >
             Go to Resume Upload →
           </button>
+        </div>
+
+        <div className="rounded-2xl glass-card p-5 space-y-2">
+          <span className="material-symbols-outlined text-emerald-400">move_up</span>
+          <h3 className="font-headline-sm text-on-surface font-semibold">ATS Migration Guide</h3>
+          <p className="font-body-sm text-on-surface-variant text-xs">
+            Migrate existing talent pools in minutes: batch-upload legacy PDF/DOCX packets with SHA-256 deduplication, configure weighted scoring rubrics, and export structured CSV or JSON reports.
+          </p>
+          <div className="flex flex-wrap gap-3 pt-1">
+            <button
+              type="button"
+              onClick={() => onNavigate('resume-upload')}
+              className="text-xs text-primary hover:underline cursor-pointer"
+            >
+              Start Bulk Import →
+            </button>
+            <button
+              type="button"
+              onClick={() => onNavigate('settings')}
+              className="text-xs text-tertiary hover:underline cursor-pointer"
+            >
+              Session JSON Backup →
+            </button>
+          </div>
+        </div>
+
+        <div className="rounded-2xl glass-card p-5 space-y-2">
+          <span className="material-symbols-outlined text-amber-400">tune</span>
+          <h3 className="font-headline-sm text-on-surface font-semibold">Weighted Scoring &amp; Rubrics</h3>
+          <p className="font-body-sm text-on-surface-variant text-xs">
+            Candidates are scored dynamically across Technical Skills (35%), Experience (20%), Education (15%), Projects (15%), Responsibilities (10%), and Certifications (5%). Customize weights anytime in Settings.
+          </p>
+          <div className="flex flex-wrap gap-3 pt-1">
+            <button
+              type="button"
+              onClick={() => onNavigate('ai-matching')}
+              className="text-xs text-primary hover:underline cursor-pointer"
+            >
+              Open AI Matching →
+            </button>
+            <button
+              type="button"
+              onClick={() => onNavigate('skill-gap-analysis')}
+              className="text-xs text-tertiary hover:underline cursor-pointer"
+            >
+              View Skill Gap Rubrics →
+            </button>
+          </div>
         </div>
       </div>
     </div>
