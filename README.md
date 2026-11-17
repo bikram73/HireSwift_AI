@@ -77,7 +77,7 @@
 - **🔍 Skill Gap Analysis (`skill-gap-analysis`)**: Distinguishes mandatory vs. optional skill gaps, highlights transferable strengths, and generates targeted learning areas & practical project recommendations.
 - **✉️ Email Center (`email-center`)**: Dynamic recruiter templates (Interview Invite, Shortlist Update, Offer Letter, Rejection Feedback) with auto-populated candidate/job variables, custom editing, `.eml` / clipboard export, and activity tracking.
 - **📉 Reports (`reports`)**: Visual analytics across hiring funnel conversion, source/skill distribution, and downloadable CSV / JSON executive summaries.
-- **⚙️ Settings & ❓ Help Center (`settings`, `help-center`)**: Configurable scoring rubric weights, max upload file size limit, dark/light theme toggle, demo dataset import/reset, session JSON export/clear, and interactive documentation.
+- **⚙️ Settings & ❓ Help Center (`settings`, `help-center`)**: Configurable scoring rubric weights, max upload file size limit, demo dataset import/reset, session JSON export/clear, and interactive documentation.
 - **🪪 Slide-Over Candidate Profile Drawer (`CandidateDrawer`)**: Full candidate dossier with tabs for Overview, Academics (10th/12th/UG/PG), Work & Projects, Resume Preview, and Timeline + quick stage actions.
 
 ---

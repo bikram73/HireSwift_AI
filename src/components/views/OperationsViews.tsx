@@ -828,12 +828,10 @@ export const ReportsView: React.FC = () => {
 };
 
 /* -------------------------------------------------------------------------- */
-/* 4. SETTINGS VIEW (Page 14: Theme, Scoring Weights, Session Data Control)   */
+/* 4. SETTINGS VIEW (Scoring Weights, Upload Limits, Session Data Control)    */
 /* -------------------------------------------------------------------------- */
 export const SettingsView: React.FC = () => {
   const {
-    theme,
-    toggleTheme,
     scoringWeights,
     updateScoringWeights,
     maxFileSizeMb,
@@ -872,27 +870,12 @@ export const SettingsView: React.FC = () => {
           Workspace Settings
         </h1>
         <p className="font-body-md text-body-md text-[#94A3B8]">
-          Configure appearance, weighted matching formula, upload limits, and local session data.
+          Configure weighted matching formula, upload limits, and local session data.
         </p>
       </div>
 
-      {/* Appearance & Upload Config */}
+      {/* Upload Config */}
       <div className="rounded-2xl glass-card p-5 space-y-4">
-        <div className="flex items-center justify-between pb-4 border-b border-[#263449]">
-          <div>
-            <p className="font-body-md text-on-surface font-semibold">Workspace Theme</p>
-            <p className="font-body-sm text-on-surface-variant text-xs">
-              Switch between Dark Navy + Electric Blue + Violet and clean Light mode.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="px-4 py-2 rounded-xl bg-surface-container-high text-xs font-semibold text-on-surface cursor-pointer border border-[#263449]"
-          >
-            Current: {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
-          </button>
-        </div>
 
         <div className="flex items-center justify-between">
           <div>

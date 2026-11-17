@@ -178,24 +178,3 @@
   );
 }
 
-/* Optional Light Theme Support */
-html.light-mode body {
-  background-color: #f1f5f9;
-  color: #0f172a;
-}
-
-html.light-mode .glass-card {
-  background: rgba(255, 255, 255, 0.92);
-  border-color: #cbd5e1;
-  color: #0f172a;
-}
-
-html.light-mode .glass-card h1,
-html.light-mode .glass-card h2,
-html.light-mode .glass-card h3,
-html.light-mode .glass-card h4,
-html.light-mode .glass-card .text-white,
-html.light-mode .glass-card .text-on-surface {
-  color: #0f172a;
-}
-

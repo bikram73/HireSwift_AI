@@ -27,7 +27,6 @@ interface PersistedSession {
   activities: ActivityEvent[];
   scoringWeights: ScoringWeights;
   maxFileSizeMb: number;
-  theme: 'dark' | 'light';
   selectedJobId: string;
   compareIds: string[];
   aiMatchCache: Record<string, Partial<MatchResult>>;
@@ -39,7 +38,6 @@ interface AtsContextValue {
   activities: ActivityEvent[];
   scoringWeights: ScoringWeights;
   maxFileSizeMb: number;
-  theme: 'dark' | 'light';
   selectedJobId: string;
   selectedJob: JobPosting | null;
   compareIds: string[];
@@ -68,8 +66,6 @@ interface AtsContextValue {
   setCompareIds: (ids: string[]) => void;
   updateScoringWeights: (weights: ScoringWeights) => void;
   setMaxFileSizeMb: (mb: number) => void;
-  toggleTheme: () => void;
-  setTheme: (t: 'dark' | 'light') => void;
   resetDemoData: () => void;
   clearSessionData: () => void;
   importDemoDataset: () => void;
@@ -91,7 +87,6 @@ function loadInitialSession(): PersistedSession {
           activities: Array.isArray(parsed.activities) ? parsed.activities : DEMO_ACTIVITIES,
           scoringWeights: parsed.scoringWeights ?? DEFAULT_SCORING_WEIGHTS,
           maxFileSizeMb: parsed.maxFileSizeMb ?? 10,
-          theme: parsed.theme ?? 'dark',
           selectedJobId: parsed.selectedJobId ?? (parsed.jobs[0]?.id || ''),
           compareIds: Array.isArray(parsed.compareIds) ? parsed.compareIds : ['cand-1', 'cand-2', 'cand-7'],
           aiMatchCache: parsed.aiMatchCache ?? {},
@@ -107,7 +102,6 @@ function loadInitialSession(): PersistedSession {
     activities: DEMO_ACTIVITIES,
     scoringWeights: DEFAULT_SCORING_WEIGHTS,
     maxFileSizeMb: 10,
-    theme: 'dark',
     selectedJobId: DEMO_JOBS[0].id,
     compareIds: ['cand-1', 'cand-2', 'cand-7'],
     aiMatchCache: {},
@@ -122,7 +116,6 @@ export const AtsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activities, setActivities] = useState<ActivityEvent[]>(initial.activities);
   const [scoringWeights, setScoringWeights] = useState<ScoringWeights>(initial.scoringWeights);
   const [maxFileSizeMb, setMaxFileSizeMb] = useState<number>(initial.maxFileSizeMb);
-  const [theme, setTheme] = useState<'dark' | 'light'>(initial.theme);
   const [selectedJobId, setSelectedJobId] = useState<string>(initial.selectedJobId);
   const [compareIds, setCompareIds] = useState<string[]>(initial.compareIds);
   const [aiMatchCache, setAiMatchCache] = useState<Record<string, Partial<MatchResult>>>(
@@ -133,9 +126,9 @@ export const AtsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [aiLoadingKey, setAiLoadingKey] = useState<string | null>(null);
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-    document.documentElement.classList.toggle('light-mode', theme === 'light');
-  }, [theme]);
+    document.documentElement.classList.add('dark');
+    document.documentElement.classList.remove('light-mode');
+  }, []);
 
   useEffect(() => {
     try {
@@ -146,7 +139,6 @@ export const AtsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         activities: activities.slice(0, 25),
         scoringWeights,
         maxFileSizeMb,
-        theme,
         selectedJobId,
         compareIds,
         aiMatchCache,
@@ -161,7 +153,6 @@ export const AtsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     activities,
     scoringWeights,
     maxFileSizeMb,
-    theme,
     selectedJobId,
     compareIds,
     aiMatchCache,
@@ -496,10 +487,6 @@ export const AtsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast('Updated matching score weights and recalculated rankings');
   };
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  };
-
   const resetDemoData = () => {
     setCandidates(DEMO_CANDIDATES);
     setJobs(DEMO_JOBS);
@@ -543,7 +530,6 @@ export const AtsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         activities,
         scoringWeights,
         maxFileSizeMb,
-        theme,
         selectedJobId,
         selectedJob,
         compareIds,
@@ -568,8 +554,6 @@ export const AtsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setCompareIds,
         updateScoringWeights,
         setMaxFileSizeMb,
-        toggleTheme,
-        setTheme,
         resetDemoData,
         clearSessionData,
         importDemoDataset,
