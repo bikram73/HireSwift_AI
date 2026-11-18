@@ -32,6 +32,7 @@ import {
   BarChart3,
   Settings,
   HelpCircle,
+  ChevronDown,
 } from 'lucide-react';
 import { WorkspaceRoute } from '../data/atsData';
 import { BrandLogo } from './BrandLogo';
@@ -169,9 +170,43 @@ const MATCH_TIERS = [
   { range: '0 – 39', label: 'Poor Match', tone: 'text-rose-400' },
 ];
 
+const FAQ_ITEMS: { question: string; answer: string }[] = [
+  {
+    question: 'What resume file formats and file sizes does HireSwift AI support?',
+    answer:
+      'HireSwift AI supports digital .pdf files, .docx (Word OpenXML) documents, and scanned image-only PDFs (processed via server-side Gemini OCR). Legacy binary .doc files are rejected with guidance to save as .docx or .pdf. The default upload limit is 4 MB (configurable in Workspace Settings) with a 5.8 MB base64 OCR payload guard for serverless compatibility.',
+  },
+  {
+    question: 'Does HireSwift AI work without external AI API keys?',
+    answer:
+      'Yes. When configured, AI parsing and explanations cascade automatically from Google Gemini (gemini-3.5-flash-lite) to OpenRouter (llama-3.3-70b-instruct:free) and Groq (llama-3.1-8b-instant). If no API keys are provided or an external provider is unavailable, the built-in deterministic regex/NLP parser and 6-category scoring engine keep every workflow operational with zero downtime.',
+  },
+  {
+    question: 'How is each candidate match score calculated?',
+    answer:
+      'Match scores (0–100) are calculated deterministically in the browser across 6 customizable categories: Technical Skills (35%), Experience (20%), Education & Academics (15%), Projects & Practical Work (15%), Responsibilities Fit (10%), and Certifications (5%). Technical aliases like py, js, reactjs, k8s, and genai normalize automatically, and missing CGPA values receive a neutral baseline instead of zero.',
+  },
+  {
+    question: 'How does HireSwift AI detect duplicate resumes?',
+    answer:
+      'Before saving, the browser computes a Web Crypto SHA-256 checksum on every uploaded file and checks candidate emails, phone numbers, and profile signatures. Exact and potential duplicates are flagged directly in the Upload Queue so you can inspect the overlap and decide whether to merge, skip, or keep the submission.',
+  },
+  {
+    question: 'Where is candidate and job data stored, and what happens when deleting?',
+    answer:
+      'All jobs, parsed candidate profiles, match scores, weights, and pipeline stages are persisted strictly in your browser localStorage—no external database stores your data. Raw extracted resume text previews and uploaded file object URLs stay in volatile tab memory only, and deleting an individual candidate or clearing all candidates always prompts for explicit permission first.',
+  },
+  {
+    question: 'Can I add custom job roles from a JD file or export hiring reports?',
+    answer:
+      'Yes. You can add custom target job roles directly from Resume Upload or Job Management by pasting raw job description text or uploading a .pdf/.docx JD document for automatic requirement extraction. You can also export ranked leaderboards and reports as CSV or JSON, download full session backups in Settings, or save candidate outreach drafts as .eml files in Email Center.',
+  },
+];
+
 export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) => {
   const [infoModal, setInfoModal] = useState<FooterInfoTab | null>(null);
   const [moduleFilter, setModuleFilter] = useState<ModuleCategory>('all');
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
   const visibleModules =
     moduleFilter === 'all'
@@ -258,8 +293,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
             <a className="hover:text-white transition-colors duration-150 whitespace-nowrap" href="#project-details">
               Architecture
             </a>
-            <a className="hover:text-white transition-colors duration-150 whitespace-nowrap" href="#testimonials">
-              Guarantees
+            <a className="hover:text-white transition-colors duration-150 whitespace-nowrap" href="#faq">
+              FAQ
             </a>
           </nav>
 
@@ -1027,6 +1062,65 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
         </div>
       </section>
 
+      {/* QuestionsAndAnswersSection */}
+      <section className="py-20 sm:py-24 relative z-10" id="faq">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <span className="text-xs font-bold tracking-widest text-[#8B5CF6] uppercase">
+              Questions &amp; Answers
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-heading font-extrabold text-white mt-2 text-balance">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-sm sm:text-base text-[#94A3B8] mt-3">
+              Clear answers on supported formats, AI fallback behavior, scoring math, duplicate detection, and browser storage.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {FAQ_ITEMS.map((item, idx) => {
+              const isOpen = openFaqIndex === idx;
+              const panelId = `faq-answer-${idx}`;
+              const buttonId = `faq-question-${idx}`;
+              return (
+                <div
+                  key={item.question}
+                  className="glass-card rounded-2xl border border-[#263449] overflow-hidden transition-colors"
+                >
+                  <button
+                    id={buttonId}
+                    type="button"
+                    aria-expanded={isOpen}
+                    aria-controls={panelId}
+                    onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
+                    className="w-full min-h-[56px] px-5 sm:px-6 py-4 text-left flex items-center justify-between gap-4 hover:bg-[#1B2740]/40 transition-colors cursor-pointer"
+                  >
+                    <span className="text-sm sm:text-base font-heading font-semibold text-white">
+                      {item.question}
+                    </span>
+                    <ChevronDown
+                      className={`w-4 h-4 text-[#8B5CF6] shrink-0 transition-transform duration-200 ${
+                        isOpen ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
+                  {isOpen && (
+                    <div
+                      id={panelId}
+                      role="region"
+                      aria-labelledby={buttonId}
+                      className="px-5 sm:px-6 pb-5 pt-1 text-xs sm:text-sm text-[#94A3B8] leading-relaxed border-t border-[#263449]/60"
+                    >
+                      {item.answer}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* FinalCallToAction */}
       <section className="py-16 sm:py-20 relative overflow-hidden" id="get-started">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -1145,6 +1239,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                     onClick={(e) => scrollToSection(e, 'testimonials')}
                   >
                     System Guarantees
+                  </a>
+                </li>
+                <li>
+                  <a
+                    className="hover:text-white transition-colors"
+                    href="#faq"
+                    onClick={(e) => scrollToSection(e, 'faq')}
+                  >
+                    Questions &amp; Answers
                   </a>
                 </li>
               </ul>
