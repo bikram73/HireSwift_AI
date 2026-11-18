@@ -24,6 +24,14 @@ import {
   Calendar,
   X,
   Database,
+  LayoutDashboard,
+  Users,
+  Briefcase,
+  Award,
+  SearchCheck,
+  BarChart3,
+  Settings,
+  HelpCircle,
 } from 'lucide-react';
 import { WorkspaceRoute } from '../data/atsData';
 import { BrandLogo } from './BrandLogo';
@@ -34,9 +42,173 @@ interface LandingPageProps {
 }
 
 type FooterInfoTab = 'privacy' | 'terms' | 'security';
+type ModuleCategory = 'all' | 'intake' | 'evaluation' | 'operations';
+
+const WORKSPACE_MODULES: {
+  route: WorkspaceRoute;
+  title: string;
+  category: Exclude<ModuleCategory, 'all'>;
+  categoryLabel: string;
+  summary: string;
+}[] = [
+  {
+    route: 'dashboard',
+    title: 'Executive Dashboard',
+    category: 'intake',
+    categoryLabel: 'Overview',
+    summary: '8 live KPI cards, application trends, conversion funnel, stage distribution donut, top skills, and activity log.',
+  },
+  {
+    route: 'candidates',
+    title: 'Candidates Directory',
+    category: 'intake',
+    categoryLabel: 'Cohort Filtering',
+    summary: 'Searchable repository with bulk actions, CSV export, and slide-in filters for CGPA, 10th/12th %, degree, college, and AND/OR skills.',
+  },
+  {
+    route: 'resume-upload',
+    title: 'Bulk Resume Upload',
+    category: 'intake',
+    categoryLabel: 'Ingestion & OCR',
+    summary: 'Multi-file PDF & DOCX drag-and-drop queue with SHA-256 duplicate detection, scanned PDF OCR, and editable draft review.',
+  },
+  {
+    route: 'job-management',
+    title: 'Job Management',
+    category: 'intake',
+    categoryLabel: 'Requisitions',
+    summary: 'Create, edit, pause, or close roles with an AI JD Analyzer that extracts required vs. preferred skills from pasted or uploaded JDs.',
+  },
+  {
+    route: 'job-details',
+    title: 'Job Details & Cohort',
+    category: 'intake',
+    categoryLabel: 'Role Scope',
+    summary: 'Inspect role requirements, experience bounds, minimum CGPA criteria, and applicants scoped to a specific requisition.',
+  },
+  {
+    route: 'ai-matching',
+    title: 'AI Matching & Rationale',
+    category: 'evaluation',
+    categoryLabel: 'Scoring Engine',
+    summary: '6-axis breakdown across Skills, Experience, Education, Projects, Certifications, and Responsibilities plus interview questions.',
+  },
+  {
+    route: 'candidate-ranking',
+    title: 'Candidate Ranking',
+    category: 'evaluation',
+    categoryLabel: 'Leaderboard',
+    summary: 'Job-scoped ranked leaderboard with live scoring weight sliders, instant recalculation, and CSV export.',
+  },
+  {
+    route: 'compare-candidates',
+    title: 'Compare Candidates',
+    category: 'evaluation',
+    categoryLabel: '4-Up Matrix',
+    summary: 'Side-by-side matrix for up to 4 finalists contrasting match score, skill overlap, academics, experience, and recommendations.',
+  },
+  {
+    route: 'skill-gap-analysis',
+    title: 'Skill Gap Analysis',
+    category: 'evaluation',
+    categoryLabel: 'Diagnostics',
+    summary: 'Separates mandatory vs. optional gaps, surfaces transferable skills, and suggests practical learning projects.',
+  },
+  {
+    route: 'hiring-pipeline',
+    title: 'Hiring Pipeline',
+    category: 'operations',
+    categoryLabel: 'Kanban Board',
+    summary: '5-stage interactive board (Applied, Shortlisted, Interview, Offer, Rejected) with drag-and-drop transitions and recruiter notes.',
+  },
+  {
+    route: 'email-center',
+    title: 'Email Center',
+    category: 'operations',
+    categoryLabel: 'Outreach',
+    summary: 'Dynamic Interview Invite, Shortlist Update, Offer Letter, and Rejection templates with clipboard copy and .eml file download.',
+  },
+  {
+    route: 'reports',
+    title: 'Reports & Exports',
+    category: 'operations',
+    categoryLabel: 'Analytics',
+    summary: 'Funnel conversion metrics, skill distribution charts, and downloadable CSV and JSON executive hiring reports.',
+  },
+  {
+    route: 'settings',
+    title: 'Workspace Settings',
+    category: 'operations',
+    categoryLabel: 'Configuration',
+    summary: 'Customize rubric weights, upload size cap, demo dataset reset, JSON export, and full localStorage session management.',
+  },
+  {
+    route: 'help-center',
+    title: 'Help Center & Shortcuts',
+    category: 'operations',
+    categoryLabel: 'Documentation',
+    summary: 'Interactive user guide, ATS workflow walkthrough, keyboard shortcuts (Ctrl+K / Cmd+K), and API endpoint reference.',
+  },
+];
+
+const SCORING_RUBRIC = [
+  { label: 'Technical Skills', weight: '35%', detail: '80% required skills + 20% preferred skills with alias normalization (py, k8s, reactjs, genai)' },
+  { label: 'Experience', weight: '20%', detail: 'Evaluates years against job min/max bounds and distinguishes internships from full-time roles' },
+  { label: 'Education & Academics', weight: '15%', detail: 'Compares verified CGPA against role cutoff (neutral 72 baseline when unstated)' },
+  { label: 'Projects & Practical Work', weight: '15%', detail: 'Measures project/internship volume and required tech stack overlap in deliverables' },
+  { label: 'Responsibilities Fit', weight: '10%', detail: 'Evaluates domain keyword alignment across candidate summaries and highlights' },
+  { label: 'Certifications', weight: '5%', detail: 'Checks target job certifications alongside verified industry credentials' },
+];
+
+const MATCH_TIERS = [
+  { range: '90 – 100', label: 'Excellent Match', tone: 'text-emerald-400' },
+  { range: '80 – 89', label: 'Strong Match', tone: 'text-sky-400' },
+  { range: '70 – 79', label: 'Good Match', tone: 'text-violet-400' },
+  { range: '60 – 69', label: 'Moderate Match', tone: 'text-amber-400' },
+  { range: '40 – 59', label: 'Low Match', tone: 'text-orange-400' },
+  { range: '0 – 39', label: 'Poor Match', tone: 'text-rose-400' },
+];
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) => {
   const [infoModal, setInfoModal] = useState<FooterInfoTab | null>(null);
+  const [moduleFilter, setModuleFilter] = useState<ModuleCategory>('all');
+
+  const visibleModules =
+    moduleFilter === 'all'
+      ? WORKSPACE_MODULES
+      : WORKSPACE_MODULES.filter((mod) => mod.category === moduleFilter);
+
+  const renderModuleIcon = (route: WorkspaceRoute) => {
+    switch (route) {
+      case 'dashboard':
+        return <LayoutDashboard className="w-4 h-4" />;
+      case 'candidates':
+        return <Users className="w-4 h-4" />;
+      case 'resume-upload':
+        return <UploadCloud className="w-4 h-4" />;
+      case 'job-management':
+      case 'job-details':
+        return <Briefcase className="w-4 h-4" />;
+      case 'ai-matching':
+        return <BrainCircuit className="w-4 h-4" />;
+      case 'candidate-ranking':
+        return <Award className="w-4 h-4" />;
+      case 'compare-candidates':
+        return <Columns className="w-4 h-4" />;
+      case 'skill-gap-analysis':
+        return <SearchCheck className="w-4 h-4" />;
+      case 'hiring-pipeline':
+        return <Trello className="w-4 h-4" />;
+      case 'email-center':
+        return <MailCheck className="w-4 h-4" />;
+      case 'reports':
+        return <BarChart3 className="w-4 h-4" />;
+      case 'settings':
+        return <Settings className="w-4 h-4" />;
+      case 'help-center':
+        return <HelpCircle className="w-4 h-4" />;
+    }
+  };
 
   useEffect(() => {
     if (!infoModal) return;
@@ -82,6 +254,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
             </a>
             <a className="hover:text-white transition-colors duration-150 whitespace-nowrap" href="#pipeline">
               AI Matching
+            </a>
+            <a className="hover:text-white transition-colors duration-150 whitespace-nowrap" href="#project-details">
+              Architecture
             </a>
             <a className="hover:text-white transition-colors duration-150 whitespace-nowrap" href="#testimonials">
               Guarantees
@@ -595,6 +770,196 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                     Open AI Matching
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ProjectArchitectureAndModulesSection */}
+      <section className="py-20 sm:py-24 border-t border-[#263449] relative z-10" id="project-details">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+          {/* Complete 14-Module Workspace Directory */}
+          <div>
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
+              <div className="max-w-2xl">
+                <p className="text-xs font-semibold uppercase tracking-widest text-[#8B5CF6] mb-2">
+                  Complete Platform Inventory
+                </p>
+                <h2 className="text-2xl sm:text-4xl font-heading font-extrabold text-white text-balance">
+                  Inside the 14-Module ATS Workspace
+                </h2>
+                <p className="text-sm sm:text-base text-[#94A3B8] mt-2 leading-relaxed">
+                  Click any module below to jump directly into that view, or press <span className="font-mono text-white">Ctrl+K</span> / <span className="font-mono text-white">Cmd+K</span> inside the workspace to search candidates, jobs, and pages.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-1.5 p-1.5 rounded-xl bg-[#151E32]/90 border border-[#263449] self-start lg:self-auto">
+                {(
+                  [
+                    ['all', 'All Modules (14)'],
+                    ['intake', 'Intake & Jobs'],
+                    ['evaluation', 'AI & Scoring'],
+                    ['operations', 'Pipeline & Ops'],
+                  ] as [ModuleCategory, string][]
+                ).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setModuleFilter(key)}
+                    className={`px-3 py-2 min-h-[36px] rounded-lg text-xs font-semibold transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                      moduleFilter === key
+                        ? 'bg-[#4F46E5] text-white shadow-sm'
+                        : 'text-[#94A3B8] hover:text-white'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {visibleModules.map((mod) => (
+                <button
+                  key={mod.route}
+                  type="button"
+                  onClick={() => onEnterWorkspace(mod.route)}
+                  className="text-left glass-card rounded-2xl p-5 border border-[#263449] hover:border-[#4F46E5]/70 transition-all duration-200 group flex flex-col justify-between gap-4 cursor-pointer"
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <span className="w-8 h-8 rounded-lg bg-[#1B2740] border border-[#263449] text-[#8B5CF6] flex items-center justify-center group-hover:bg-[#4F46E5] group-hover:text-white transition-colors shrink-0">
+                        {renderModuleIcon(mod.route)}
+                      </span>
+                      <span className="text-[11px] font-medium text-[#94A3B8]">
+                        {mod.categoryLabel}
+                      </span>
+                    </div>
+                    <h3 className="text-sm sm:text-base font-heading font-bold text-white mb-1.5 group-hover:text-[#A5B4FC] transition-colors">
+                      {mod.title}
+                    </h3>
+                    <p className="text-xs text-[#94A3B8] leading-relaxed">
+                      {mod.summary}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] font-medium text-[#8B5CF6] pt-2 border-t border-[#263449]/60">
+                    <span className="font-mono text-[#94A3B8]">#/{mod.route}</span>
+                    <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                      Open <ArrowRight className="w-3 h-3" />
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Technical Deep-Dive: Weighted Scoring Formula & 3-Tier AI Pipeline */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+            {/* Left Card: Deterministic Scoring Rubric & Match Tiers */}
+            <div className="glass-card rounded-2xl p-6 sm:p-8 border border-[#263449] flex flex-col justify-between gap-6">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-[#3B82F6] mb-2">
+                  Weighted Scoring Formula
+                </p>
+                <h3 className="text-xl sm:text-2xl font-heading font-bold text-white mb-2">
+                  6-Category Deterministic Rubric
+                </h3>
+                <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed mb-5">
+                  Every match score (0–100) is computed deterministically in the browser using customizable weights that auto-normalize to 100%, paired with on-demand grounded AI rationale.
+                </p>
+
+                <div className="divide-y divide-[#263449]/70 border-y border-[#263449]/70">
+                  {SCORING_RUBRIC.map((item) => (
+                    <div key={item.label} className="py-3 flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <p className="text-xs sm:text-sm font-semibold text-white">{item.label}</p>
+                        <p className="text-xs text-[#94A3B8] mt-0.5 leading-relaxed">{item.detail}</p>
+                      </div>
+                      <span className="font-mono text-xs sm:text-sm font-bold text-[#A5B4FC] tabular-nums shrink-0 pt-0.5">
+                        {item.weight}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-[#94A3B8] mb-3">
+                  Classification Tiers
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 tabular-nums">
+                  {MATCH_TIERS.map((tier) => (
+                    <div
+                      key={tier.label}
+                      className="px-3 py-2 rounded-lg bg-[#0B1020]/70 border border-[#263449]/80"
+                    >
+                      <p className={`text-xs font-bold ${tier.tone}`}>{tier.label}</p>
+                      <p className="font-mono text-[11px] text-[#94A3B8] mt-0.5">{tier.range}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Card: 3-Tier AI Pipeline, APIs & Supported Formats */}
+            <div className="glass-card rounded-2xl p-6 sm:p-8 border border-[#263449] flex flex-col justify-between gap-6">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-[#8B5CF6] mb-2">
+                  Backend &amp; Extraction Architecture
+                </p>
+                <h3 className="text-xl sm:text-2xl font-heading font-bold text-white mb-2">
+                  Client Extraction + 3-Tier AI Failover
+                </h3>
+                <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed mb-5">
+                  Shared Express and Netlify serverless handlers keep API credentials strictly server-side under <span className="font-mono text-white">/api/*</span> while client workers handle PDF, DOCX, and SHA-256 hashing locally.
+                </p>
+
+                <div className="space-y-3">
+                  <div className="p-3.5 rounded-xl bg-[#0B1020]/70 border border-[#263449]/80">
+                    <div className="flex items-center justify-between gap-2 text-xs font-semibold text-white mb-1">
+                      <span>1. Client-Side Pre-Processing</span>
+                      <span className="font-mono text-[#94A3B8]">PDF.js · Mammoth · Web Crypto</span>
+                    </div>
+                    <p className="text-xs text-[#94A3B8] leading-relaxed">
+                      Extracts text layers locally, computes SHA-256 checksums to catch exact or potential duplicates, and routes image-only scanned PDFs through OCR (4 MB default limit; 5.8 MB base64 server guard).
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-[#0B1020]/70 border border-[#263449]/80">
+                    <div className="flex items-center justify-between gap-2 text-xs font-semibold text-white mb-1">
+                      <span>2. Sequential AI Model Cascade</span>
+                      <span className="font-mono text-emerald-400">Zero-Downtime Fallback</span>
+                    </div>
+                    <p className="text-xs text-[#94A3B8] leading-relaxed">
+                      Routes requests across <span className="text-white">Gemini</span> (<span className="font-mono">gemini-3.5-flash-lite</span>) → <span className="text-white">OpenRouter</span> (<span className="font-mono">llama-3.3-70b-instruct:free</span>) → <span className="text-white">Groq</span> (<span className="font-mono">llama-3.1-8b-instant</span>) → built-in deterministic regex/NLP fallback.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-[#0B1020]/70 border border-[#263449]/80">
+                    <div className="flex items-center justify-between gap-2 text-xs font-semibold text-white mb-1">
+                      <span>3. Extracted Profile Schema &amp; Persistence</span>
+                      <span className="font-mono text-[#A5B4FC]">8 Skill Buckets</span>
+                    </div>
+                    <p className="text-xs text-[#94A3B8] leading-relaxed">
+                      Captures 10th, 12th, diploma, UG/PG academics, separated internships vs. full-time work history, 8 skill categories, confidence scores, and saves state in <span className="font-mono text-white">localStorage</span> until you confirm deletion.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-[#263449]/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#94A3B8]">
+                <span>
+                  API Routes: <span className="font-mono text-white">/api/resumes/parse</span> · <span className="font-mono text-white">/api/jobs/analyze</span> · <span className="font-mono text-white">/api/matching/*</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onEnterWorkspace('help-center')}
+                  className="inline-flex items-center gap-1.5 font-semibold text-[#8B5CF6] hover:text-white transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                >
+                  <span>Read Full Guide</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
           </div>
