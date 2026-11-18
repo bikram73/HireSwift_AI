@@ -12,6 +12,20 @@ interface CustomJobRoleModalProps {
 
 type InputMode = 'text' | 'file';
 
+const SAMPLE_JD_EXAMPLE = `Role Title: Full Stack Software Engineer
+Department: Engineering
+Location: Bengaluru / Hybrid (Full-Time)
+Experience: 1–3 Years
+Minimum Qualification: B.Tech / B.E. in Computer Science or related field (Min CGPA: 7.5)
+
+Required Skills: TypeScript, React, Node.js, PostgreSQL, REST APIs
+Preferred Skills: Docker, AWS, Tailwind CSS, Redis
+
+Responsibilities:
+- Design and build responsive React + TypeScript web applications and scalable Node.js microservices.
+- Optimize PostgreSQL schemas, queries, and API latency under production load.
+- Collaborate with product and QA engineers to ship tested, CI/CD-verified releases.`;
+
 export const CustomJobRoleModal: React.FC<CustomJobRoleModalProps> = ({
   isOpen,
   onClose,
@@ -321,21 +335,38 @@ export const CustomJobRoleModal: React.FC<CustomJobRoleModalProps> = ({
             </button>
           </div>
 
-          <button
-            type="button"
-            disabled={analyzingJd || extractingFile}
-            onClick={() => runAnalyzeRequest(description, pendingBase64Pdf)}
-            className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-semibold flex items-center gap-1 cursor-pointer disabled:opacity-60"
-          >
-            <span
-              className={`material-symbols-outlined text-[14px] ${
-                analyzingJd || extractingFile ? 'animate-spin' : ''
-              }`}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={analyzingJd || extractingFile}
+              onClick={async () => {
+                setInputMode('text');
+                setFileError(null);
+                setPendingBase64Pdf(undefined);
+                setDescription(SAMPLE_JD_EXAMPLE);
+                await runAnalyzeRequest(SAMPLE_JD_EXAMPLE);
+              }}
+              className="px-3 py-1.5 rounded-lg bg-surface-container-highest hover:bg-[#1E293B] border border-[#263449] text-tertiary font-semibold flex items-center gap-1 cursor-pointer disabled:opacity-60"
             >
-              {analyzingJd || extractingFile ? 'refresh' : 'auto_awesome'}
-            </span>
-            <span>{analyzingJd ? 'Analyzing JD...' : 'Analyze JD with AI'}</span>
-          </button>
+              <span className="material-symbols-outlined text-[14px]">fact_check</span>
+              <span>Load Sample JD</span>
+            </button>
+            <button
+              type="button"
+              disabled={analyzingJd || extractingFile}
+              onClick={() => runAnalyzeRequest(description, pendingBase64Pdf)}
+              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-semibold flex items-center gap-1 cursor-pointer disabled:opacity-60"
+            >
+              <span
+                className={`material-symbols-outlined text-[14px] ${
+                  analyzingJd || extractingFile ? 'animate-spin' : ''
+                }`}
+              >
+                {analyzingJd || extractingFile ? 'refresh' : 'auto_awesome'}
+              </span>
+              <span>{analyzingJd ? 'Analyzing JD...' : 'Analyze JD with AI'}</span>
+            </button>
+          </div>
         </div>
 
         {inputMode === 'file' ? (

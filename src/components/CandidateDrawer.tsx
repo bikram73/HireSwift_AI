@@ -895,30 +895,73 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
               <span>Email</span>
             </button>
 
-            {confirmDelete ? (
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(true)}
+              className="p-2 rounded-lg text-outline hover:text-rose-400 hover:bg-surface-container-high cursor-pointer"
+              title="Delete candidate"
+              aria-label={`Delete ${liveCandidate.name}`}
+            >
+              <span className="material-symbols-outlined text-[18px]">delete</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {confirmDelete && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="drawer-delete-permission-title"
+          className="fixed inset-0 z-[70] flex items-center justify-center px-4"
+        >
+          <div
+            className="fixed inset-0 bg-black/75 backdrop-blur-xs"
+            onClick={() => setConfirmDelete(false)}
+          />
+          <div className="relative w-full max-w-md rounded-2xl bg-[#111827] border border-rose-500/40 shadow-2xl p-6 z-10 space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-rose-400">warning</span>
+              </div>
+              <div className="space-y-1">
+                <h3
+                  id="drawer-delete-permission-title"
+                  className="font-headline-md text-white font-semibold"
+                >
+                  Permission to Delete Candidate?
+                </h3>
+                <p className="text-xs text-on-surface-variant leading-relaxed">
+                  Do you give permission to permanently delete{' '}
+                  <strong className="text-white">{liveCandidate.name}</strong> ({liveCandidate.email})
+                  from browser <code className="text-rose-300">localStorage</code>? Candidates stay
+                  saved in your browser until you delete them.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(false)}
+                className="px-4 py-2 rounded-xl bg-surface-container-high hover:bg-surface-bright text-xs font-medium text-on-surface cursor-pointer"
+              >
+                Cancel
+              </button>
               <button
                 type="button"
                 onClick={() => {
                   deleteCandidate(liveCandidate.id);
+                  setConfirmDelete(false);
                   onClose();
                 }}
-                className="py-2 px-3 rounded-lg bg-rose-600 text-white text-xs font-semibold cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-semibold text-white cursor-pointer"
               >
-                Confirm Delete
+                Yes, Delete Candidate
               </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setConfirmDelete(true)}
-                className="p-2 rounded-lg text-outline hover:text-rose-400 hover:bg-surface-container-high cursor-pointer"
-                title="Delete candidate"
-              >
-                <span className="material-symbols-outlined text-[18px]">delete</span>
-              </button>
-            )}
+            </div>
           </div>
         </div>
-      </aside>
+      )}
     </div>
   );
 };

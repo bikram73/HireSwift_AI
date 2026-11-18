@@ -22,6 +22,8 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
     moveCandidateStage,
     bulkUpdateStage,
     deleteCandidate,
+    deleteSelectedCandidates,
+    deleteAllCandidates,
     mergeDuplicateCandidate,
     updateCandidate,
     toggleCompareCandidate,
@@ -72,7 +74,14 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [drawerVisible, setDrawerVisible] = useState(true);
   const [duplicateReviewCand, setDuplicateReviewCand] = useState<CandidateProfile | null>(null);
-  const [confirmDeleteCandId, setConfirmDeleteCandId] = useState<string | null>(null);
+  const [deletePrompt, setDeletePrompt] = useState<
+    | { kind: 'single'; candidate: CandidateProfile }
+    | { kind: 'selected'; ids: string[] }
+    | { kind: 'all' }
+    | { kind: 'duplicate-delete'; candidate: CandidateProfile }
+    | { kind: 'duplicate-merge'; candidate: CandidateProfile; targetId: string }
+    | null
+  >(null);
 
   useEffect(() => {
     if (stageFilterPreset) {
@@ -435,6 +444,17 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
           </button>
           <button
             type="button"
+            onClick={() => setDeletePrompt({ kind: 'all' })}
+            disabled={candidates.length === 0}
+            className="flex items-center gap-space-xs px-4 py-2 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 font-label-md text-label-md hover:bg-rose-500/25 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm cursor-pointer"
+          >
+            <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
+              delete_sweep
+            </span>
+            <span>Delete All Candidates</span>
+          </button>
+          <button
+            type="button"
             onClick={() => onNavigate('resume-upload')}
             className="flex items-center gap-space-xs px-5 py-2 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-label-md text-label-md font-semibold hover:opacity-95 shadow-lg shadow-indigo-600/25 border border-white/15 transition-all cursor-pointer"
           >
@@ -614,6 +634,13 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                     className="px-3 py-1.5 rounded-lg bg-surface-container-high text-on-surface text-xs cursor-pointer"
                   >
                     Prepare Email
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeletePrompt({ kind: 'selected', ids: [...selectedIds] })}
+                    className="px-3 py-1.5 rounded-lg bg-rose-600/25 border border-rose-500/30 text-rose-300 hover:bg-rose-600/35 text-xs font-semibold cursor-pointer"
+                  >
+                    Delete Selected
                   </button>
                   <button
                     type="button"
@@ -817,36 +844,15 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                                   visibility
                                 </span>
                               </button>
-                              {confirmDeleteCandId === cand.id ? (
-                                <span className="inline-flex items-center gap-1 ml-1">
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      deleteCandidate(cand.id);
-                                      setConfirmDeleteCandId(null);
-                                    }}
-                                    className="px-2 py-0.5 rounded bg-rose-600 text-white text-[10px] font-semibold cursor-pointer"
-                                  >
-                                    Confirm
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setConfirmDeleteCandId(null)}
-                                    className="px-2 py-0.5 rounded bg-surface-container-high text-on-surface text-[10px] cursor-pointer"
-                                  >
-                                    Cancel
-                                  </button>
-                                </span>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => setConfirmDeleteCandId(cand.id)}
-                                  title="Delete Candidate"
-                                  className="p-1.5 rounded-lg text-outline hover:text-rose-400 hover:bg-surface-container-high cursor-pointer"
-                                >
-                                  <span className="material-symbols-outlined text-[16px]">delete</span>
-                                </button>
-                              )}
+                              <button
+                                type="button"
+                                onClick={() => setDeletePrompt({ kind: 'single', candidate: cand })}
+                                title={`Delete ${cand.name}`}
+                                aria-label={`Delete ${cand.name}`}
+                                className="p-1.5 rounded-lg text-outline hover:text-rose-400 hover:bg-surface-container-high cursor-pointer"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">delete</span>
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -1345,14 +1351,13 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
               {duplicateReviewCand.duplicateOfId && (
                 <button
                   type="button"
-                  onClick={() => {
-                    mergeDuplicateCandidate(
-                      duplicateReviewCand,
-                      duplicateReviewCand.duplicateOfId!
-                    );
-                    deleteCandidate(duplicateReviewCand.id);
-                    setDuplicateReviewCand(null);
-                  }}
+                  onClick={() =>
+                    setDeletePrompt({
+                      kind: 'duplicate-merge',
+                      candidate: duplicateReviewCand,
+                      targetId: duplicateReviewCand.duplicateOfId!,
+                    })
+                  }
                   className="px-3.5 py-2 rounded-lg bg-amber-500 text-black text-xs font-semibold cursor-pointer"
                 >
                   Merge &amp; Remove Duplicate
@@ -1360,13 +1365,123 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
               )}
               <button
                 type="button"
-                onClick={() => {
-                  deleteCandidate(duplicateReviewCand.id);
-                  setDuplicateReviewCand(null);
-                }}
+                onClick={() =>
+                  setDeletePrompt({
+                    kind: 'duplicate-delete',
+                    candidate: duplicateReviewCand,
+                  })
+                }
                 className="px-3.5 py-2 rounded-lg bg-rose-600 text-white text-xs font-semibold cursor-pointer"
               >
                 Delete Duplicate
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deletePrompt && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-permission-title"
+          className="fixed inset-0 z-[60] flex items-center justify-center px-4"
+        >
+          <div
+            className="fixed inset-0 bg-black/75 backdrop-blur-xs"
+            onClick={() => setDeletePrompt(null)}
+          />
+          <div className="relative w-full max-w-md rounded-2xl bg-[#111827] border border-rose-500/40 shadow-2xl p-6 z-10 space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-rose-400">warning</span>
+              </div>
+              <div className="space-y-1">
+                <h3 id="delete-permission-title" className="font-headline-md text-white font-semibold">
+                  {deletePrompt.kind === 'all'
+                    ? 'Delete All Candidates from Local Storage?'
+                    : deletePrompt.kind === 'selected'
+                      ? `Delete ${deletePrompt.ids.length} Selected Candidate(s)?`
+                      : deletePrompt.kind === 'duplicate-merge'
+                        ? 'Permission to Merge & Delete Duplicate?'
+                        : 'Permission to Delete Candidate?'}
+                </h3>
+                <p className="text-xs text-on-surface-variant leading-relaxed">
+                  {deletePrompt.kind === 'all' ? (
+                    <>
+                      Do you give permission to permanently delete all{' '}
+                      <strong className="text-white">{candidates.length}</strong> candidate(s) from
+                      browser <code className="text-rose-300">localStorage</code>? Job postings will
+                      remain saved, and deleted candidates will not be restored on reload.
+                    </>
+                  ) : deletePrompt.kind === 'selected' ? (
+                    <>
+                      Do you give permission to permanently delete{' '}
+                      <strong className="text-white">{deletePrompt.ids.length}</strong> selected
+                      candidate(s) from browser <code className="text-rose-300">localStorage</code>?
+                      This action cannot be undone.
+                    </>
+                  ) : deletePrompt.kind === 'duplicate-merge' ? (
+                    <>
+                      Do you give permission to merge profile details from{' '}
+                      <strong className="text-white">{deletePrompt.candidate.name}</strong> and
+                      permanently delete the duplicate record from browser{' '}
+                      <code className="text-rose-300">localStorage</code>?
+                    </>
+                  ) : (
+                    <>
+                      Do you give permission to permanently delete{' '}
+                      <strong className="text-white">{deletePrompt.candidate.name}</strong> (
+                      {deletePrompt.candidate.email}) from browser{' '}
+                      <code className="text-rose-300">localStorage</code>? Candidates stay saved in
+                      your browser until you delete them.
+                    </>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeletePrompt(null)}
+                className="px-4 py-2 rounded-xl bg-surface-container-high hover:bg-surface-bright text-xs font-medium text-on-surface cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (deletePrompt.kind === 'all') {
+                    deleteAllCandidates();
+                    setSelectedIds([]);
+                  } else if (deletePrompt.kind === 'selected') {
+                    deleteSelectedCandidates(deletePrompt.ids);
+                    setSelectedIds([]);
+                  } else if (deletePrompt.kind === 'duplicate-merge') {
+                    mergeDuplicateCandidate(deletePrompt.candidate, deletePrompt.targetId);
+                    deleteCandidate(deletePrompt.candidate.id);
+                    setDuplicateReviewCand(null);
+                  } else {
+                    deleteCandidate(deletePrompt.candidate.id);
+                    setSelectedIds((prev) =>
+                      prev.filter((id) => id !== deletePrompt.candidate.id)
+                    );
+                    if (deletePrompt.kind === 'duplicate-delete') {
+                      setDuplicateReviewCand(null);
+                    }
+                  }
+                  setDeletePrompt(null);
+                }}
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-semibold text-white cursor-pointer"
+              >
+                {deletePrompt.kind === 'all'
+                  ? 'Yes, Delete All Candidates'
+                  : deletePrompt.kind === 'selected'
+                    ? 'Yes, Delete Selected'
+                    : deletePrompt.kind === 'duplicate-merge'
+                      ? 'Yes, Merge & Delete'
+                      : 'Yes, Delete Candidate'}
               </button>
             </div>
           </div>

@@ -881,6 +881,7 @@ export const SettingsView: React.FC = () => {
     setMaxFileSizeMb,
     resetDemoData,
     clearSessionData,
+    deleteAllCandidates,
     importDemoDataset,
     exportSessionJson,
     showToast,
@@ -890,6 +891,7 @@ export const SettingsView: React.FC = () => {
 
   const [draftWeights, setDraftWeights] = useState<ScoringWeights>(scoringWeights);
   const [confirmClearSession, setConfirmClearSession] = useState(false);
+  const [confirmDeleteAllCandidates, setConfirmDeleteAllCandidates] = useState(false);
 
   useEffect(() => {
     setDraftWeights(scoringWeights);
@@ -1025,7 +1027,7 @@ export const SettingsView: React.FC = () => {
             Session Data Management ({candidates.length} Candidates, {jobs.length} Jobs)
           </h3>
           <p className="text-on-surface-variant mt-1">
-            All data lives in in-memory application state and browser localStorage (no external database). Uploaded binary file previews clear on full browser reload; export JSON anytime to keep a backup.
+            All candidates and jobs remain permanently stored in browser localStorage until you explicitly delete them (individually or all at once). Uploaded binary file previews clear on full browser reload; export JSON anytime to keep a backup.
           </p>
         </div>
         <div className="flex flex-wrap gap-2.5">
@@ -1050,6 +1052,14 @@ export const SettingsView: React.FC = () => {
           >
             Export Session JSON
           </button>
+          <button
+            type="button"
+            onClick={() => setConfirmDeleteAllCandidates(true)}
+            disabled={candidates.length === 0}
+            className="px-3.5 py-2 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 hover:bg-rose-500/25 disabled:opacity-40 disabled:cursor-not-allowed font-medium cursor-pointer"
+          >
+            Delete All Candidates
+          </button>
           {confirmClearSession ? (
             <div className="inline-flex items-center gap-2">
               <button
@@ -1071,16 +1081,70 @@ export const SettingsView: React.FC = () => {
               </button>
             </div>
           ) : (
-              <button
-                type="button"
-                onClick={() => setConfirmClearSession(true)}
-                className="px-3.5 py-2 rounded-xl bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 font-medium cursor-pointer"
-              >
-                Clear Session Data
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => setConfirmClearSession(true)}
+              className="px-3.5 py-2 rounded-xl bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 font-medium cursor-pointer"
+            >
+              Clear Session Data
+            </button>
+          )}
         </div>
       </div>
+
+      {confirmDeleteAllCandidates && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="settings-delete-all-candidates-title"
+          className="fixed inset-0 z-[60] flex items-center justify-center px-4"
+        >
+          <div
+            className="fixed inset-0 bg-black/75 backdrop-blur-xs"
+            onClick={() => setConfirmDeleteAllCandidates(false)}
+          />
+          <div className="relative w-full max-w-md rounded-2xl bg-[#111827] border border-rose-500/40 shadow-2xl p-6 z-10 space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-rose-400">warning</span>
+              </div>
+              <div className="space-y-1">
+                <h3
+                  id="settings-delete-all-candidates-title"
+                  className="font-headline-md text-white font-semibold"
+                >
+                  Delete All Candidates from Local Storage?
+                </h3>
+                <p className="text-xs text-on-surface-variant leading-relaxed">
+                  Do you give permission to permanently delete all{' '}
+                  <strong className="text-white">{candidates.length}</strong> candidate(s) from
+                  browser <code className="text-rose-300">localStorage</code>? Your job requisitions
+                  will remain saved.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteAllCandidates(false)}
+                className="px-4 py-2 rounded-xl bg-surface-container-high hover:bg-surface-bright text-xs font-medium text-on-surface cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  deleteAllCandidates();
+                  setConfirmDeleteAllCandidates(false);
+                }}
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-semibold text-white cursor-pointer"
+              >
+                Yes, Delete All Candidates
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* API & Model Pipeline Reference (for Footer "API & Integrations") */}
       <div className="rounded-2xl glass-card p-5 space-y-3 text-xs">

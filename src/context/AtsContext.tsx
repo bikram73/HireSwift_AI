@@ -52,6 +52,8 @@ interface AtsContextValue {
   addCandidate: (cand: CandidateProfile) => void;
   updateCandidate: (cand: CandidateProfile) => void;
   deleteCandidate: (id: string) => void;
+  deleteSelectedCandidates: (ids: string[]) => void;
+  deleteAllCandidates: () => void;
   mergeDuplicateCandidate: (incoming: CandidateProfile, targetId: string) => void;
   moveCandidateStage: (
     candidateId: string,
@@ -80,15 +82,16 @@ function loadInitialSession(): PersistedSession {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<PersistedSession>;
-      if (Array.isArray(parsed.candidates) && Array.isArray(parsed.jobs)) {
+      if (Array.isArray(parsed.candidates)) {
+        const jobsList = Array.isArray(parsed.jobs) ? parsed.jobs : DEMO_JOBS;
         return {
           candidates: parsed.candidates,
-          jobs: parsed.jobs,
+          jobs: jobsList,
           activities: Array.isArray(parsed.activities) ? parsed.activities : DEMO_ACTIVITIES,
           scoringWeights: parsed.scoringWeights ?? DEFAULT_SCORING_WEIGHTS,
           maxFileSizeMb: parsed.maxFileSizeMb ?? 4,
-          selectedJobId: parsed.selectedJobId ?? (parsed.jobs[0]?.id || ''),
-          compareIds: Array.isArray(parsed.compareIds) ? parsed.compareIds : ['cand-1', 'cand-2', 'cand-7'],
+          selectedJobId: parsed.selectedJobId ?? (jobsList[0]?.id || ''),
+          compareIds: Array.isArray(parsed.compareIds) ? parsed.compareIds : [],
           aiMatchCache: parsed.aiMatchCache ?? {},
         };
       }
@@ -131,12 +134,13 @@ export const AtsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   useEffect(() => {
+    const sanitizedCandidates = candidates.map(
+      ({ resumeObjectUrl: _objUrl, resumeTextPreview: _rawText, ...rest }) => rest
+    );
     try {
       const payload: PersistedSession = {
         // Strip transient objectUrls and raw extracted resume text on localStorage write
-        candidates: candidates.map(
-          ({ resumeObjectUrl: _objUrl, resumeTextPreview: _rawText, ...rest }) => rest
-        ),
+        candidates: sanitizedCandidates,
         jobs,
         activities: activities.slice(0, 25),
         scoringWeights,
@@ -147,7 +151,22 @@ export const AtsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
     } catch {
-      // Ignore quota errors cleanly
+      // Retry saving prioritized candidate records without bulky cache/history if quota is tight
+      try {
+        const compactPayload: PersistedSession = {
+          candidates: sanitizedCandidates,
+          jobs,
+          activities: [],
+          scoringWeights,
+          maxFileSizeMb,
+          selectedJobId,
+          compareIds,
+          aiMatchCache: {},
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(compactPayload));
+      } catch {
+        // Ignore quota errors cleanly without crashing UI
+      }
     }
   }, [
     candidates,
@@ -331,14 +350,55 @@ export const AtsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const target = candidates.find((c) => c.id === id);
     setCandidates((prev) => prev.filter((c) => c.id !== id));
     setCompareIds((prev) => prev.filter((cid) => cid !== id));
+    setAiMatchCache((prev) => {
+      const next = { ...prev };
+      Object.keys(next).forEach((k) => {
+        if (k.startsWith(`${id}::`)) delete next[k];
+      });
+      return next;
+    });
     if (target) {
       pushActivity({
         type: 'reject',
-        title: `Removed candidate: ${target.name}`,
-        detail: 'Removed from active session list',
+        title: `Deleted candidate: ${target.name}`,
+        detail: 'Removed permanently from browser localStorage',
       });
-      showToast(`Removed ${target.name} from candidates`, 'info');
+      showToast(`Deleted ${target.name} from localStorage`, 'info');
     }
+  };
+
+  const deleteSelectedCandidates = (ids: string[]) => {
+    if (ids.length === 0) return;
+    const idSet = new Set(ids);
+    setCandidates((prev) => prev.filter((c) => !idSet.has(c.id)));
+    setCompareIds((prev) => prev.filter((cid) => !idSet.has(cid)));
+    setAiMatchCache((prev) => {
+      const next = { ...prev };
+      Object.keys(next).forEach((k) => {
+        const candId = k.split('::')[0];
+        if (idSet.has(candId)) delete next[k];
+      });
+      return next;
+    });
+    pushActivity({
+      type: 'reject',
+      title: `Deleted ${ids.length} selected candidate(s)`,
+      detail: 'Removed permanently from browser localStorage',
+    });
+    showToast(`Deleted ${ids.length} selected candidate(s) from localStorage`, 'info');
+  };
+
+  const deleteAllCandidates = () => {
+    const count = candidates.length;
+    setCandidates([]);
+    setCompareIds([]);
+    setAiMatchCache({});
+    pushActivity({
+      type: 'reject',
+      title: `Deleted all ${count} candidate(s) from localStorage`,
+      detail: 'Cleared candidate directory while preserving job postings',
+    });
+    showToast(`Deleted all ${count} candidate(s) from localStorage.`, 'info');
   };
 
   const mergeDuplicateCandidate = (incoming: CandidateProfile, targetId: string) => {
@@ -559,6 +619,8 @@ export const AtsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addCandidate,
         updateCandidate,
         deleteCandidate,
+        deleteSelectedCandidates,
+        deleteAllCandidates,
         mergeDuplicateCandidate,
         moveCandidateStage,
         bulkUpdateStage,

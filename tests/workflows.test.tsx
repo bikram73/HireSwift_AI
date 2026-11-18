@@ -420,4 +420,125 @@ describe('UI Integration & Defect Verification (PRD Modules 4–23)', () => {
 
     fetchSpy.mockRestore();
   });
+
+  it('LOCALSTORAGE-DELETE: Persists candidates across reloads until user explicitly grants permission to delete individual or all candidates', async () => {
+    // 1. Seed a custom uploaded candidate via localStorage / addCandidate and verify persistence across unmount/remount
+    const SeedHelper = () => {
+      const { addCandidate } = useAts();
+      return (
+        <button
+          type="button"
+          onClick={() =>
+            addCandidate({
+              ...DEMO_CANDIDATES[0],
+              id: 'cand-custom-persist',
+              name: 'Aarav Persisted',
+              email: 'aarav.persisted@example.com',
+              duplicateStatus: 'Exact Duplicate',
+              duplicateOfId: DEMO_CANDIDATES[0].id,
+            })
+          }
+        >
+          Seed Custom Candidate
+        </button>
+      );
+    };
+
+    const { unmount } = render(
+      <AtsProvider>
+        <SeedHelper />
+        <CandidatesView onNavigate={vi.fn()} onSelectCandidate={vi.fn()} />
+      </AtsProvider>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Seed Custom Candidate' }));
+    expect(screen.getByText('Aarav Persisted')).toBeInTheDocument();
+
+    // Unmount and remount to simulate browser reload -> candidate must still be in localStorage
+    unmount();
+
+    const remount1 = render(
+      <AtsProvider>
+        <CandidatesView onNavigate={vi.fn()} onSelectCandidate={vi.fn()} />
+      </AtsProvider>
+    );
+    expect(screen.getByText('Aarav Persisted')).toBeInTheDocument();
+
+    // 2. Duplicate modal Delete Duplicate must ask permission first
+    fireEvent.click(screen.getByRole('button', { name: 'Exact Duplicate' }));
+    expect(screen.getByText('Duplicate Profile Review')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Delete Duplicate' }));
+    expect(screen.getByText('Permission to Delete Candidate?')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.getAllByText('Aarav Persisted').length).toBeGreaterThanOrEqual(1);
+    // Close duplicate review modal
+    fireEvent.click(screen.getByRole('button', { name: 'close' }));
+    expect(screen.getByText('Aarav Persisted')).toBeInTheDocument();
+
+    // 3. Individual delete asks permission; Cancel preserves candidate & localStorage; Yes deletes only that candidate
+    fireEvent.click(screen.getByRole('button', { name: 'Delete Aarav Persisted' }));
+    const singleDialog = screen.getByRole('dialog');
+    expect(within(singleDialog).getByText('Permission to Delete Candidate?')).toBeInTheDocument();
+    fireEvent.click(within(singleDialog).getByRole('button', { name: 'Cancel' }));
+    expect(screen.getByText('Aarav Persisted')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete Aarav Persisted' }));
+    const confirmSingleDialog = screen.getByRole('dialog');
+    fireEvent.click(within(confirmSingleDialog).getByRole('button', { name: 'Yes, Delete Candidate' }));
+    expect(screen.queryByText('Aarav Persisted')).not.toBeInTheDocument();
+
+    const afterSingleRaw = JSON.parse(localStorage.getItem('hireswift_ats_session_v2') || '{}');
+    expect(afterSingleRaw.candidates.some((c: CandidateProfile) => c.id === 'cand-custom-persist')).toBe(false);
+    expect(afterSingleRaw.candidates.length).toBe(DEMO_CANDIDATES.length);
+
+    // 4. Delete All Candidates asks permission; Cancel keeps all; Yes deletes all candidates from localStorage
+    fireEvent.click(screen.getByRole('button', { name: /Delete All Candidates/i }));
+    const allDialogCancel = screen.getByRole('dialog');
+    expect(within(allDialogCancel).getByText('Delete All Candidates from Local Storage?')).toBeInTheDocument();
+    fireEvent.click(within(allDialogCancel).getByRole('button', { name: 'Cancel' }));
+    expect(JSON.parse(localStorage.getItem('hireswift_ats_session_v2') || '{}').candidates.length).toBe(
+      DEMO_CANDIDATES.length
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Delete All Candidates/i }));
+    const allDialogConfirm = screen.getByRole('dialog');
+    fireEvent.click(within(allDialogConfirm).getByRole('button', { name: 'Yes, Delete All Candidates' }));
+
+    const afterAllRaw = JSON.parse(localStorage.getItem('hireswift_ats_session_v2') || '{}');
+    expect(afterAllRaw.candidates).toEqual([]);
+    expect(afterAllRaw.jobs.length).toBeGreaterThan(0); // Jobs remain intact
+
+    // Unmount and remount again -> deleted candidates must stay deleted (not auto-reset to demo data)
+    remount1.unmount();
+
+    render(
+      <AtsProvider>
+        <SettingsView />
+      </AtsProvider>
+    );
+    expect(screen.getByText(/0 Candidates, 6 Jobs/i)).toBeInTheDocument();
+  });
+
+  it('DRAWER-DELETE-PERMISSION: CandidateDrawer asks permission before deleting individual candidate', () => {
+    const target: CandidateProfile = DEMO_CANDIDATES[0];
+    const onClose = vi.fn();
+    render(
+      <AtsProvider>
+        <CandidateDrawer candidate={target} onClose={onClose} />
+      </AtsProvider>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: `Delete ${target.name}` }));
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByText('Permission to Delete Candidate?')).toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+    expect(onClose).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: `Delete ${target.name}` }));
+    const confirmDialog = screen.getByRole('dialog');
+    fireEvent.click(within(confirmDialog).getByRole('button', { name: 'Yes, Delete Candidate' }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+    const stored = JSON.parse(localStorage.getItem('hireswift_ats_session_v2') || '{}');
+    expect(stored.candidates.some((c: CandidateProfile) => c.id === target.id)).toBe(false);
+  });
 });
