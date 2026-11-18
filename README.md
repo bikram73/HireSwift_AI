@@ -72,23 +72,24 @@
 ## ✨ Features
 
 ### 🌐 Landing Page & Navigation
-- **Modern Dark Indigo Showcase (`LandingPage`)**: Always loads first on browser refresh, showcasing live pipeline previews, problem-vs-solution metrics, 6 core capability cards, 3-step workflow, explainable candidate scorecard preview, and instant one-click entry into any ATS workspace module.
+- **Modern Dark Indigo Showcase (`LandingPage`)**: Always loads first on browser refresh, featuring an interactive neural constellation & aurora background (`AmbientBackground`), live pipeline preview, factual stack & workspace metrics, 6 core capability cards, 3-step workflow, explainable candidate scorecard preview, an interactive **14-Module Workspace Explorer**, a **6-Category Scoring Rubric & 3-Tier AI Pipeline** breakdown, system guarantees, and an interactive **Questions & Answers (FAQ)** accordion.
+- **Responsive Mobile, Tablet & Desktop UX**: Built to render cleanly across `320px`–`1920px` viewports with a slide-out mobile navigation drawer, mobile quick-search trigger, single-DOM responsive tables, and `prefers-reduced-motion` compliance.
 - **Global Command Search (`⌘K` / `Ctrl+K`)**: Instant keyboard-driven modal to jump directly to candidates, active job requisitions, or workspace views.
 
 ### 📊 Workspace Modules (14 Views)
 - **📈 Dashboard (`dashboard`)**: 8 live KPI cards (total candidates, active jobs, applications received, shortlisted, interviews scheduled, offers released, rejected, avg match score), Application Trends chart, Conversion Funnel, Stage Distribution donut chart, Top In-Demand Skills breakdown, Top Matching Candidates table, Recent Activity stream, and quick dataset load/reset controls.
-- **👥 Candidates Directory (`candidates`)**: Searchable, sortable, paginated repository with bulk shortlist/stage/compare/CSV-export actions plus a slide-in **Precision Filters Drawer** (min/max CGPA, 10th/12th percentage cutoffs, degree level, branch, college, graduation year, experience range, location/remote availability, match score range, hiring stage, AND/OR technical skills toggle).
-- **📤 Bulk Resume Upload (`resume-upload`)**: Multi-file drag-and-drop uploader for `.pdf` and `.docx` resumes with per-file validation, SHA-256 content hashing, exact/potential duplicate detection & merge workflow, scanned PDF OCR fallback, real-time progress telemetry, and editable candidate review before saving.
-- **💼 Job Management & Job Details (`job-management`, `job-details`)**: Create, edit, pause, close, or delete job requisitions, featuring an **AI JD Analyzer** that extracts required vs. preferred skills, experience bounds, minimum CGPA, qualifications, and responsibilities straight from raw job descriptions.
+- **👥 Candidates Directory (`candidates`)**: Searchable, sortable, paginated repository with bulk shortlist/stage/compare/CSV-export actions, permission-gated individual/selected/all deletion from `localStorage`, and a slide-in **Precision Filters Drawer** (min/max CGPA, 10th/12th percentage cutoffs, degree level, branch, college, graduation year, experience range, location/remote availability, match score range, hiring stage, AND/OR technical skills toggle).
+- **📤 Bulk Resume Upload (`resume-upload`)**: Multi-file drag-and-drop uploader for `.pdf` and `.docx` resumes with per-file validation, SHA-256 content hashing, exact/potential duplicate detection & merge/delete workflow, scanned PDF OCR fallback, custom target job role creation, real-time progress telemetry, and editable candidate review before saving.
+- **💼 Job Management & Job Details (`job-management`, `job-details`)**: Create, edit, pause, close, or delete job requisitions, featuring an **AI JD Analyzer** (with sample JD loader and `.pdf`/`.docx` JD upload via `CustomJobRoleModal` / `CustomTargetJobModal`) that extracts required vs. preferred skills, experience bounds, minimum CGPA, qualifications, and responsibilities.
 - **🧠 AI Matching (`ai-matching`)**: Interactive radar & bar breakdown across all 6 evaluation dimensions, matched/missing skill chips, transferable skills, interview questions generator, and on-demand deep AI rationale evaluation.
 - **🏆 Candidate Ranking (`candidate-ranking`)**: Job-scoped leaderboard with live adjustable scoring weight sliders, instant rank recalculation, CSV export, and one-click stage advancement.
-- **🗂️ Hiring Pipeline (`hiring-pipeline`)**: 5-column interactive Kanban board (`Applied` → `Shortlisted` → `Interview` → `Offer` → `Rejected`) with drag-and-drop & quick stage transitions, interview schedule timestamps, rejection reason capture, and recruiter notes.
+- **🗂️ Hiring Pipeline (`hiring-pipeline`)**: 5-column interactive Kanban board (`Applied` → `Shortlisted` → `Interview` → `Offer` → `Rejected`) with compact stage filter pills, drag-and-drop & quick stage transitions, interview schedule timestamps, rejection reason capture, and recruiter notes.
 - **⚖️ Compare Candidates (`compare-candidates`)**: Side-by-side matrix for up to 4 candidates comparing match score, skill overlap, CGPA, 10th/12th scores, experience, education, strengths, and hiring recommendation.
 - **🔍 Skill Gap Analysis (`skill-gap-analysis`)**: Distinguishes mandatory vs. optional skill gaps, highlights transferable strengths, and generates targeted learning areas & practical project recommendations.
-- **✉️ Email Center (`email-center`)**: Dynamic recruiter templates (Interview Invite, Shortlist Update, Offer Letter, Rejection Feedback) with auto-populated candidate/job variables, custom editing, `.eml` / clipboard export, and activity tracking.
+- **✉️ Email Center (`email-center`)**: 6 dynamic recruiter templates (`Application Acknowledgement`, `Shortlisting Notification`, `Interview Invitation`, `Interview Reminder`, `Offer Notification`, `Rejection Notification`) with multi-select bulk candidate outreach, auto-populated variables, per-candidate editing, `.eml` download, `mailto:` launch, and clipboard copy.
 - **📉 Reports (`reports`)**: Visual analytics across hiring funnel conversion, source/skill distribution, and downloadable CSV / JSON executive summaries.
-- **⚙️ Settings & ❓ Help Center (`settings`, `help-center`)**: Configurable scoring rubric weights, max upload file size limit, demo dataset import/reset, session JSON export/clear, and interactive documentation.
-- **🪪 Slide-Over Candidate Profile Drawer (`CandidateDrawer`)**: Full candidate dossier with tabs for Overview, Academics (10th/12th/UG/PG), Work & Projects, Resume Preview, and Timeline + quick stage actions.
+- **⚙️ Settings & ❓ Help Center (`settings`, `help-center`)**: Configurable scoring rubric weights, max upload file size limit, demo dataset import/reset, session JSON export/clear, keyboard shortcuts, and interactive documentation.
+- **🪪 Slide-Over Candidate Profile Drawer (`CandidateDrawer`)**: Full candidate dossier with tabs for Overview, Academics (10th/12th/UG/PG), Work & Projects, Resume Preview, Timeline, quick stage actions, and confirmation-gated candidate deletion.
 
 ---
 
@@ -189,25 +190,33 @@ HireSwift AI enforces **strict factual grounding**: unverified fields stay `null
 
 ```text
 hireswift-ai/
+├── e2e/
+│   └── hireswift.spec.ts           # Playwright E2E, upload, persistence & responsive tests
 ├── lib/
 │   └── atsApi.ts                   # Shared AI + deterministic fallback handlers (Express & Netlify)
 ├── netlify/
 │   └── functions/
 │       └── api.ts                  # Netlify Functions v2 serverless entry point (/api/*)
-├── public/                         # Static public assets & UI reference screenshots
+├── public/                         # Static public assets, SVG logos & UI showcase screenshots
+│   ├── favicon.svg                 # Browser tab favicon SVG
+│   ├── hireswift-logo.svg          # Vector brand emblem
 │   └── screen_630d9ae4.png         # Hero dashboard showcase asset
 ├── src/
 │   ├── components/
 │   │   ├── views/
-│   │   │   ├── CandidatesView.tsx      # Searchable directory, bulk actions & Precision Filters drawer
+│   │   │   ├── CandidatesView.tsx      # Searchable directory, bulk actions, delete guards & Precision Filters
 │   │   │   ├── DashboardView.tsx       # Executive KPIs, charts, top candidates & activity feed
 │   │   │   ├── OperationsViews.tsx     # Skill Gap Analysis, Email Center, Reports, Settings, Help Center
 │   │   │   ├── ResumeUploadView.tsx    # Drag-and-drop uploader, deduplication & parser telemetry
 │   │   │   └── TalentWorkflowViews.tsx # AI Matching, Ranking, Jobs, Job Details, Kanban, Compare
+│   │   ├── AmbientBackground.tsx   # Neural constellation canvas, aurora & orbital background layers
 │   │   ├── BrandLogo.tsx           # HireSwift AI geometric brand identity
-│   │   ├── CandidateDrawer.tsx     # Slide-over multi-tab candidate dossier & stage controls
-│   │   ├── LandingPage.tsx         # Marketing/product showcase & module launchpad
-│   │   └── WorkspaceShell.tsx      # Sidebar nav, top breadcrumb/search header & ⌘K modal
+│   │   ├── CandidateDrawer.tsx     # Slide-over multi-tab candidate dossier, edit & delete confirmation
+│   │   ├── CursorEffects.tsx       # Subtle interactive pointer glow & ripple layer
+│   │   ├── CustomJobRoleModal.tsx  # Custom role creation via JD text (with sample) or PDF/DOCX upload
+│   │   ├── CustomTargetJobModal.tsx# Quick target job role creation from candidate/upload flows
+│   │   ├── LandingPage.tsx         # Marketing showcase, 14-module explorer, scoring breakdown & FAQ
+│   │   └── WorkspaceShell.tsx      # Sidebar nav, mobile drawer, breadcrumb/search header & ⌘K modal
 │   ├── context/
 │   │   └── AtsContext.tsx          # Global state store, localStorage persistence & AI cache
 │   ├── data/
@@ -216,17 +225,22 @@ hireswift-ai/
 │   │   ├── atsEngine.ts            # Weighted scoring engine, alias normalizer & duplicate detector
 │   │   └── fileExtractor.ts        # PDF.js, Mammoth DOCX & Web Crypto SHA-256 extractor
 │   ├── App.tsx                     # Root router (Landing-first + workspace hash navigation)
-│   ├── index.css                   # Tailwind v4 setup, glassmorphism tokens & theme variables
+│   ├── index.css                   # Tailwind v4 setup, ambient keyframes & glassmorphism theme tokens
 │   └── main.tsx                    # React 19 DOM entry point
+├── tests/                          # Vitest unit, API parity, PDF edge-case & UI workflow tests
 ├── .env.example                    # Environment variable template
 ├── index.html                      # HTML entry point & Google Fonts / Material Symbols
+├── LICENSE                         # Apache License 2.0
 ├── metadata.json                   # Applet metadata & capability manifest
 ├── netlify.toml                    # Netlify build, redirects & esbuild function configuration
 ├── package.json                    # Dependencies & npm scripts
+├── playwright.config.ts            # Playwright headless Chromium test configuration
 ├── server.ts                       # Express + Vite server entry point (Port 3000)
 ├── tsconfig.json                   # TypeScript compiler configuration
 ├── vite.config.ts                  # Vite bundler configuration
+├── vitest.config.ts                # Vitest test runner configuration
 ├── ARCHITECTURE.md                 # System & pipeline architecture guide
+├── QA_TEST_REPORT.md               # QA verification & browser test report
 ├── TECHNICAL_REPORT.md             # Engineering design, scoring & QA report
 └── README.md                       # Complete project documentation
 ```
@@ -373,24 +387,25 @@ Extracts structured candidate profile entities from extracted document text or b
 - **Response (`200 OK`)**: `{ "parsed": { ...structuredCandidateSchema }, "source": "gemini-ai" | "openrouter-ai" | "groq-ai" | "deterministic-parser" | "fallback-parser" }`
 
 ### `POST /api/jobs/analyze`
-Parses raw job description text into structured hiring requirements.
+Parses raw job description text or an uploaded PDF/DOCX job description into structured hiring requirements.
 - **Request Body**:
   ```json
   {
-    "description": "Senior Full-Stack Engineer (3-5 yrs). Required: React, TypeScript, Node.js, PostgreSQL. Minimum CGPA 7.5..."
+    "description": "Senior Full-Stack Engineer (3-5 yrs). Required: React, TypeScript, Node.js, PostgreSQL. Minimum CGPA 7.5...",
+    "base64Pdf": "<optional base64 string for scanned PDF job descriptions>"
   }
   ```
-- **Response (`200 OK`)**: `{ "analysis": { "title": "...", "requiredSkills": [...], "preferredSkills": [...], "minimumExperience": 3, "maximumExperience": 5, "minimumCGPA": 7.5, ... }, "source": "gemini-ai" | "openrouter-ai" | "groq-ai" | "deterministic-analyzer" }`
+- **Response (`200 OK`)**: `{ "analysis": { "title": "...", "requiredSkills": [...], "preferredSkills": [...], "minimumExperience": 3, "maximumExperience": 5, "minimumCGPA": 7.5, "extractedSummary": "...", ... }, "source": "gemini-ai" | "openrouter-ai" | "groq-ai" | "fallback-analyzer" }`
 
 ### `POST /api/matching/analyze`
 Generates grounded matching rationale, strengths, potential concerns, and tailored interview questions.
 - **Request Body**: `{ "candidate": { ... }, "job": { ... }, "deterministicScore": { ... } }`
-- **Response (`200 OK`)**: `{ "insights": { "explanation": "...", "decisionRationale": "...", "strongestAreas": [...], "potentialConcerns": [...], "interviewQuestions": [...] }, "source": "gemini-ai" | "openrouter-ai" | "groq-ai" | "deterministic-rubric" }`
+- **Response (`200 OK`)**: `{ "insights": { "explanation": "...", "decisionRationale": "...", "strongestAreas": [...], "potentialConcerns": [...], "interviewQuestions": [...] }, "source": "gemini-ai" | "openrouter-ai" | "groq-ai" | "fallback-rubric" }`
 
 ### `POST /api/matching/skill-gap`
 Produces actionable learning paths and portfolio project recommendations based on missing skills.
 - **Request Body**: `{ "candidateName": "...", "candidateSkills": [...], "requiredSkills": [...], "preferredSkills": [...], "jobTitle": "..." }`
-- **Response (`200 OK`)**: `{ "gapAnalysis": { "transferableSkills": [...], "recommendedLearningAreas": [...], "practicalProjectRecommendations": [...], "summary": "..." }, "source": "gemini-ai" | "openrouter-ai" | "groq-ai" | "deterministic-gap" }`
+- **Response (`200 OK`)**: `{ "gapAnalysis": { "transferableSkills": [...], "recommendedLearningAreas": [...], "practicalProjectRecommendations": [...], "summary": "..." }, "source": "gemini-ai" | "openrouter-ai" | "groq-ai" | "fallback-gap" }`
 
 ---
 
@@ -438,6 +453,7 @@ Verified continuously across the codebase (full report in [QA_TEST_REPORT.md](./
 ## 🔒 Data Storage & Security
 
 - **Session & Browser Storage**: Candidate profiles, jobs, scoring weights, and activity events are stored cleanly in React state and persisted locally in browser `localStorage`—no external user accounts or remote databases store PII.
+- **Permission-Gated Deletion**: Candidates remain in `localStorage` across reloads until the user explicitly confirms deletion via modal permission prompts (for individual profiles, multi-selected cohorts, duplicate records, or Delete All).
 - **Zero Client-Side Secret Exposure**: `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, and `GROQ_API_KEY` are read strictly by server-side Node/serverless handlers (`lib/atsApi.ts`) and never prefixed with `VITE_` or included in frontend JavaScript bundles.
 - **Transient Document Processing**: Uploaded files stay in browser memory (`URL.createObjectURL` and `resumeTextPreview` are excluded from `localStorage` and session JSON exports across reloads); only extracted text (or temporary base64 for small scanned PDFs) is transmitted over `/api/*` during parsing.
 
