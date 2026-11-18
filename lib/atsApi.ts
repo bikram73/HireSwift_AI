@@ -223,9 +223,17 @@ async function executeModelFallbackChain<T extends Record<string, unknown>>(opti
   systemInstruction: string;
   openAiPrompt: string;
   fallback: T;
+  allowOpenAiFallbacks?: boolean;
   runGemini: (ai: GoogleGenAI) => Promise<T | null>;
 }): Promise<{ data: T; source: 'gemini-ai' | 'openrouter-ai' | 'groq-ai' } | null> {
-  const { taskName, systemInstruction, openAiPrompt, fallback, runGemini } = options;
+  const {
+    taskName,
+    systemInstruction,
+    openAiPrompt,
+    fallback,
+    allowOpenAiFallbacks = true,
+    runGemini,
+  } = options;
 
   // Tier 1: Gemini
   const geminiClient = getAiClient();
@@ -241,8 +249,8 @@ async function executeModelFallbackChain<T extends Record<string, unknown>>(opti
     }
   }
 
-  // Tier 2: OpenRouter
-  if (getOpenRouterApiKey()) {
+  // Tier 2: OpenRouter (text-only fallback)
+  if (allowOpenAiFallbacks && getOpenRouterApiKey()) {
     try {
       const parsed = await callOpenRouterJson<T>(systemInstruction, openAiPrompt);
       return { data: mergeWithFallback(parsed, fallback), source: 'openrouter-ai' };
@@ -251,8 +259,8 @@ async function executeModelFallbackChain<T extends Record<string, unknown>>(opti
     }
   }
 
-  // Tier 3: Groq
-  if (getGroqApiKey()) {
+  // Tier 3: Groq (text-only fallback)
+  if (allowOpenAiFallbacks && getGroqApiKey()) {
     try {
       const parsed = await callGroqJson<T>(systemInstruction, openAiPrompt);
       return { data: mergeWithFallback(parsed, fallback), source: 'groq-ai' };
@@ -687,27 +695,50 @@ Rules:
   );
 }
 
-export async function analyzeJobPayload(body: { description?: string }) {
-  const { description } = body || {};
-  if (typeof description !== 'string' || description.trim().length < 15) {
-    throw new ApiValidationError(400, 'Please provide a job description with at least 15 characters.');
+export async function analyzeJobPayload(body: { description?: string; base64Pdf?: string }) {
+  const { description, base64Pdf } = body || {};
+  const safeDescription = typeof description === 'string' ? description.trim() : '';
+
+  if (typeof base64Pdf === 'string' && base64Pdf.length > 5_800_000) {
+    throw new ApiValidationError(
+      413,
+      'Scanned PDF job description exceeds the 5.8 MB base64 OCR payload limit. Compress under 4 MB or upload a text-searchable PDF/DOCX.'
+    );
   }
 
-  const fallback = heuristicAnalyzeJd(description);
+  if (safeDescription.length < 15 && !base64Pdf) {
+    throw new ApiValidationError(
+      400,
+      'Please provide a job description with at least 15 characters or upload a PDF/DOCX job description.'
+    );
+  }
+
+  const fallback = heuristicAnalyzeJd(safeDescription || 'Custom Target Job Role');
   const systemInstruction =
     'You are an expert recruitment job description analyzer. Differentiate mandatory required skills from preferred optional skills. Return valid JSON only.';
-  const openAiPrompt = `Analyze this job description and extract structured hiring requirements without inventing requirements not present in the text:\n\n${description.slice(0, 12000)}\n\nReturn JSON with exact keys: title, requiredSkills, preferredSkills, educationalQualifications, minimumExperience, maximumExperience, minimumCGPA, responsibilities, certifications, location, employmentType, keywords.`;
+  const openAiPrompt = `Analyze this job description and extract structured hiring requirements without inventing requirements not present in the text:\n\n${safeDescription.slice(0, 12000)}\n\nReturn JSON with exact keys: title, requiredSkills, preferredSkills, educationalQualifications, minimumExperience, maximumExperience, minimumCGPA, responsibilities, certifications, location, employmentType, keywords, extractedSummary.`;
 
-  const chainResult = await executeModelFallbackChain<typeof fallback>({
+  const chainResult = await executeModelFallbackChain<typeof fallback & { extractedSummary?: string }>({
     taskName: 'analyzeJob',
     systemInstruction,
     openAiPrompt,
     fallback,
+    allowOpenAiFallbacks: safeDescription.length >= 15,
     runGemini: async (ai) => {
+      const parts: Array<string | { inlineData: { mimeType: string; data: string } }> = [];
+      if (base64Pdf) {
+        parts.push({
+          inlineData: { mimeType: 'application/pdf', data: base64Pdf },
+        });
+      }
+      parts.push(
+        `Analyze this job description and extract structured hiring requirements without inventing requirements not present in the text:\n\n${safeDescription.slice(0, 12000)}`
+      );
+
       const response = await withRetry(() =>
         ai.models.generateContent({
           model: getGeminiModel(),
-          contents: `Analyze this job description and extract structured hiring requirements without inventing requirements not present in the text:\n\n${description.slice(0, 12000)}`,
+          contents: parts,
           config: {
             systemInstruction,
             thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
@@ -727,13 +758,14 @@ export async function analyzeJobPayload(body: { description?: string }) {
                 location: { type: Type.STRING },
                 employmentType: { type: Type.STRING },
                 keywords: { type: Type.ARRAY, items: { type: Type.STRING } },
+                extractedSummary: { type: Type.STRING },
               },
             },
           },
         })
       );
 
-      return tryParseJsonObject<typeof fallback>(response.text);
+      return tryParseJsonObject<typeof fallback & { extractedSummary?: string }>(response.text);
     },
   });
 
@@ -741,7 +773,14 @@ export async function analyzeJobPayload(body: { description?: string }) {
     return { analysis: chainResult.data, source: chainResult.source };
   }
 
-  return { analysis: fallback, source: 'fallback-analyzer' as const };
+  if (safeDescription.length >= 15) {
+    return { analysis: fallback, source: 'fallback-analyzer' as const };
+  }
+
+  throw new ApiValidationError(
+    422,
+    'Scanned or image-only PDF requires AI OCR, which is currently unavailable. Upload a text-searchable PDF/DOCX or paste the job description text.'
+  );
 }
 
 export async function analyzeMatchingPayload(body: {

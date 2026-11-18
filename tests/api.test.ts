@@ -294,4 +294,18 @@ describe('Backend API (Express & Netlify Function Parity - Mode B Fallback)', ()
     );
     expect(netlifyRes.status).toBe(413);
   });
+
+  it('CUSTOM-JD: /api/jobs/analyze enforces 413 on oversized scanned PDF and 422 when OCR is unavailable', async () => {
+    const tooLarge = await request(app).post('/api/jobs/analyze').send({
+      description: '',
+      base64Pdf: 'A'.repeat(5_800_005),
+    });
+    expect(tooLarge.status).toBe(413);
+
+    const scannedNoAi = await request(app).post('/api/jobs/analyze').send({
+      description: '',
+      base64Pdf: 'JVBERi0xLjQK',
+    });
+    expect(scannedNoAi.status).toBe(422);
+  });
 });

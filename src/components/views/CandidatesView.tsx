@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useAts } from '../../context/AtsContext';
 import { CandidateProfile, HiringStage, MatchCategory, WorkspaceRoute } from '../../data/atsData';
 import { exportObjectToJson, exportRowsToCsv, normalizeSkillName } from '../../utils/atsEngine';
+import { CUSTOM_JOB_OPTION_VALUE, CustomTargetJobModal } from '../CustomTargetJobModal';
 
 interface CandidatesViewProps {
   onNavigate: (route: WorkspaceRoute) => void;
@@ -32,6 +33,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
 
   const [searchQuery, setSearchQuery] = useState('');
   const [matchJobId, setMatchJobId] = useState<string>('target');
+  const [customJobModalOpen, setCustomJobModalOpen] = useState(false);
   const [stageFilter, setStageFilter] = useState<string>('All Stages');
   const [matchCatFilter, setMatchCatFilter] = useState<string>('All Categories');
   const [expFilter, setExpFilter] = useState<string>('All Experience');
@@ -507,6 +509,10 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                 value={matchJobId}
                 onChange={(e) => {
                   const val = e.target.value;
+                  if (val === CUSTOM_JOB_OPTION_VALUE) {
+                    setCustomJobModalOpen(true);
+                    return;
+                  }
                   setMatchJobId(val);
                   if (val !== 'target') setSelectedJobId(val);
                 }}
@@ -518,6 +524,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                     Score vs: {j.title}
                   </option>
                 ))}
+                <option value={CUSTOM_JOB_OPTION_VALUE}>+ Add Custom Target Job Role...</option>
               </select>
 
               <select
@@ -1365,6 +1372,12 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
           </div>
         </div>
       )}
+
+      <CustomTargetJobModal
+        open={customJobModalOpen}
+        onClose={() => setCustomJobModalOpen(false)}
+        onCreated={(newJob) => setMatchJobId(newJob.id)}
+      />
     </div>
   );
 };

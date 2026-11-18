@@ -2,13 +2,13 @@ import React, { useMemo, useState } from 'react';
 import { useAts } from '../../context/AtsContext';
 import {
   CandidateProfile,
-  EmploymentType,
   HiringStage,
   JobPosting,
   JobStatus,
   WorkspaceRoute,
 } from '../../data/atsData';
 import { exportObjectToJson, exportRowsToCsv, normalizeSkillName } from '../../utils/atsEngine';
+import { CustomJobRoleModal } from '../CustomJobRoleModal';
 
 interface ViewProps {
   onNavigate: (route: WorkspaceRoute) => void;
@@ -37,6 +37,7 @@ export const AIMatchingView: React.FC<ViewProps> = ({
   const activeJobId = selectedJob?.id || jobs[0]?.id || '';
   const [activeStageFilter, setActiveStageFilter] = useState<string>('All');
   const [spotlightId, setSpotlightId] = useState<string>(candidates[0]?.id || '');
+  const [showCustomJobModal, setShowCustomJobModal] = useState(false);
 
   const rankedForJob = useMemo(() => {
     return candidates
@@ -92,6 +93,14 @@ export const AIMatchingView: React.FC<ViewProps> = ({
               ))}
             </select>
           )}
+          <button
+            type="button"
+            onClick={() => setShowCustomJobModal(true)}
+            className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-[#4F46E5]/20 hover:bg-[#4F46E5]/35 border border-[#8B5CF6]/40 text-primary text-xs font-semibold cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[16px]">add_circle</span>
+            <span>Custom Role</span>
+          </button>
           <button
             type="button"
             onClick={() => onNavigate('compare-candidates')}
@@ -334,6 +343,11 @@ export const AIMatchingView: React.FC<ViewProps> = ({
           </div>
         </div>
       )}
+
+      <CustomJobRoleModal
+        isOpen={showCustomJobModal}
+        onClose={() => setShowCustomJobModal(false)}
+      />
     </div>
   );
 };
@@ -593,159 +607,19 @@ export const HiringPipelineView: React.FC<ViewProps> = ({ onSelectCandidate }) =
 export const JobManagementView: React.FC<{ onNavigate: (r: WorkspaceRoute) => void }> = ({
   onNavigate,
 }) => {
-  const { jobs, candidates, addJob, updateJob, deleteJob, setSelectedJobId, showToast } = useAts();
+  const { jobs, candidates, updateJob, deleteJob, setSelectedJobId } = useAts();
   const [showModal, setShowModal] = useState(false);
-  const [editingJobId, setEditingJobId] = useState<string | null>(null);
-  const [analyzingJd, setAnalyzingJd] = useState(false);
+  const [editingJob, setEditingJob] = useState<JobPosting | null>(null);
   const [confirmDeleteJobId, setConfirmDeleteJobId] = useState<string | null>(null);
 
-  const [title, setTitle] = useState('');
-  const [department, setDepartment] = useState('Engineering');
-  const [location, setLocation] = useState('Bengaluru / Hybrid');
-  const [employmentType, setEmploymentType] = useState<EmploymentType>('Full-Time');
-  const [status, setStatus] = useState<JobStatus>('Active');
-  const [description, setDescription] = useState('');
-  const [reqSkills, setReqSkills] = useState('Python, FastAPI, SQL');
-  const [prefSkills, setPrefSkills] = useState('Docker, AWS');
-  const [minExp, setMinExp] = useState('0');
-  const [maxExp, setMaxExp] = useState('3');
-  const [minCgpa, setMinCgpa] = useState('7.0');
-  const [gradYears, setGradYears] = useState('2024, 2025, 2026');
-  const [responsibilities, setResponsibilities] = useState('');
-
   const openCreateModal = () => {
-    setEditingJobId(null);
-    setTitle('');
-    setDepartment('Engineering');
-    setLocation('Bengaluru / Hybrid');
-    setEmploymentType('Full-Time');
-    setStatus('Active');
-    setDescription('');
-    setReqSkills('Python, REST APIs, SQL');
-    setPrefSkills('Docker, AWS');
-    setMinExp('0');
-    setMaxExp('3');
-    setMinCgpa('7.0');
-    setGradYears('2024, 2025, 2026');
-    setResponsibilities('');
+    setEditingJob(null);
     setShowModal(true);
   };
 
   const openEditModal = (job: JobPosting) => {
-    setEditingJobId(job.id);
-    setTitle(job.title);
-    setDepartment(job.department);
-    setLocation(job.location);
-    setEmploymentType(job.employmentType);
-    setStatus(job.status);
-    setDescription(job.description);
-    setReqSkills(job.requiredSkills.join(', '));
-    setPrefSkills(job.preferredSkills.join(', '));
-    setMinExp(String(job.minimumExperience));
-    setMaxExp(String(job.maximumExperience));
-    setMinCgpa(job.minimumCGPA !== null ? String(job.minimumCGPA) : '');
-    setGradYears(job.graduationYears.join(', '));
-    setResponsibilities(job.responsibilities.join('\n'));
+    setEditingJob(job);
     setShowModal(true);
-  };
-
-  const handleAnalyzeJd = async () => {
-    if (description.trim().length < 15) {
-      showToast('Paste a job description (15+ chars) to analyze with AI.', 'warning');
-      return;
-    }
-    setAnalyzingJd(true);
-    try {
-      const res = await fetch('/api/jobs/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description }),
-      });
-      if (res.ok) {
-        const data = (await res.json()) as {
-          analysis?: {
-            title?: string;
-            requiredSkills?: string[];
-            preferredSkills?: string[];
-            minimumExperience?: number;
-            maximumExperience?: number;
-            minimumCGPA?: number | null;
-            responsibilities?: string[];
-            location?: string;
-            employmentType?: EmploymentType;
-          };
-        };
-        const a = data.analysis;
-        if (a) {
-          if (a.title && !title.trim()) setTitle(a.title);
-          if (a.requiredSkills?.length) setReqSkills(a.requiredSkills.join(', '));
-          if (a.preferredSkills?.length) setPrefSkills(a.preferredSkills.join(', '));
-          if (typeof a.minimumExperience === 'number') setMinExp(String(a.minimumExperience));
-          if (typeof a.maximumExperience === 'number') setMaxExp(String(a.maximumExperience));
-          setMinCgpa(typeof a.minimumCGPA === 'number' ? String(a.minimumCGPA) : '');
-          if (a.location) setLocation(a.location);
-          if (a.responsibilities?.length) setResponsibilities(a.responsibilities.join('\n'));
-          showToast('JD requirements extracted! Review and edit before saving.');
-        }
-      }
-    } catch {
-      showToast('Could not analyze JD automatically.', 'error');
-    } finally {
-      setAnalyzingJd(false);
-    }
-  };
-
-  const handleSaveJob = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim()) return;
-    const reqArr = reqSkills.split(',').map((s) => s.trim()).filter(Boolean);
-    const prefArr = prefSkills.split(',').map((s) => s.trim()).filter(Boolean);
-    const yrsArr = gradYears
-      .split(',')
-      .map((y) => parseInt(y.trim(), 10))
-      .filter((y) => !Number.isNaN(y));
-    const respArr = responsibilities
-      .split('\n')
-      .map((l) => l.trim())
-      .filter(Boolean);
-
-    const existing = editingJobId ? jobs.find((j) => j.id === editingJobId) : null;
-    const payload: JobPosting = {
-      id: editingJobId || `job-${Date.now()}`,
-      title: title.trim(),
-      department: department.trim() || 'Engineering',
-      location: location.trim() || 'Remote',
-      employmentType,
-      priority: existing?.priority ?? 'High',
-      description: description.trim() || `${title.trim()} requisition.`,
-      requiredQualifications: existing?.requiredQualifications ?? [
-        'B.Tech / B.E. or equivalent technical background',
-      ],
-      preferredQualifications: existing?.preferredQualifications ?? [],
-      requiredSkills: reqArr,
-      preferredSkills: prefArr,
-      responsibilities: respArr.length > 0 ? respArr : [`Deliver core engineering milestones for ${title.trim()}`],
-      certifications: existing?.certifications ?? [],
-      minimumExperience: parseFloat(minExp) || 0,
-      maximumExperience: parseFloat(maxExp) || 4,
-      minimumCGPA: minCgpa.trim() ? parseFloat(minCgpa) : null,
-      graduationYears: yrsArr.length > 0 ? yrsArr : [2024, 2025, 2026],
-      keywords: Array.from(new Set([...reqArr, ...prefArr])),
-      applicants: existing?.applicants ?? 0,
-      shortlisted: existing?.shortlisted ?? 0,
-      avgMatch: existing?.avgMatch ?? 0,
-      status,
-      skills: Array.from(new Set([...reqArr, ...prefArr])),
-      salaryRange: existing?.salaryRange ?? 'Competitive',
-      postedAgo: existing?.postedAgo ?? 'Just now',
-    };
-
-    if (editingJobId) {
-      updateJob(payload);
-    } else {
-      addJob(payload);
-    }
-    setShowModal(false);
   };
 
   return (
@@ -903,187 +777,12 @@ export const JobManagementView: React.FC<{ onNavigate: (r: WorkspaceRoute) => vo
         })}
       </div>
 
-      {/* Create / Edit Job Modal with Gemini JD Analyzer */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 overflow-y-auto py-8">
-          <div
-            className="fixed inset-0 bg-black/70 backdrop-blur-xs"
-            onClick={() => setShowModal(false)}
-          />
-          <form
-            onSubmit={handleSaveJob}
-            className="relative w-full max-w-2xl rounded-2xl bg-[#111827] border border-[#263449] shadow-2xl p-6 z-10 space-y-4 text-xs"
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="font-headline-md text-white font-semibold">
-                {editingJobId ? 'Edit Job Description' : 'Create Job Opening'}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                className="text-outline hover:text-white cursor-pointer"
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-outline">Full Job Description (Paste to Auto-Extract)</label>
-                <button
-                  type="button"
-                  disabled={analyzingJd}
-                  onClick={handleAnalyzeJd}
-                  className="px-3 py-1 rounded-lg bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-semibold flex items-center gap-1 cursor-pointer disabled:opacity-60"
-                >
-                  <span className={`material-symbols-outlined text-[14px] ${analyzingJd ? 'animate-spin' : ''}`}>
-                    {analyzingJd ? 'refresh' : 'auto_awesome'}
-                  </span>
-                  <span>{analyzingJd ? 'Analyzing JD...' : 'Analyze JD with AI'}</span>
-                </button>
-              </div>
-              <textarea
-                rows={4}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Paste job description here and click 'Analyze JD with AI' to extract required/preferred skills, experience, and qualifications..."
-                className="w-full p-3 rounded-lg bg-surface-container-highest text-on-surface outline-none resize-none"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-outline block mb-1">Job Title</label>
-                <input
-                  required
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Python Developer"
-                  className="w-full h-9 px-3 rounded-lg bg-surface-container-highest text-on-surface outline-none"
-                />
-              </div>
-              <div>
-                <label className="text-outline block mb-1">Department</label>
-                <input
-                  value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
-                  className="w-full h-9 px-3 rounded-lg bg-surface-container-highest text-on-surface outline-none"
-                />
-              </div>
-              <div>
-                <label className="text-outline block mb-1">Location</label>
-                <input
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="w-full h-9 px-3 rounded-lg bg-surface-container-highest text-on-surface outline-none"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-outline block mb-1">Employment Type</label>
-                  <select
-                    value={employmentType}
-                    onChange={(e) => setEmploymentType(e.target.value as EmploymentType)}
-                    className="w-full h-9 px-2 rounded-lg bg-surface-container-highest text-on-surface outline-none"
-                  >
-                    {['Full-Time', 'Part-Time', 'Internship', 'Contract', 'Remote', 'Hybrid', 'On-Site'].map((t) => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-outline block mb-1">Status</label>
-                  <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value as JobStatus)}
-                    className="w-full h-9 px-2 rounded-lg bg-surface-container-highest text-on-surface outline-none"
-                  >
-                    {['Active', 'Paused', 'Closed', 'Draft'].map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-outline block mb-1">Required Skills (comma separated)</label>
-                <input
-                  value={reqSkills}
-                  onChange={(e) => setReqSkills(e.target.value)}
-                  className="w-full h-9 px-3 rounded-lg bg-surface-container-highest text-on-surface outline-none"
-                />
-              </div>
-              <div>
-                <label className="text-outline block mb-1">Preferred / Optional Skills</label>
-                <input
-                  value={prefSkills}
-                  onChange={(e) => setPrefSkills(e.target.value)}
-                  className="w-full h-9 px-3 rounded-lg bg-surface-container-highest text-on-surface outline-none"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-4 gap-2">
-              <div>
-                <label className="text-outline block mb-1">Min Exp (yrs)</label>
-                <input
-                  type="number"
-                  step="0.5"
-                  value={minExp}
-                  onChange={(e) => setMinExp(e.target.value)}
-                  className="w-full h-9 px-2.5 rounded-lg bg-surface-container-highest text-on-surface outline-none"
-                />
-              </div>
-              <div>
-                <label className="text-outline block mb-1">Max Exp (yrs)</label>
-                <input
-                  type="number"
-                  step="0.5"
-                  value={maxExp}
-                  onChange={(e) => setMaxExp(e.target.value)}
-                  className="w-full h-9 px-2.5 rounded-lg bg-surface-container-highest text-on-surface outline-none"
-                />
-              </div>
-              <div>
-                <label className="text-outline block mb-1">Min CGPA</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={minCgpa}
-                  onChange={(e) => setMinCgpa(e.target.value)}
-                  className="w-full h-9 px-2.5 rounded-lg bg-surface-container-highest text-on-surface outline-none"
-                />
-              </div>
-              <div>
-                <label className="text-outline block mb-1">Grad Years</label>
-                <input
-                  value={gradYears}
-                  onChange={(e) => setGradYears(e.target.value)}
-                  className="w-full h-9 px-2.5 rounded-lg bg-surface-container-highest text-on-surface outline-none"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                className="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 rounded-lg bg-primary-container text-white font-semibold cursor-pointer"
-              >
-                {editingJobId ? 'Save Job Updates' : 'Publish Job'}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+      {/* Create / Edit Job Modal supporting Text JD & PDF/DOCX upload */}
+      <CustomJobRoleModal
+        isOpen={showModal}
+        editingJob={editingJob}
+        onClose={() => setShowModal(false)}
+      />
     </div>
   );
 };
@@ -1287,6 +986,7 @@ export const CandidateRankingView: React.FC<ViewProps> = ({ onSelectCandidate })
   const activeJob = selectedJob ?? jobs[0];
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc' | 'name'>('desc');
   const [topN, setTopN] = useState<number>(0); // 0 = All
+  const [showCustomJobModal, setShowCustomJobModal] = useState(false);
 
   const ranked = useMemo(() => {
     if (!activeJob) return [];
@@ -1357,6 +1057,14 @@ export const CandidateRankingView: React.FC<ViewProps> = ({ onSelectCandidate })
               ))}
             </select>
           )}
+          <button
+            type="button"
+            onClick={() => setShowCustomJobModal(true)}
+            className="h-9 flex items-center gap-1 px-3 rounded-xl bg-[#4F46E5]/20 hover:bg-[#4F46E5]/35 border border-[#8B5CF6]/40 text-primary text-xs font-semibold cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[15px]">add_circle</span>
+            <span>Custom Role</span>
+          </button>
           <select
             value={topN}
             onChange={(e) => setTopN(parseInt(e.target.value, 10))}
@@ -1449,6 +1157,11 @@ export const CandidateRankingView: React.FC<ViewProps> = ({ onSelectCandidate })
           </table>
         </div>
       </div>
+
+      <CustomJobRoleModal
+        isOpen={showCustomJobModal}
+        onClose={() => setShowCustomJobModal(false)}
+      />
     </div>
   );
 };

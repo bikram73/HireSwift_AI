@@ -8,6 +8,7 @@ import {
   exportRowsToCsv,
 } from '../../utils/atsEngine';
 import { DocumentValidationError, validateAndExtractResume } from '../../utils/fileExtractor';
+import { CustomJobRoleModal } from '../CustomJobRoleModal';
 
 interface ResumeUploadViewProps {
   onNavigate: (route: WorkspaceRoute) => void;
@@ -103,6 +104,7 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
     failed: number;
   } | null>(null);
   const [resolveTarget, setResolveTarget] = useState<QueuedResumeFile | null>(null);
+  const [showCustomJobModal, setShowCustomJobModal] = useState(false);
 
   // Keep a mutable pool reference so simultaneous files in the same batch detect intra-batch duplicates
   const runningPoolRef = useRef<CandidateProfile[]>(candidates);
@@ -540,8 +542,15 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-surface-container-high text-xs shadow-sm">
             <span className="text-outline">Target Job:</span>
             <select
+              aria-label="Target Job Role"
               value={targetJobId}
-              onChange={(e) => setTargetJobId(e.target.value)}
+              onChange={(e) => {
+                if (e.target.value === '__ADD_CUSTOM__') {
+                  setShowCustomJobModal(true);
+                  return;
+                }
+                setTargetJobId(e.target.value);
+              }}
               className="bg-transparent text-primary font-semibold outline-none cursor-pointer"
             >
               {jobs.map((j) => (
@@ -549,8 +558,19 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
                   {j.title}
                 </option>
               ))}
+              <option value="__ADD_CUSTOM__" className="bg-[#111827] text-[#c3c0ff] font-semibold">
+                + Add Custom Target Job Role...
+              </option>
             </select>
           </div>
+          <button
+            type="button"
+            onClick={() => setShowCustomJobModal(true)}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#4F46E5]/20 hover:bg-[#4F46E5]/35 border border-[#8B5CF6]/40 text-primary text-xs font-semibold transition-colors cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[16px]">add_circle</span>
+            <span>Add Custom Role</span>
+          </button>
           <button
             type="button"
             onClick={() => onNavigate('settings')}
@@ -958,6 +978,12 @@ export const ResumeUploadView: React.FC<ResumeUploadViewProps> = ({
           </div>
         </div>
       )}
+
+      <CustomJobRoleModal
+        isOpen={showCustomJobModal}
+        onClose={() => setShowCustomJobModal(false)}
+        onSaved={(newJob) => setTargetJobId(newJob.id)}
+      />
     </div>
   );
 };

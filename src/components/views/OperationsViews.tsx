@@ -11,6 +11,7 @@ import {
 import { useAts } from '../../context/AtsContext';
 import { DEFAULT_SCORING_WEIGHTS, ScoringWeights, WorkspaceRoute } from '../../data/atsData';
 import { exportObjectToJson, exportRowsToCsv, normalizeSkillName } from '../../utils/atsEngine';
+import { CustomJobRoleModal } from '../CustomJobRoleModal';
 
 /* -------------------------------------------------------------------------- */
 /* 1. SKILL GAP ANALYSIS VIEW (Page 11)                                       */
@@ -19,6 +20,7 @@ export const SkillGapAnalysisView: React.FC = () => {
   const { candidates, jobs, selectedJobId, setSelectedJobId, getMatchFor, showToast } = useAts();
   const [candidateId, setCandidateId] = useState<string>(candidates[0]?.id || '');
   const [loadingAi, setLoadingAi] = useState(false);
+  const [showCustomJobModal, setShowCustomJobModal] = useState(false);
   const [aiGapResult, setAiGapResult] = useState<{
     transferableSkills: string[];
     recommendedLearningAreas: string[];
@@ -133,6 +135,14 @@ export const SkillGapAnalysisView: React.FC = () => {
               </option>
             ))}
           </select>
+          <button
+            type="button"
+            onClick={() => setShowCustomJobModal(true)}
+            className="h-9 flex items-center gap-1 px-3 rounded-xl bg-[#4F46E5]/20 hover:bg-[#4F46E5]/35 border border-[#8B5CF6]/40 text-primary text-xs font-semibold cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[15px]">add_circle</span>
+            <span>Custom Role</span>
+          </button>
           <button
             type="button"
             disabled={loadingAi}
@@ -299,6 +309,11 @@ export const SkillGapAnalysisView: React.FC = () => {
           </div>
         ))}
       </div>
+
+      <CustomJobRoleModal
+        isOpen={showCustomJobModal}
+        onClose={() => setShowCustomJobModal(false)}
+      />
     </div>
   );
 };

@@ -176,3 +176,63 @@ export async function validateAndExtractResume(
     isScannedPdfFallback,
   };
 }
+
+export interface ExtractedJobDocument {
+  fileName: string;
+  fileType: 'PDF' | 'DOCX' | 'TXT';
+  extractedText: string;
+  base64Pdf?: string;
+  isScannedPdfFallback: boolean;
+}
+
+export async function validateAndExtractJobDocument(
+  file: File,
+  maxSizeMb: number
+): Promise<ExtractedJobDocument> {
+  const lowerName = file.name.toLowerCase();
+  const isTxt = lowerName.endsWith('.txt') || lowerName.endsWith('.md');
+
+  if (isTxt) {
+    if (file.size === 0) {
+      throw new DocumentValidationError(
+        'Empty document',
+        `"${file.name}" has 0 bytes and contains no readable text.`,
+        'Upload a non-empty .txt, .pdf, or .docx job description.'
+      );
+    }
+    const maxBytes = maxSizeMb * 1024 * 1024;
+    if (file.size > maxBytes) {
+      throw new DocumentValidationError(
+        'File exceeds size limit',
+        `"${file.name}" exceeds ${maxSizeMb} MB.`,
+        'Upload a smaller job description file.'
+      );
+    }
+    const text = (await file.text()).trim();
+    if (text.length < 15) {
+      throw new DocumentValidationError(
+        'Job description too short',
+        `"${file.name}" contains fewer than 15 characters.`,
+        'Provide a more detailed job description or paste the requirements directly.'
+      );
+    }
+    return {
+      fileName: file.name,
+      fileType: 'TXT',
+      extractedText: text,
+      isScannedPdfFallback: false,
+    };
+  }
+
+  const res = await validateAndExtractResume(file, maxSizeMb);
+  if (res.objectUrl) {
+    URL.revokeObjectURL(res.objectUrl);
+  }
+  return {
+    fileName: res.fileName,
+    fileType: res.fileType,
+    extractedText: res.extractedText,
+    base64Pdf: res.base64Pdf,
+    isScannedPdfFallback: res.isScannedPdfFallback,
+  };
+}

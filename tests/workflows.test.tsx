@@ -334,4 +334,90 @@ describe('UI Integration & Defect Verification (PRD Modules 4–23)', () => {
     expect(screen.getByText('Documentation, Migration & Shortcuts')).toBeInTheDocument();
     expect(screen.getByText('POST /api/resumes/parse')).toBeInTheDocument();
   });
+
+  it('CUSTOM-ROLE: ResumeUploadView allows adding Custom Target Job Role via Text Description or DOCX/PDF upload', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url.includes('/api/jobs/analyze')) {
+        const parsedBody = JSON.parse(String(init?.body || '{}')) as { description?: string };
+        return new Response(
+          JSON.stringify({
+            source: 'fallback-analyzer',
+            analysis: {
+              title: parsedBody.description?.includes('Rust')
+                ? 'Senior Rust Engineer'
+                : 'Cloud Platform Architect',
+              requiredSkills: parsedBody.description?.includes('Rust')
+                ? ['Rust', 'Tokio', 'PostgreSQL']
+                : ['Kubernetes', 'Terraform', 'AWS'],
+              preferredSkills: ['Docker'],
+              minimumExperience: 2,
+              maximumExperience: 5,
+              minimumCGPA: 7.5,
+              responsibilities: ['Design resilient distributed systems'],
+              location: 'Remote',
+            },
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      return new Response('{}', { status: 404 });
+    });
+
+    render(
+      <AtsProvider>
+        <ResumeUploadView onNavigate={vi.fn()} onSelectCandidate={vi.fn()} />
+      </AtsProvider>
+    );
+
+    // 1) Open Custom Target Job Role modal via "Add Custom Role" button and test Text Description + AI extraction
+    fireEvent.click(screen.getByRole('button', { name: /Add Custom Role/i }));
+    const modal = screen.getByRole('dialog');
+    expect(within(modal).getByText('Add Custom Target Job Role')).toBeInTheDocument();
+
+    fireEvent.change(within(modal).getByPlaceholderText(/Paste job description here/i), {
+      target: { value: 'Looking for a Rust developer with Tokio, PostgreSQL and Docker experience.' },
+    });
+    fireEvent.click(within(modal).getByRole('button', { name: /Analyze JD with AI/i }));
+
+    await waitFor(() => {
+      expect(within(modal).getByDisplayValue('Senior Rust Engineer')).toBeInTheDocument();
+    });
+    expect(within(modal).getByDisplayValue('Rust, Tokio, PostgreSQL')).toBeInTheDocument();
+
+    fireEvent.click(within(modal).getByRole('button', { name: /Publish Job/i }));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    const targetSelect = screen.getByLabelText('Target Job Role') as HTMLSelectElement;
+    expect(targetSelect.selectedOptions[0].textContent).toBe('Senior Rust Engineer');
+
+    // 2) Open via dropdown "+ Add Custom Target Job Role..." option and upload a DOCX JD file
+    fireEvent.change(targetSelect, { target: { value: '__ADD_CUSTOM__' } });
+    const modal2 = screen.getByRole('dialog');
+    fireEvent.click(within(modal2).getByRole('button', { name: /Upload DOC \/ PDF/i }));
+
+    const docxBytes = await buildRealDocxBytes(
+      'Hiring Cloud Platform Architect with Kubernetes, Terraform, AWS and Docker expertise. Min 2 years experience.'
+    );
+    const jdFile = new File([new Uint8Array(docxBytes).buffer], 'Platform_Architect_JD.docx', {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    });
+    const jdInput = within(modal2).getByLabelText('Upload Job Description Document');
+    fireEvent.change(jdInput, { target: { files: [jdFile] } });
+
+    await waitFor(() => {
+      expect(within(modal2).getByDisplayValue('Cloud Platform Architect')).toBeInTheDocument();
+    });
+    expect(within(modal2).getByText(/Loaded \(DOCX\): Platform_Architect_JD\.docx/i)).toBeInTheDocument();
+
+    fireEvent.click(within(modal2).getByRole('button', { name: /Publish Job/i }));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+    expect(targetSelect.selectedOptions[0].textContent).toBe('Cloud Platform Architect');
+
+    fetchSpy.mockRestore();
+  });
 });
