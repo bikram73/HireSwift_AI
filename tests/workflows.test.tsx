@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CandidateDrawer } from '../src/components/CandidateDrawer';
+import { CursorEffects } from '../src/components/CursorEffects';
 import { LandingPage } from '../src/components/LandingPage';
 import { CandidatesView } from '../src/components/views/CandidatesView';
 import { DashboardView } from '../src/components/views/DashboardView';
@@ -576,5 +577,46 @@ describe('UI Integration & Defect Verification (PRD Modules 4–23)', () => {
     const allPill = screen.getByRole('button', { name: /^All \(\d+\)$/i });
     fireEvent.click(allPill);
     expect(allPill.className).toContain('from-[#4F46E5]');
+  });
+
+  it('CURSOR-EFFECTS-001: CursorEffects renders non-blocking overlay and applies .glass-card pointer sheen cleanly', () => {
+    const { container } = render(
+      <div>
+        <CursorEffects />
+        <div className="glass-card" data-testid="demo-glass-card">
+          <button type="button">Inspect</button>
+        </div>
+      </div>
+    );
+
+    const layer = screen.getByTestId('cursor-effects-layer');
+    expect(layer.className).toContain('pointer-events-none');
+    expect(layer.className).toContain('overflow-hidden');
+
+    const card = screen.getByTestId('demo-glass-card');
+    vi.spyOn(card, 'getBoundingClientRect').mockReturnValue({
+      left: 100,
+      top: 50,
+      right: 400,
+      bottom: 250,
+      width: 300,
+      height: 200,
+      x: 100,
+      y: 50,
+      toJSON: () => ({}),
+    });
+
+    const btn = screen.getByRole('button', { name: 'Inspect' });
+    fireEvent.pointerMove(btn, { clientX: 165, clientY: 120, pointerType: 'mouse' });
+    expect(card.getAttribute('data-cursor-glow')).toBe('true');
+    expect(card.style.getPropertyValue('--mx')).toBe('65px');
+    expect(card.style.getPropertyValue('--my')).toBe('70px');
+
+    fireEvent.pointerDown(btn, { clientX: 165, clientY: 120, pointerType: 'mouse' });
+    fireEvent.pointerUp(btn, { clientX: 165, clientY: 120, pointerType: 'mouse' });
+
+    // Touch event clears pointer sheen so touch screens never retain stuck hover glow
+    fireEvent.pointerMove(container, { clientX: 10, clientY: 10, pointerType: 'touch' });
+    expect(card.getAttribute('data-cursor-glow')).toBeNull();
   });
 });

@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react';
 import { AtsProvider } from './context/AtsContext';
 import { CandidateDrawer } from './components/CandidateDrawer';
+import { CursorEffects } from './components/CursorEffects';
 import { LandingPage } from './components/LandingPage';
 import { WorkspaceShell } from './components/WorkspaceShell';
 import { CandidatesView } from './components/views/CandidatesView';
@@ -98,7 +99,12 @@ function AppContent() {
   };
 
   if (mode === 'landing') {
-    return <LandingPage onEnterWorkspace={enterWorkspace} />;
+    return (
+      <>
+        <CursorEffects />
+        <LandingPage onEnterWorkspace={enterWorkspace} />
+      </>
+    );
   }
 
   const renderWorkspaceView = () => {
@@ -183,6 +189,7 @@ function AppContent() {
 
   return (
     <>
+      <CursorEffects />
       <WorkspaceShell
         activeRoute={activeRoute}
         onNavigate={navigateWorkspace}

@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 import { useAts } from '../../context/AtsContext';
 import { CandidateProfile, WorkspaceRoute } from '../../data/atsData';
+import { BrandLogo } from '../BrandLogo';
 
 interface DashboardViewProps {
   onNavigate: (route: WorkspaceRoute) => void;
@@ -244,12 +245,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-space-lg relative z-10">
           <div className="flex items-start sm:items-center gap-3.5 sm:gap-space-lg min-w-0">
             <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-[#0B1020] shrink-0 flex items-center justify-center border border-[#263449]">
-              <img
-                alt="AI Engine Visualization"
-                className="w-full h-full object-cover"
-                src="/screen_630d9ae4.png"
-              />
-              <div className="absolute inset-0 bg-primary-container/15 mix-blend-overlay" />
+              <BrandLogo className="w-8 h-8 sm:w-11 sm:h-11" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center flex-wrap gap-space-sm mb-1">

@@ -50,14 +50,48 @@ const SPARKLES = [
   { left: '9%', top: '62%', size: 11, delay: '2.8s', duration: '5.6s' },
 ];
 
+interface TrailPoint {
+  x: number;
+  y: number;
+  age: number;
+}
+
+interface CursorSpark {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  size: number;
+  color: string;
+}
+
+interface ClickRipple {
+  x: number;
+  y: number;
+  radius: number;
+  maxRadius: number;
+  alpha: number;
+  color: string;
+}
+
 export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
   className = 'fixed inset-0',
   intensity = 'hero',
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const pointerRef = useRef<{ x: number; y: number; active: boolean }>({
+  const pointerRef = useRef<{
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    active: boolean;
+  }>({
     x: 0,
     y: 0,
+    vx: 0,
+    vy: 0,
     active: false,
   });
 
@@ -82,6 +116,10 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
     let dpr = 1;
     let rafId = 0;
     let nodes: ConstellationNode[] = [];
+    const trail: TrailPoint[] = [];
+    const sparks: CursorSpark[] = [];
+    const ripples: ClickRipple[] = [];
+    const smoothPtr = { x: 0, y: 0, initialized: false };
 
     const createNodes = (w: number, h: number): ConstellationNode[] => {
       const isCompact = w < 768;
@@ -116,13 +154,99 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
 
     resize();
 
+    const spawnSparks = (x: number, y: number, vx: number, vy: number, count: number) => {
+      for (let i = 0; i < count; i++) {
+        if (sparks.length >= 34) sparks.shift();
+        const angle = Math.atan2(vy, vx) + (Math.random() - 0.5) * 1.9 + Math.PI;
+        const speed = 0.6 + Math.random() * 1.9;
+        sparks.push({
+          x: x + (Math.random() - 0.5) * 8,
+          y: y + (Math.random() - 0.5) * 8,
+          vx: Math.cos(angle) * speed + vx * 0.08,
+          vy: Math.sin(angle) * speed + vy * 0.08,
+          life: 1,
+          maxLife: 0.55 + Math.random() * 0.45,
+          size: 1.2 + Math.random() * 1.9,
+          color: NODE_COLORS[(sparks.length + i) % NODE_COLORS.length],
+        });
+      }
+    };
+
     const onPointerMove = (e: PointerEvent) => {
+      if (e.pointerType === 'touch') {
+        pointerRef.current.active = false;
+        return;
+      }
       const rect = canvas.getBoundingClientRect();
+      const nx = e.clientX - rect.left;
+      const ny = e.clientY - rect.top;
+      const prev = pointerRef.current;
+      const dx = prev.active ? nx - prev.x : 0;
+      const dy = prev.active ? ny - prev.y : 0;
       pointerRef.current = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
+        x: nx,
+        y: ny,
+        vx: dx,
+        vy: dy,
         active: true,
       };
+      if (!smoothPtr.initialized) {
+        smoothPtr.x = nx;
+        smoothPtr.y = ny;
+        smoothPtr.initialized = true;
+      }
+      if (!prefersReducedMotion) {
+        trail.push({ x: nx, y: ny, age: 1 });
+        if (trail.length > 18) trail.shift();
+        const speed = Math.hypot(dx, dy);
+        if (speed > 3) {
+          spawnSparks(nx, ny, dx, dy, speed > 22 ? 3 : 1);
+        }
+      }
+    };
+
+    const onPointerDown = (e: PointerEvent) => {
+      if (prefersReducedMotion) return;
+      const rect = canvas.getBoundingClientRect();
+      const cx = e.clientX - rect.left;
+      const cy = e.clientY - rect.top;
+
+      if (ripples.length >= 6) ripples.shift();
+      ripples.push({
+        x: cx,
+        y: cy,
+        radius: 6,
+        maxRadius: intensity === 'hero' ? 150 : 120,
+        alpha: 0.72,
+        color: '#38BDF8',
+      });
+      ripples.push({
+        x: cx,
+        y: cy,
+        radius: 2,
+        maxRadius: intensity === 'hero' ? 96 : 78,
+        alpha: 0.55,
+        color: '#8B5CF6',
+      });
+
+      if (e.pointerType !== 'touch') {
+        spawnSparks(cx, cy, 0, 0, 7);
+      }
+
+      // Apply gentle radial impulse to nearby constellation nodes
+      const blastRadiusSq = 190 * 190;
+      for (let i = 0; i < nodes.length; i++) {
+        const n = nodes[i];
+        const dx = n.x - cx;
+        const dy = n.y - cy;
+        const dSq = dx * dx + dy * dy;
+        if (dSq > 1 && dSq < blastRadiusSq) {
+          const d = Math.sqrt(dSq);
+          const force = (1 - d / 190) * 1.45;
+          n.vx = Math.max(-1.8, Math.min(1.8, n.vx + (dx / d) * force));
+          n.vy = Math.max(-1.8, Math.min(1.8, n.vy + (dy / d) * force));
+        }
+      }
     };
 
     const onPointerLeave = () => {
@@ -131,13 +255,14 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
 
     window.addEventListener('resize', resize, { passive: true });
     window.addEventListener('pointermove', onPointerMove, { passive: true });
+    window.addEventListener('pointerdown', onPointerDown, { passive: true });
     window.addEventListener('pointerleave', onPointerLeave, { passive: true });
 
     let frameTick = 0;
     let lastDrawMs = 0;
     const drawFrame = (nowMs = 0) => {
       if (!ctx) return;
-      if (!prefersReducedMotion && lastDrawMs && nowMs - lastDrawMs < 30) {
+      if (!prefersReducedMotion && lastDrawMs && nowMs - lastDrawMs < 28) {
         rafId = window.requestAnimationFrame(drawFrame);
         return;
       }
@@ -152,10 +277,38 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
       const lineFaint = intensity === 'hero' ? 0.11 : 0.07;
       const ptr = pointerRef.current;
 
-      // Update positions first
+      if (ptr.active && smoothPtr.initialized) {
+        smoothPtr.x += (ptr.x - smoothPtr.x) * 0.3;
+        smoothPtr.y += (ptr.y - smoothPtr.y) * 0.3;
+      }
+
+      const activePtrX = smoothPtr.initialized ? smoothPtr.x : ptr.x;
+      const activePtrY = smoothPtr.initialized ? smoothPtr.y : ptr.y;
+      const ptrRadius = intensity === 'hero' ? 215 : 185;
+      const ptrRadiusSq = ptrRadius * ptrRadius;
+
+      // Update positions & magnetic cursor interaction
       if (!prefersReducedMotion) {
         for (let i = 0; i < nodes.length; i++) {
           const n = nodes[i];
+          if (ptr.active) {
+            const dx = activePtrX - n.x;
+            const dy = activePtrY - n.y;
+            const dSq = dx * dx + dy * dy;
+            if (dSq > 16 && dSq < ptrRadiusSq) {
+              const d = Math.sqrt(dSq);
+              const pull = (1 - d / ptrRadius) * 0.038;
+              // Gentle orbital swirl + subtle attraction toward cursor
+              n.vx += (dx / d) * pull - (dy / d) * pull * 0.55;
+              n.vy += (dy / d) * pull + (dx / d) * pull * 0.55;
+            }
+          }
+          // Light velocity damping back toward natural cruise speed
+          const speed = Math.hypot(n.vx, n.vy);
+          if (speed > 0.72) {
+            n.vx *= 0.975;
+            n.vy *= 0.975;
+          }
           n.x += n.vx;
           n.y += n.vy;
           if (n.x < -12) n.x = width + 12;
@@ -163,6 +316,25 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
           if (n.y < -12) n.y = height + 12;
           if (n.y > height + 12) n.y = -12;
         }
+      }
+
+      // Soft multi-stop cursor aura (3 layered translucent circles — zero createRadialGradient for speed & JSDOM safety)
+      if (ptr.active && !prefersReducedMotion) {
+        const auraAlpha = intensity === 'hero' ? 0.095 : 0.065;
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(79, 70, 229, ${auraAlpha * 0.55})`;
+        ctx.arc(activePtrX, activePtrY, 130, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(139, 92, 246, ${auraAlpha * 0.8})`;
+        ctx.arc(activePtrX, activePtrY, 74, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(56, 189, 248, ${auraAlpha})`;
+        ctx.arc(activePtrX, activePtrY, 32, 0, Math.PI * 2);
+        ctx.fill();
       }
 
       // Batch constellation lines into 2 draw calls without Path2D for full browser + JSDOM compatibility
@@ -208,28 +380,61 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
         ctx.stroke();
       }
 
-      // Pointer proximity edges batched in 1 draw call
+      // Pointer proximity energy web & traveling cursor packets
+      const ptrPackets: { x: number; y: number }[] = [];
       if (ptr.active) {
         ctx.beginPath();
         let hasPtrEdge = false;
         for (let i = 0; i < nodes.length; i++) {
           const n = nodes[i];
-          const pdx = n.x - ptr.x;
-          const pdy = n.y - ptr.y;
-          if (pdx * pdx + pdy * pdy < 175 * 175) {
+          const pdx = n.x - activePtrX;
+          const pdy = n.y - activePtrY;
+          if (pdx * pdx + pdy * pdy < ptrRadiusSq) {
             ctx.moveTo(n.x, n.y);
-            ctx.lineTo(ptr.x, ptr.y);
+            ctx.lineTo(activePtrX, activePtrY);
             hasPtrEdge = true;
+            if (!prefersReducedMotion) {
+              const t = (frameTick * 0.85 + i * 0.27) % 1;
+              ptrPackets.push({
+                x: n.x + (activePtrX - n.x) * t,
+                y: n.y + (activePtrY - n.y) * t,
+              });
+            }
           }
         }
         if (hasPtrEdge) {
-          ctx.lineWidth = 1;
-          ctx.strokeStyle = 'rgba(56, 189, 248, 0.28)';
+          ctx.lineWidth = 1.15;
+          ctx.strokeStyle = intensity === 'hero' ? 'rgba(56, 189, 248, 0.36)' : 'rgba(56, 189, 248, 0.28)';
           ctx.stroke();
         }
       }
 
-      // Draw traveling data packets in a single path
+      // Cursor movement comet trail ribbon
+      if (!prefersReducedMotion && trail.length > 1) {
+        for (let i = trail.length - 1; i >= 0; i--) {
+          trail[i].age -= 0.055;
+          if (trail[i].age <= 0) {
+            trail.splice(i, 1);
+          }
+        }
+        for (let i = 1; i < trail.length; i++) {
+          const p0 = trail[i - 1];
+          const p1 = trail[i];
+          const progress = i / trail.length;
+          ctx.beginPath();
+          ctx.moveTo(p0.x, p0.y);
+          ctx.lineTo(p1.x, p1.y);
+          ctx.lineWidth = 1 + progress * 2.6;
+          ctx.lineCap = 'round';
+          ctx.strokeStyle =
+            progress > 0.55
+              ? `rgba(56, 189, 248, ${(p1.age * progress * 0.42).toFixed(3)})`
+              : `rgba(139, 92, 246, ${(p1.age * progress * 0.34).toFixed(3)})`;
+          ctx.stroke();
+        }
+      }
+
+      // Draw traveling data packets (constellation + pointer)
       if (packets.length > 0) {
         ctx.beginPath();
         ctx.fillStyle = 'rgba(56, 189, 248, 0.72)';
@@ -239,21 +444,79 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
         }
         ctx.fill();
       }
+      if (ptrPackets.length > 0) {
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(224, 242, 254, 0.9)';
+        for (let p = 0; p < ptrPackets.length; p++) {
+          ctx.moveTo(ptrPackets[p].x + 2, ptrPackets[p].y);
+          ctx.arc(ptrPackets[p].x, ptrPackets[p].y, 2, 0, Math.PI * 2);
+        }
+        ctx.fill();
+      }
 
-      // Draw node halos & cores
+      // Cursor velocity sparks
+      if (!prefersReducedMotion && sparks.length > 0) {
+        for (let i = sparks.length - 1; i >= 0; i--) {
+          const sp = sparks[i];
+          sp.x += sp.vx;
+          sp.y += sp.vy;
+          sp.vx *= 0.94;
+          sp.vy *= 0.94;
+          sp.life -= 0.045 / sp.maxLife;
+          if (sp.life <= 0) {
+            sparks.splice(i, 1);
+            continue;
+          }
+          ctx.beginPath();
+          ctx.fillStyle = sp.color;
+          ctx.globalAlpha = Math.max(0, sp.life * 0.85);
+          ctx.arc(sp.x, sp.y, sp.size * sp.life, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      // Click / tap shockwave ripples
+      if (!prefersReducedMotion && ripples.length > 0) {
+        for (let i = ripples.length - 1; i >= 0; i--) {
+          const rp = ripples[i];
+          rp.radius += (rp.maxRadius - rp.radius) * 0.14 + 1.4;
+          rp.alpha *= 0.92;
+          if (rp.alpha < 0.03 || rp.radius >= rp.maxRadius) {
+            ripples.splice(i, 1);
+            continue;
+          }
+          ctx.beginPath();
+          ctx.strokeStyle = rp.color;
+          ctx.globalAlpha = rp.alpha;
+          ctx.lineWidth = 1.6;
+          ctx.arc(rp.x, rp.y, rp.radius, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      // Draw node halos & cores (brighten & expand gently near cursor)
       for (let i = 0; i < nodes.length; i++) {
         const n = nodes[i];
         const pulse = 0.72 + Math.sin(frameTick * 1.4 + n.pulsePhase) * 0.28;
+        let boost = 1;
+        if (ptr.active) {
+          const dSq = (n.x - activePtrX) ** 2 + (n.y - activePtrY) ** 2;
+          if (dSq < ptrRadiusSq) {
+            boost = 1 + (1 - Math.sqrt(dSq) / ptrRadius) * 0.85;
+          }
+        }
         ctx.beginPath();
         ctx.fillStyle = n.color;
-        ctx.globalAlpha = (intensity === 'hero' ? 0.56 : 0.4) * pulse;
-        ctx.arc(n.x, n.y, n.radius * 2.2, 0, Math.PI * 2);
+        ctx.globalAlpha = Math.min(1, (intensity === 'hero' ? 0.56 : 0.4) * pulse * boost);
+        ctx.arc(n.x, n.y, n.radius * 2.2 * boost, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.beginPath();
         ctx.fillStyle = '#F8FAFC';
-        ctx.globalAlpha = (intensity === 'hero' ? 0.78 : 0.54) * pulse;
-        ctx.arc(n.x, n.y, n.radius * 0.72, 0, Math.PI * 2);
+        ctx.globalAlpha = Math.min(1, (intensity === 'hero' ? 0.78 : 0.54) * pulse * boost);
+        ctx.arc(n.x, n.y, n.radius * 0.72 * Math.min(1.4, boost), 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.globalAlpha = 1;
@@ -269,6 +532,7 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
       if (rafId) window.cancelAnimationFrame(rafId);
       window.removeEventListener('resize', resize);
       window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointerleave', onPointerLeave);
     };
   }, [intensity]);

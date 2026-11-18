@@ -2,12 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   Sparkles,
   ChevronRight,
-  PlayCircle,
-  Triangle,
-  Box,
   Zap,
-  Video,
-  CreditCard,
   Layers,
   Lock,
   RefreshCw,
@@ -28,6 +23,7 @@ import {
   Bot,
   Calendar,
   X,
+  Database,
 } from 'lucide-react';
 import { WorkspaceRoute } from '../data/atsData';
 import { BrandLogo } from './BrandLogo';
@@ -88,7 +84,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
               AI Matching
             </a>
             <a className="hover:text-white transition-colors duration-150 whitespace-nowrap" href="#testimonials">
-              Testimonials
+              Guarantees
             </a>
           </nav>
 
@@ -114,9 +110,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
           <div className="flex justify-center mb-5 sm:mb-6">
             <div className="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2.5 px-3 sm:px-4 py-1.5 rounded-full bg-[#151E32]/90 border border-[#263449] shadow-inner text-[11px] sm:text-sm font-medium text-[#F8FAFC] text-center">
               <span className="inline-flex items-center justify-center w-2 h-2 rounded-full bg-[#8B5CF6] animate-pulse shrink-0" />
-              <span>Smart AI ATS Parser Engine</span>
+              <span>3-Tier AI + Heuristic ATS Engine</span>
               <span className="hidden sm:inline text-[#263449]">•</span>
-              <span className="text-[#8B5CF6] font-semibold">99.4% Extraction Accuracy</span>
+              <span className="text-[#8B5CF6] font-semibold">PDF, DOCX &amp; Scanned OCR</span>
             </div>
           </div>
 
@@ -127,7 +123,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
               <span className="gradient-hero-text">Find the Right Talent.</span>
             </h1>
             <p className="text-base sm:text-xl text-[#94A3B8] leading-relaxed max-w-3xl mx-auto font-normal">
-              HireSwift AI is the intelligent ATS built for high-growth startups and small teams. Ingest hundreds of resumes in seconds, score semantic fit automatically, and eliminate hiring bias without the enterprise bloat.
+              HireSwift AI is an intelligent ATS workspace built for fast-moving recruiting teams. Parse PDF and DOCX resumes locally, score candidate-JD fit across 6 weighted dimensions, and manage your hiring pipeline in one browser-persisted workspace.
             </p>
           </div>
 
@@ -146,34 +142,34 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
               onClick={() => onEnterWorkspace('ai-matching')}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl text-base font-semibold text-[#F8FAFC] bg-[#151E32] hover:bg-[#1B2740] border border-[#263449] transition-all duration-200 hover:border-[#3B82F6]/50 cursor-pointer"
             >
-              <PlayCircle className="w-5 h-5 text-[#3B82F6]" />
-              <span>Watch 2-Min Interactive Demo</span>
+              <Target className="w-5 h-5 text-[#3B82F6]" />
+              <span>Explore AI Matching</span>
             </button>
           </div>
 
-          {/* Trust Proof Brand Bar */}
+          {/* Technology & AI Stack Bar */}
           <div className="text-center mb-16">
             <p className="text-xs uppercase tracking-widest text-[#94A3B8]/80 font-semibold mb-6">
-              Trusted by 1,200+ forward-thinking teams worldwide
+              Powered by a 3-Tier AI &amp; Client-Side Extraction Stack
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-8 md:gap-14 opacity-60 grayscale hover:grayscale-0 transition-all duration-300">
+            <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12 opacity-75 transition-all duration-300">
               <div className="flex items-center gap-2 text-sm font-semibold tracking-wider text-slate-300">
-                <Triangle className="w-4 h-4 fill-white" /> VERCEL
+                <Sparkles className="w-4 h-4 text-[#8B5CF6]" /> GEMINI AI
               </div>
               <div className="flex items-center gap-2 text-sm font-semibold tracking-wider text-slate-300">
-                <Box className="w-4 h-4" /> RETOOL
+                <Cpu className="w-4 h-4 text-[#3B82F6]" /> OPENROUTER
               </div>
               <div className="flex items-center gap-2 text-sm font-semibold tracking-wider text-slate-300">
-                <Zap className="w-4 h-4 fill-emerald-400 text-emerald-400" /> SUPABASE
+                <Zap className="w-4 h-4 text-emerald-400" /> GROQ
               </div>
               <div className="flex items-center gap-2 text-sm font-semibold tracking-wider text-slate-300">
-                <Video className="w-4 h-4" /> LOOM
+                <FileText className="w-4 h-4 text-indigo-300" /> PDF.JS
               </div>
               <div className="flex items-center gap-2 text-sm font-semibold tracking-wider text-slate-300">
-                <CreditCard className="w-4 h-4" /> RAMP
+                <Layers className="w-4 h-4 text-sky-300" /> MAMMOTH DOCX
               </div>
               <div className="flex items-center gap-2 text-sm font-semibold tracking-wider text-slate-300">
-                <Layers className="w-4 h-4" /> LINEAR
+                <Database className="w-4 h-4 text-violet-300" /> LOCAL STORAGE
               </div>
             </div>
           </div>
@@ -191,7 +187,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                 </div>
                 <div className="text-[11px] sm:text-xs font-mono text-[#94A3B8] bg-[#0B1020] px-2.5 sm:px-4 py-1 rounded-md border border-[#263449] flex items-center gap-1.5 sm:gap-2 min-w-0 max-w-[175px] sm:max-w-sm md:max-w-none">
                   <Lock className="w-3 h-3 text-[#8B5CF6] shrink-0" />
-                  <span className="truncate">app.hireswift.ai/pipeline/senior-fullstack</span>
+                  <span className="truncate">hireswift-ai.netlify.app/#/ai-matching</span>
                 </div>
                 <button
                   type="button"
@@ -220,8 +216,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                     <Zap className="w-4 h-4" />
                   </div>
                   <div className="text-left">
-                    <p className="text-xs font-semibold text-white">Bulk Parser Stream</p>
-                    <p className="text-[11px] text-[#94A3B8]">150 resumes parsed in 34s • 0 duplicates</p>
+                    <p className="text-xs font-semibold text-white">Bulk Resume Parser</p>
+                    <p className="text-[11px] text-[#94A3B8]">PDF &amp; DOCX extraction • SHA-256 duplicate check</p>
                   </div>
                 </div>
                 {/* Floating Badge 2 (Bottom Right) */}
@@ -231,7 +227,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                   </div>
                   <div className="text-left">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-white">AI Semantic Match</span>
+                      <span className="text-xs font-bold text-white">AI Weighted Match</span>
                       <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400">
                         94% Fit
                       </span>
@@ -255,10 +251,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-rose-400">
-                  Traditional ATS Slogging
+                  Manual Resume Screening
                 </p>
                 <p className="text-lg font-heading font-semibold text-white">
-                  18 Hours / Week spent manual screening
+                  Unstructured PDFs, keyword guesswork &amp; duplicate files
                 </p>
               </div>
             </div>
@@ -272,7 +268,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                   With HireSwift AI Engine
                 </p>
                 <p className="text-lg font-heading font-semibold text-white">
-                  45 Minutes / Week automated shortlists
+                  Structured parsing, 6-axis weighted scoring &amp; SHA-256 deduplication
                 </p>
               </div>
             </div>
@@ -281,27 +277,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 text-center tabular-nums">
             <div className="p-3.5 sm:p-4 rounded-xl border border-[#263449]/60 bg-[#151E32]/20">
               <p className="text-2xl sm:text-3xl lg:text-4xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-[#8B5CF6]">
-                10x
+                14
               </p>
-              <p className="text-xs sm:text-sm font-medium text-[#94A3B8] mt-1">Faster Screening</p>
+              <p className="text-xs sm:text-sm font-medium text-[#94A3B8] mt-1">Workspace Modules</p>
             </div>
             <div className="p-3.5 sm:p-4 rounded-xl border border-[#263449]/60 bg-[#151E32]/20">
               <p className="text-2xl sm:text-3xl lg:text-4xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-[#3B82F6]">
-                99.4%
+                6 Axes
               </p>
-              <p className="text-xs sm:text-sm font-medium text-[#94A3B8] mt-1">Parsing Accuracy</p>
+              <p className="text-xs sm:text-sm font-medium text-[#94A3B8] mt-1">Customizable Scoring</p>
             </div>
             <div className="p-3.5 sm:p-4 rounded-xl border border-[#263449]/60 bg-[#151E32]/20">
               <p className="text-2xl sm:text-3xl lg:text-4xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-emerald-400">
-                0
+                3-Tier
               </p>
-              <p className="text-xs sm:text-sm font-medium text-[#94A3B8] mt-1">Duplicate Resumes</p>
+              <p className="text-xs sm:text-sm font-medium text-[#94A3B8] mt-1">AI + Local Fallback</p>
             </div>
             <div className="p-3.5 sm:p-4 rounded-xl border border-[#263449]/60 bg-[#151E32]/20">
               <p className="text-2xl sm:text-3xl lg:text-4xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-[#4F46E5]">
-                64%
+                100%
               </p>
-              <p className="text-xs sm:text-sm font-medium text-[#94A3B8] mt-1">Lower Time-to-Hire</p>
+              <p className="text-xs sm:text-sm font-medium text-[#94A3B8] mt-1">Browser-Local Privacy</p>
             </div>
           </div>
         </div>
@@ -312,13 +308,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
             <span className="text-xs font-bold tracking-widest text-[#8B5CF6] uppercase">
-              High Performance Architecture
+              Full-Cycle Recruitment Workspace
             </span>
             <h2 className="text-2xl sm:text-4xl lg:text-5xl font-heading font-extrabold text-white mt-3 mb-4 text-balance">
-              Everything You Need to Hire Top 1% Engineers &amp; Leaders
+              Everything You Need to Parse, Score, and Shortlist Candidates
             </h2>
             <p className="text-[#94A3B8] text-sm sm:text-lg">
-              Ditch clunky 2012 enterprise systems. HireSwift AI gives your lean team sovereign superpower recruiting workflows.
+              Zero external database setup. HireSwift AI runs a complete, auditable recruiting workflow right in your browser.
             </p>
           </div>
 
@@ -335,7 +331,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                 Bulk AI Resume Parsing &amp; OCR
               </h3>
               <p className="text-sm text-[#94A3B8] leading-relaxed">
-                Drag &amp; drop hundreds of PDF, DOCX, or scanned portfolios. Our smart AI parser extracts deep vector tokens, cleans noisy text, and automatically resolves identity duplicates in seconds.
+                Drag &amp; drop digital PDF, DOCX, or scanned PDF resumes. Extracts structured academics, categorized skills, and work history while flagging exact or potential duplicates via SHA-256 hashing.
               </p>
             </button>
 
@@ -348,10 +344,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                 <BrainCircuit className="w-6 h-6" />
               </div>
               <h3 className="text-xl font-heading font-semibold text-white mb-2.5">
-                Semantic Resume-JD Matching
+                Weighted &amp; AI Resume-JD Matching
               </h3>
               <p className="text-sm text-[#94A3B8] leading-relaxed">
-                Move far beyond rigid keywords. Evaluates architectural nuance, tech stacks, problem-solving scope, and company pedigree with explicit reasoning you can trust.
+                Evaluates normalized skill aliases, experience bounds, academic CGPA, projects, certifications, and responsibilities with transparent 0–100 scores, grounded AI rationale, and interview prompts.
               </p>
             </button>
 
@@ -367,7 +363,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                 Precision Academic &amp; Skill Filtering
               </h3>
               <p className="text-sm text-[#94A3B8] leading-relaxed">
-                Dial in exact constraints: CGPA cutoffs, tier-1 universities, graduation batches, specific cloud certifications, and minimum production experience thresholds with a slider.
+                Filter cohorts by CGPA cutoffs, 10th &amp; 12th percentages, degree, branch, college, graduation year, experience range, location/remote availability, and AND/OR technical skills.
               </p>
             </button>
 
@@ -383,7 +379,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                 Kanban Hiring Pipeline
               </h3>
               <p className="text-sm text-[#94A3B8] leading-relaxed">
-                Fluid, drag-and-drop applicant stages with automated triggers. Move candidates seamlessly from Sourced to Tech Interview, with audit-logged feedback and notes.
+                Drag-and-drop 5-stage board (Applied, Shortlisted, Interview, Offer, Rejected) with quick stage transitions, interview schedule tracking, rejection reasons, and recruiter notes.
               </p>
             </button>
 
@@ -399,7 +395,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                 Side-by-Side Comparison
               </h3>
               <p className="text-sm text-[#94A3B8] leading-relaxed">
-                Eliminate bias with instant candidate side-by-side matrices. Compare radar charts across system design, past longevity, communication scores, and salary expectations.
+                Compare up to 4 finalists side-by-side across overall match score, skill overlap, CGPA, 10th/12th scores, experience, education, key strengths, and hiring recommendations.
               </p>
             </button>
 
@@ -412,10 +408,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                 <MailCheck className="w-6 h-6" />
               </div>
               <h3 className="text-xl font-heading font-semibold text-white mb-2.5">
-                Smart Email Center &amp; Sequences
+                Smart Email Center &amp; Templates
               </h3>
               <p className="text-sm text-[#94A3B8] leading-relaxed">
-                Trigger dynamic emails with Cal.com/Calendly self-schedule links, gentle reminders, polite rejection feedback letters, and 1-click offer generation.
+                Draft Interview Invites, Shortlist Updates, Offer Letters, and Rejection Feedback with auto-populated candidate and job variables, clipboard copy, and .eml file export.
               </p>
             </button>
           </div>
@@ -430,7 +426,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
               Zero Operational Friction
             </span>
             <h2 className="text-3xl sm:text-4xl font-heading font-extrabold text-white mt-2">
-              How HireSwift AI Delivers in 3 Simple Steps
+              How HireSwift AI Works in 3 Steps
             </h2>
           </div>
 
@@ -440,9 +436,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
               <div className="w-10 h-10 rounded-lg bg-indigo-500/20 text-[#8B5CF6] flex items-center justify-center mb-4">
                 <UploadCloud className="w-5 h-5" />
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">Ingest &amp; Bulk Parse</h3>
+              <h3 className="text-lg font-bold text-white mb-2">Ingest &amp; Deduplicate</h3>
               <p className="text-sm text-[#94A3B8]">
-                Drop your zip archives, Google Drive folder links, or LinkedIn exports. Our multi-threaded parser ingests up to 500 files per minute.
+                Drop PDF or DOCX resumes (including scanned PDFs). Client-side extraction checks file signatures, runs SHA-256 duplicate checks, and parses structured fields.
               </p>
             </div>
 
@@ -451,9 +447,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
               <div className="w-10 h-10 rounded-lg bg-violet-500/20 text-violet-400 flex items-center justify-center mb-4">
                 <Cpu className="w-5 h-5" />
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">Neural JD Alignment</h3>
+              <h3 className="text-lg font-bold text-white mb-2">Weighted JD Alignment</h3>
               <p className="text-sm text-[#94A3B8]">
-                HireSwift AI compares applicant technical histories against your role&apos;s specific tech stack, assigning a clear % fit score with itemized reasoning.
+                Paste a JD or upload a PDF/DOCX role spec to extract requirements, then score candidates across 6 customizable categories with grounded AI explanations.
               </p>
             </div>
 
@@ -462,9 +458,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
               <div className="w-10 h-10 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center mb-4">
                 <CheckCircle2 className="w-5 h-5" />
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">Decision Support &amp; Offer</h3>
+              <h3 className="text-lg font-bold text-white mb-2">Compare, Advance &amp; Export</h3>
               <p className="text-sm text-[#94A3B8]">
-                Review your auto-ranked shortlist, trigger automated interview invites, compare final finalists, and close your dream hire in half the time.
+                Inspect ranked leaderboards, compare up to 4 finalists, analyze skill gaps, move stages on the Kanban board, and export .eml invites or CSV/JSON reports.
               </p>
             </div>
           </div>
@@ -484,20 +480,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                 Stop Guessing. See Exactly Why A Candidate Matches.
               </h2>
               <p className="text-base text-[#94A3B8] mb-6 leading-relaxed">
-                Unlike legacy black-box keyword matchers that reject candidates for missing synonyms, HireSwift evaluates true experience depth, project complexity, and engineering leadership signals.
+                Every candidate score combines a deterministic 6-category weighted rubric with grounded AI rationale—leaving unverified fields null rather than fabricating details.
               </p>
               <ul className="space-y-3.5 text-sm text-slate-300">
                 <li className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>Multi-axis radar scoring: Skills, Architecture, Communication, Leadership.</span>
+                  <span>6-axis weighted scoring: Skills, Experience, Education, Projects, Certifications, Responsibilities.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>Direct citation links to relevant bullet points in original resume PDF.</span>
+                  <span>Matched, missing, and transferable skill chips plus extracted resume text preview.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>Automated flags for resume exaggerations or timeline inconsistencies.</span>
+                  <span>Automatic flags for missing profile fields, potential concerns, and duplicate resumes.</span>
                 </li>
               </ul>
               <div className="mt-8">
@@ -522,7 +518,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                     <div className="min-w-0">
                       <h4 className="font-heading font-bold text-white text-base sm:text-lg truncate">Sarah Chen</h4>
                       <p className="text-xs text-[#94A3B8]">
-                        Senior Fullstack / Cloud Architect • 7.5 Yrs Exp
+                        Full Stack Developer • 5.5 Yrs Exp
                       </p>
                     </div>
                   </div>
@@ -538,7 +534,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                   <div>
                     <div className="flex justify-between gap-2 text-xs font-medium mb-1.5">
                       <span className="text-slate-300">
-                        Technical Stack Alignment (React, Go, AWS, Docker)
+                        Technical Skills Alignment (React, TypeScript, Node.js, AWS, Docker)
                       </span>
                       <span className="text-white font-semibold shrink-0">96%</span>
                     </div>
@@ -551,23 +547,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                   </div>
                   <div>
                     <div className="flex justify-between gap-2 text-xs font-medium mb-1.5">
-                      <span className="text-slate-300">System Design &amp; High-Load Scale</span>
-                      <span className="text-white font-semibold shrink-0">91%</span>
+                      <span className="text-slate-300">Experience &amp; Microservices Scale</span>
+                      <span className="text-white font-semibold shrink-0">92%</span>
                     </div>
                     <div className="w-full bg-[#1B2740] rounded-full h-2 overflow-hidden">
                       <div
                         className="bg-gradient-to-r from-[#3B82F6] to-[#8B5CF6] h-2 rounded-full"
-                        style={{ width: '91%' }}
+                        style={{ width: '92%' }}
                       />
                     </div>
                   </div>
                   <div>
                     <div className="flex justify-between gap-2 text-xs font-medium mb-1.5">
-                      <span className="text-slate-300">Academic &amp; Foundation Credential</span>
-                      <span className="text-white font-semibold shrink-0">88%</span>
+                      <span className="text-slate-300">Education &amp; Academics (M.S. CS • 9.4 CGPA)</span>
+                      <span className="text-white font-semibold shrink-0">94%</span>
                     </div>
                     <div className="w-full bg-[#1B2740] rounded-full h-2 overflow-hidden">
-                      <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '88%' }} />
+                      <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '94%' }} />
                     </div>
                   </div>
                 </div>
@@ -579,7 +575,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                     <span>AI ATS Rationale Summary</span>
                   </div>
                   <p className="text-xs text-[#94A3B8] leading-relaxed">
-                    &quot;Sarah has directed 3 microservice transformations at scale with verifiable metrics (reduced latency by 42%). Meets 9/10 core JD requirements with verified production Kubernetes mastery.&quot;
+                    &quot;Sarah has directed 3 microservice transformations reducing p95 latency by 42%. Strong alignment across React, TypeScript, Node.js, Python, AWS, and Docker.&quot;
                   </p>
                 </div>
 
@@ -589,14 +585,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                     onClick={() => onEnterWorkspace('email-center')}
                     className="flex-1 min-h-[44px] sm:min-h-0 py-2.5 px-4 rounded-lg bg-[#4F46E5] hover:bg-[#4338CA] text-xs font-semibold text-white transition-colors flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <Calendar className="w-3.5 h-3.5 shrink-0" /> Schedule 45-Min Interview
+                    <Calendar className="w-3.5 h-3.5 shrink-0" /> Draft Interview Invite
                   </button>
                   <button
                     type="button"
                     onClick={() => onEnterWorkspace('ai-matching')}
                     className="min-h-[44px] sm:min-h-0 py-2.5 px-4 rounded-lg bg-[#1B2740] hover:bg-[#263449] text-xs font-medium text-[#94A3B8] hover:text-white transition-colors border border-[#263449] cursor-pointer text-center"
                   >
-                    View Full Dossier
+                    Open AI Matching
                   </button>
                 </div>
               </div>
@@ -605,60 +601,60 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
         </div>
       </section>
 
-      {/* TestimonialsSection */}
+      {/* CoreGuaranteesSection */}
       <section className="py-24 bg-[#151E32]/30 border-y border-[#263449] relative" id="testimonials">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <span className="text-xs font-bold tracking-widest text-[#3B82F6] uppercase">
-              Loved By Talent Teams
+              Engineering &amp; Privacy Guarantees
             </span>
             <h2 className="text-3xl sm:text-4xl font-heading font-extrabold text-white mt-2">
-              From Chaos to 1-Click Shortlists
+              Transparent, Resilient, and Local-First
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="glass-card rounded-2xl p-7 border border-[#263449] flex flex-col justify-between">
-              <p className="text-sm text-slate-300 italic mb-6">
-                &quot;HireSwift cut our screening time by 80%. When we posted our Senior Backend role, we got 420 resumes. In 4 minutes, the AI highlighted the top 12 matches with spot-on reasoning. We closed the hire in 8 days.&quot;
+              <p className="text-sm text-slate-300 leading-relaxed mb-6">
+                Unverified resume fields stay <span className="font-mono text-white">null</span> instead of being fabricated, missing CGPA scores receive a neutral baseline rather than zero, and common tech aliases normalize automatically.
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-indigo-500/30 text-indigo-300 font-bold flex items-center justify-center text-sm">
-                  EV
+                  01
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-white">Elena Volkoy</p>
-                  <p className="text-[11px] text-[#94A3B8]">Head of Talent @ SynapticLabs</p>
+                  <p className="text-xs font-bold text-white">Strict Factual Grounding</p>
+                  <p className="text-[11px] text-[#94A3B8]">Deterministic Weighted Rubric</p>
                 </div>
               </div>
             </div>
 
             <div className="glass-card rounded-2xl p-7 border border-[#263449] flex flex-col justify-between">
-              <p className="text-sm text-slate-300 italic mb-6">
-                &quot;Standard ATS tools are clunky databases. HireSwift feels like a sports car designed by Linear and Stripe engineers. It&apos;s lightning-fast, and the radar scoring has zero hallucinations.&quot;
+              <p className="text-sm text-slate-300 leading-relaxed mb-6">
+                AI requests cascade sequentially from Gemini to OpenRouter and Groq, with a built-in deterministic heuristic parser ensuring uninterrupted parsing and matching even without API keys.
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-violet-500/30 text-violet-300 font-bold flex items-center justify-center text-sm">
-                  MC
+                  02
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-white">Marcus Chen</p>
-                  <p className="text-[11px] text-[#94A3B8]">Co-founder &amp; CTO @ NodeCraft</p>
+                  <p className="text-xs font-bold text-white">3-Tier AI + Local Fallback</p>
+                  <p className="text-[11px] text-[#94A3B8]">Server-Side Key Isolation</p>
                 </div>
               </div>
             </div>
 
             <div className="glass-card rounded-2xl p-7 border border-[#263449] flex flex-col justify-between">
-              <p className="text-sm text-slate-300 italic mb-6">
-                &quot;The side-by-side comparison tool resolved disagreements between hiring managers and founders instantly. The candidate scorecards provide indisputable clarity on who actually has production scale.&quot;
+              <p className="text-sm text-slate-300 leading-relaxed mb-6">
+                Candidates, jobs, and scoring weights persist in browser <span className="font-mono text-white">localStorage</span> until you choose to remove them—with explicit confirmation dialogs for individual and bulk deletions.
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-blue-500/30 text-blue-300 font-bold flex items-center justify-center text-sm">
-                  DR
+                  03
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-white">Devon Ross</p>
-                  <p className="text-[11px] text-[#94A3B8]">VP of People @ CloudSpire</p>
+                  <p className="text-xs font-bold text-white">Browser-Local Control</p>
+                  <p className="text-[11px] text-[#94A3B8]">Zero External DB • Safe Delete Flows</p>
                 </div>
               </div>
             </div>
@@ -673,10 +669,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
             <div className="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-[#4F46E5]/20 blur-3xl pointer-events-none" />
             <div className="absolute -left-20 -top-20 w-80 h-80 rounded-full bg-[#8B5CF6]/20 blur-3xl pointer-events-none" />
             <h2 className="text-2xl sm:text-4xl lg:text-5xl font-heading font-extrabold text-white mb-4 tracking-tight">
-              Ready to Modernize Your Recruitment Pipeline?
+              Ready to Explore the HireSwift AI Workspace?
             </h2>
             <p className="text-[#94A3B8] text-sm sm:text-lg max-w-2xl mx-auto mb-8 font-normal">
-              Join 1,200+ recruiters and founders who hire 10x faster with AI precision. Launch your team workspace right now.
+              Launch the 14-view ATS workspace with 30 sample candidates and 6 active roles preloaded, or upload your own PDF and DOCX resumes immediately.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
@@ -699,7 +695,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
             </div>
 
             <p className="text-xs text-[#94A3B8]/70 mt-4">
-              Instant workspace provisioning • Full feature access • Setup in 90 seconds
+              Zero external database • Browser localStorage persistence • 3-Tier AI + Heuristic fallback
             </p>
           </div>
         </div>
@@ -769,12 +765,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                 </li>
                 <li>
                   <button type="button" onClick={() => onEnterWorkspace('reports')} className="hover:text-white transition-colors cursor-pointer">
-                    Hiring Benchmarks 2026
+                    Hiring Reports &amp; Exports
                   </button>
                 </li>
                 <li>
                   <button type="button" onClick={() => onEnterWorkspace('skill-gap-analysis')} className="hover:text-white transition-colors cursor-pointer">
-                    Engineering Rubrics
+                    Skill Gap Analysis
                   </button>
                 </li>
                 <li>
@@ -783,14 +779,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                     href="#testimonials"
                     onClick={(e) => scrollToSection(e, 'testimonials')}
                   >
-                    Customer Stories
+                    System Guarantees
                   </a>
                 </li>
               </ul>
             </div>
 
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-white mb-4">Company</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-white mb-4">Workspace</p>
               <ul className="space-y-2.5 text-xs">
                 <li>
                   <a
@@ -798,12 +794,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                     href="#features"
                     onClick={(e) => scrollToSection(e, 'features')}
                   >
-                    About Us
+                    Capabilities
                   </a>
                 </li>
                 <li>
                   <button type="button" onClick={() => onEnterWorkspace('job-management')} className="hover:text-white transition-colors cursor-pointer">
-                    Careers (We&apos;re Hiring)
+                    Manage Job Roles
                   </button>
                 </li>
                 <li>
@@ -818,7 +814,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                 </li>
                 <li>
                   <button type="button" onClick={() => setInfoModal('security')} className="hover:text-white transition-colors cursor-pointer">
-                    Security &amp; SOC2
+                    Security &amp; Controls
                   </button>
                 </li>
               </ul>
@@ -826,7 +822,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
           </div>
 
           <div className="pt-8 border-t border-[#263449] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#94A3B8]/60">
-            <p>© 2026 HireSwift AI, Inc. Built for modern high-velocity recruitment.</p>
+            <p>© 2026 HireSwift AI. Licensed under Apache-2.0.</p>
             <div className="flex items-center gap-6">
               <a
                 className="inline-flex items-center gap-2 hover:text-white transition-colors"
