@@ -62,6 +62,10 @@ test.describe('HireSwift AI End-to-End Browser Verification', () => {
     for (const label of navLabels) {
       await page.locator('aside button', { hasText: label }).first().click();
       await page.waitForTimeout(80);
+      const box = await page.locator('main h1').first().boundingBox();
+      expect(box, `${label} h1 missing`).not.toBeNull();
+      expect(box!.y, `${label} h1 overlaps fixed header`).toBeGreaterThanOrEqual(72);
+      expect(box!.x, `${label} h1 overlaps fixed sidebar`).toBeGreaterThanOrEqual(250);
     }
 
     // Job Details via Job Management card
