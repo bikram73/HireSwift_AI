@@ -156,13 +156,13 @@ export const CustomTargetJobModal: React.FC<CustomTargetJobModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-xl rounded-2xl bg-[#0F172A] border border-[#263449] shadow-2xl overflow-hidden text-left"
+        className="w-full max-w-xl rounded-2xl bg-[#0F172A] border border-[#263449] shadow-2xl overflow-hidden text-left max-h-[90dvh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-6 py-4 border-b border-[#263449] flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[#8B5CF6] text-[20px]">add_task</span>
-            <h2 id="custom-target-job-title" className="font-heading font-bold text-base text-white">
+        <div className="px-4 sm:px-6 py-4 border-b border-[#263449] flex items-center justify-between gap-4 shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="material-symbols-outlined text-[#8B5CF6] text-[20px] shrink-0">add_task</span>
+            <h2 id="custom-target-job-title" className="font-heading font-bold text-base text-white truncate">
               Add Custom Target Job Role
             </h2>
           </div>
@@ -170,13 +170,13 @@ export const CustomTargetJobModal: React.FC<CustomTargetJobModalProps> = ({
             type="button"
             onClick={onClose}
             aria-label="Close custom job modal"
-            className="p-1.5 rounded-lg text-[#94A3B8] hover:text-white hover:bg-[#1E293B] cursor-pointer"
+            className="min-h-[40px] min-w-[40px] flex items-center justify-center p-1.5 rounded-lg text-[#94A3B8] hover:text-white hover:bg-[#1E293B] shrink-0 cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs max-h-[80vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 text-xs flex-1 overflow-y-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="sm:col-span-2">
               <label className="text-[#94A3B8] block mb-1 font-medium">
@@ -281,7 +281,7 @@ export const CustomTargetJobModal: React.FC<CustomTargetJobModalProps> = ({
             </div>
 
             <div className="sm:col-span-2">
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center justify-between flex-wrap gap-1 mb-1">
                 <label className="text-[#94A3B8] font-medium">
                   Role Notes / Job Description (optional)
                 </label>
@@ -304,17 +304,17 @@ export const CustomTargetJobModal: React.FC<CustomTargetJobModalProps> = ({
             </div>
           </div>
 
-          <div className="pt-2 border-t border-[#263449] flex items-center justify-end gap-2">
+          <div className="pt-2 border-t border-[#263449] flex items-center justify-end flex-wrap gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg bg-[#151E32] hover:bg-[#1E293B] border border-[#263449] text-white cursor-pointer"
+              className="px-4 py-2 min-h-[40px] rounded-lg bg-[#151E32] hover:bg-[#1E293B] border border-[#263449] text-white cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-white font-semibold cursor-pointer"
+              className="px-4 py-2 min-h-[40px] rounded-lg bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-white font-semibold cursor-pointer"
             >
               Save &amp; Select Target Role
             </button>

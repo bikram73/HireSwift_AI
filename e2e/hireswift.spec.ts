@@ -90,6 +90,7 @@ test.describe('HireSwift AI End-to-End Browser Verification', () => {
   });
 
   test('UI-001..007 & NAV-020: Responsive Viewports Render Without Horizontal Overflow', async ({ page }) => {
+    test.setTimeout(90000);
     const viewports = [
       { width: 1920, height: 1080 },
       { width: 1440, height: 900 },
@@ -111,28 +112,56 @@ test.describe('HireSwift AI End-to-End Browser Verification', () => {
 
     await page.setViewportSize({ width: 375, height: 812 });
     await page.getByRole('button', { name: /Enter Workspace|Launch Workspace|Open Workspace/i }).first().click();
+
+    // Verify mobile quick search button opens Quick Search modal cleanly
+    await expect(page.getByLabel('Open quick search')).toBeVisible();
+    await page.getByLabel('Open quick search').click();
+    await expect(page.getByPlaceholder(/Jump to candidate/i)).toBeVisible();
+    await page.keyboard.press('Escape');
+
     await expect(page.getByLabel('Open navigation menu')).toBeVisible();
     await page.getByLabel('Open navigation menu').click();
     await expect(page.locator('aside button:visible', { hasText: 'Candidates' }).first()).toBeVisible();
     await page.locator('aside button:visible', { hasText: 'Candidates' }).first().click();
 
-    // Verify horizontal overflow safety inside workspace views at desktop, tablet & mobile
-    for (const viewLabel of ['Dashboard', 'Candidates', 'Hiring Pipeline', 'Candidate Ranking']) {
-      for (const vp of [
-        { width: 1440, height: 900 },
-        { width: 768, height: 1024 },
-        { width: 375, height: 812 },
-        { width: 320, height: 700 },
-      ]) {
-        await page.setViewportSize(vp);
+    // Verify CandidateDrawer has zero horizontal overflow on 375px mobile
+    await page.getByText('Rahul Sharma').first().click();
+    await expect(page.getByLabel('Close candidate details')).toBeVisible();
+    const drawerOverflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth
+    );
+    expect(drawerOverflow, 'CandidateDrawer overflow at 375x812').toBeLessThanOrEqual(4);
+    await page.getByLabel('Close candidate details').click();
+
+    // Verify horizontal overflow safety across all workspace views at desktop, tablet & mobile
+    const responsiveViewLabels = [
+      'Dashboard',
+      'Candidates',
+      'Resume Upload',
+      'Job Management',
+      'AI Matching',
+      'Candidate Ranking',
+      'Hiring Pipeline',
+      'Compare Candidates',
+      'Skill Gap Analysis',
+      'Email Center',
+      'Reports',
+      'Settings',
+      'Help Center',
+    ];
+    for (const vp of [
+      { width: 1440, height: 900 },
+      { width: 768, height: 1024 },
+      { width: 375, height: 812 },
+      { width: 320, height: 700 },
+    ]) {
+      await page.setViewportSize(vp);
+      for (const viewLabel of responsiveViewLabels) {
         if (vp.width < 1024) {
-          const menuBtn = page.getByLabel('Open navigation menu');
-          if (await menuBtn.isVisible()) {
-            await menuBtn.click();
-          }
+          await page.getByLabel('Open navigation menu').click();
         }
         await page.locator('aside button:visible', { hasText: viewLabel }).first().click();
-        await page.waitForTimeout(60);
+        await page.waitForTimeout(40);
         const overflow = await page.evaluate(
           () => document.documentElement.scrollWidth - window.innerWidth
         );

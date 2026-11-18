@@ -192,12 +192,12 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
         className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
         onClick={onClose}
       />
-      <aside className="relative w-full max-w-[600px] h-full bg-[#0B1020]/95 backdrop-blur-xl border-l border-[#263449] shadow-2xl flex flex-col z-10 overflow-hidden">
+      <aside className="relative w-full sm:max-w-[600px] h-full bg-[#0B1020]/95 backdrop-blur-xl sm:border-l border-[#263449] shadow-2xl flex flex-col z-10 overflow-hidden">
         {/* Header */}
-        <div className="p-5 border-b border-[#263449] flex items-start justify-between gap-4 bg-[#151E32]/85">
-          <div className="flex items-center gap-3.5 min-w-0">
+        <div className="p-4 sm:p-5 border-b border-[#263449] flex items-start justify-between gap-3 sm:gap-4 bg-[#151E32]/85">
+          <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
             <div
-              className={`w-12 h-12 rounded-full flex items-center justify-center font-headline-sm font-bold text-base shrink-0 ${liveCandidate.avatarTone}`}
+              className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center font-headline-sm font-bold text-base shrink-0 ${liveCandidate.avatarTone}`}
             >
               {liveCandidate.initials}
             </div>
@@ -222,7 +222,7 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container-high transition-colors cursor-pointer"
+            className="min-h-[40px] min-w-[40px] flex items-center justify-center p-1.5 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container-high transition-colors shrink-0 cursor-pointer"
             aria-label="Close candidate details"
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
@@ -231,13 +231,13 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
 
         {/* Job Selector for Matching Context */}
         {jobs.length > 0 && (
-          <div className="px-5 py-2.5 border-b border-[#263449] bg-[#111827]/70 flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="font-mono-code text-[10px] uppercase text-outline">Match Target:</span>
+          <div className="px-4 sm:px-5 py-2.5 border-b border-[#263449] bg-[#111827]/70 flex items-center justify-between gap-2.5 sm:gap-3 flex-wrap">
+            <div className="flex items-center gap-2 min-w-0 w-full sm:w-auto flex-1">
+              <span className="font-mono-code text-[10px] uppercase text-outline shrink-0">Match Target:</span>
               <select
                 value={evalJobId}
                 onChange={(e) => setEvalJobId(e.target.value)}
-                className="h-8 px-2.5 rounded-lg bg-[#151E32] border border-[#263449] text-xs text-white outline-none"
+                className="h-9 sm:h-8 px-2.5 rounded-lg bg-[#151E32] border border-[#263449] text-xs text-white outline-none w-full sm:w-auto max-w-full min-w-0"
               >
                 {jobs.map((j) => (
                   <option key={j.id} value={j.id}>
@@ -250,7 +250,7 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
               type="button"
               disabled={isEvaluating}
               onClick={() => runGeminiMatchForCandidate(liveCandidate.id, evalJobId)}
-              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white text-[11px] font-semibold flex items-center gap-1.5 disabled:opacity-60 cursor-pointer"
+              className="w-full sm:w-auto justify-center px-3 py-2 sm:py-1.5 rounded-lg bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white text-[11px] font-semibold flex items-center gap-1.5 disabled:opacity-60 cursor-pointer"
             >
               <span className={`material-symbols-outlined text-[14px] ${isEvaluating ? 'animate-spin' : ''}`}>
                 {isEvaluating ? 'refresh' : 'auto_awesome'}
@@ -261,13 +261,13 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
         )}
 
         {/* Tabs */}
-        <div className="px-5 pt-1 border-b border-[#263449] flex items-center gap-1 overflow-x-auto bg-surface-container-lowest/40">
+        <div className="px-4 sm:px-5 pt-1 border-b border-[#263449] flex items-center gap-1 overflow-x-auto bg-surface-container-lowest/40">
           {tabs.map((t) => (
             <button
               key={t.id}
               type="button"
               onClick={() => setActiveTab(t.id)}
-              className={`px-3 py-2.5 font-label-md text-[12px] whitespace-nowrap border-b-2 transition-colors cursor-pointer ${
+              className={`px-3 py-2.5 min-h-[42px] sm:min-h-0 shrink-0 font-label-md text-[12px] whitespace-nowrap border-b-2 transition-colors cursor-pointer ${
                 activeTab === t.id
                   ? 'border-[#8B5CF6] text-white font-semibold'
                   : 'border-transparent text-on-surface-variant hover:text-on-surface'
@@ -279,7 +279,7 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-5">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5">
           {activeTab === 'overview' && (
             <>
               <div className="p-4 rounded-xl bg-surface-container border border-[#263449]">
@@ -379,7 +379,7 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
                 <h3 className="font-label-sm text-primary uppercase tracking-wider">
                   Education History
                 </h3>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="p-2.5 rounded-lg bg-surface-container-low">
                     <span className="text-outline block">Undergraduate</span>
                     <span className="text-on-surface font-semibold">
@@ -411,7 +411,7 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
               </div>
 
               <div className="p-4 rounded-xl bg-surface-container border border-[#263449] space-y-2.5">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-1">
                   <h3 className="font-label-sm text-tertiary uppercase tracking-wider">
                     Professional Employment ({liveCandidate.workHistory.length})
                   </h3>
@@ -424,7 +424,7 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
                 ) : (
                   liveCandidate.workHistory.map((w, i) => (
                     <div key={i} className="p-3 rounded-lg bg-surface-container-low text-xs">
-                      <div className="flex justify-between font-semibold text-on-surface">
+                      <div className="flex justify-between flex-wrap gap-1 font-semibold text-on-surface">
                         <span>{w.role} · {w.company}</span>
                         <span className="font-mono-code text-tertiary">{w.duration}</span>
                       </div>
@@ -443,7 +443,7 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
                 ) : (
                   liveCandidate.internships.map((intern, i) => (
                     <div key={i} className="p-3 rounded-lg bg-surface-container-low text-xs">
-                      <div className="flex justify-between font-semibold text-on-surface">
+                      <div className="flex justify-between flex-wrap gap-1 font-semibold text-on-surface">
                         <span>{intern.role} · {intern.company}</span>
                         <span className="font-mono-code text-secondary">{intern.duration}</span>
                       </div>
@@ -569,7 +569,7 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
               <div className="p-3 rounded-lg bg-primary-container/15 border border-primary/30 text-on-surface-variant">
                 Manual corrections update the active session profile and immediately recalculate matching scores.
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-outline block mb-1">Full Name</label>
                   <input
@@ -698,7 +698,7 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
                   className="w-full h-9 px-3 rounded-lg bg-surface-container-highest text-on-surface outline-none"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-outline block mb-1">Hiring Stage</label>
                   <select
@@ -723,17 +723,17 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
                   />
                 </div>
               </div>
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex flex-wrap justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setActiveTab('overview')}
-                  className="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface cursor-pointer"
+                  className="px-4 py-2 min-h-[40px] rounded-lg bg-surface-container-high text-on-surface cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-semibold cursor-pointer"
+                  className="px-4 py-2 min-h-[40px] rounded-lg bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-semibold cursor-pointer"
                 >
                   Save &amp; Recalculate Match
                 </button>
@@ -806,44 +806,46 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
 
         {/* Optional Reject Reason Inline Bar */}
         {showRejectPrompt && (
-          <div className="px-4 py-3 bg-rose-500/10 border-t border-rose-500/30 flex items-center gap-2">
+          <div className="px-4 py-3 bg-rose-500/10 border-t border-rose-500/30 flex items-center flex-wrap gap-2">
             <input
               type="text"
               value={rejectReasonInput}
               onChange={(e) => setRejectReasonInput(e.target.value)}
               placeholder="Optional rejection reason..."
-              className="flex-1 h-8 px-3 rounded-lg bg-[#0B1020] border border-rose-500/30 text-xs text-white outline-none"
+              className="flex-1 min-w-[180px] h-9 sm:h-8 px-3 rounded-lg bg-[#0B1020] border border-rose-500/30 text-xs text-white outline-none"
             />
-            <button
-              type="button"
-              onClick={() => {
-                moveCandidateStage(liveCandidate.id, 'Rejected', {
-                  rejectionReason: rejectReasonInput.trim() || 'Skills mismatch for target role',
-                });
-                setShowRejectPrompt(false);
-                setRejectReasonInput('');
-              }}
-              className="px-3 py-1.5 rounded-lg bg-rose-600 text-white text-xs font-semibold cursor-pointer"
-            >
-              Confirm Reject
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowRejectPrompt(false)}
-              className="px-2 py-1.5 text-xs text-outline cursor-pointer"
-            >
-              Cancel
-            </button>
+            <div className="flex items-center gap-2 ml-auto">
+              <button
+                type="button"
+                onClick={() => {
+                  moveCandidateStage(liveCandidate.id, 'Rejected', {
+                    rejectionReason: rejectReasonInput.trim() || 'Skills mismatch for target role',
+                  });
+                  setShowRejectPrompt(false);
+                  setRejectReasonInput('');
+                }}
+                className="px-3 py-1.5 min-h-[36px] rounded-lg bg-rose-600 text-white text-xs font-semibold cursor-pointer"
+              >
+                Confirm Reject
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowRejectPrompt(false)}
+                className="px-2 py-1.5 min-h-[36px] text-xs text-outline cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         )}
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-[#263449] bg-surface-container-low flex items-center justify-between gap-2 flex-wrap">
-          <div className="flex items-center gap-2">
+        <div className="p-3.5 sm:p-4 border-t border-[#263449] bg-surface-container-low flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center flex-wrap gap-2">
             <button
               type="button"
               onClick={() => moveCandidateStage(liveCandidate.id, 'Shortlisted')}
-              className={`py-2 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+              className={`py-2 px-3 min-h-[40px] rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
                 liveCandidate.status === 'Shortlisted'
                   ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                   : 'bg-primary-container hover:bg-inverse-primary text-on-primary-container'
@@ -856,7 +858,7 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
             <button
               type="button"
               onClick={() => moveCandidateStage(liveCandidate.id, 'Interview')}
-              className="py-2 px-3 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface text-xs font-medium cursor-pointer"
+              className="py-2 px-3 min-h-[40px] rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface text-xs font-medium cursor-pointer"
             >
               Interview
             </button>
@@ -864,17 +866,17 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
             <button
               type="button"
               onClick={() => setShowRejectPrompt((v) => !v)}
-              className="py-2 px-3 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 text-xs font-medium cursor-pointer"
+              className="py-2 px-3 min-h-[40px] rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 text-xs font-medium cursor-pointer"
             >
               Reject
             </button>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center flex-wrap gap-2">
             <button
               type="button"
               onClick={() => toggleCompareCandidate(liveCandidate.id)}
-              className={`py-2 px-3 rounded-lg text-xs font-medium cursor-pointer border ${
+              className={`py-2 px-3 min-h-[40px] rounded-lg text-xs font-medium cursor-pointer border ${
                 isCompared
                   ? 'bg-[#8B5CF6]/20 border-[#8B5CF6]/50 text-[#c3c0ff]'
                   : 'bg-surface-container-high border-transparent text-on-surface'
@@ -889,7 +891,7 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
                 if (onScheduleEmail) onScheduleEmail(liveCandidate);
                 onClose();
               }}
-              className="py-2 px-3 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface text-xs flex items-center gap-1 cursor-pointer"
+              className="py-2 px-3 min-h-[40px] rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface text-xs flex items-center gap-1 cursor-pointer"
             >
               <span className="material-symbols-outlined text-[16px] text-tertiary">mail</span>
               <span>Email</span>
@@ -898,7 +900,7 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
             <button
               type="button"
               onClick={() => setConfirmDelete(true)}
-              className="p-2 rounded-lg text-outline hover:text-rose-400 hover:bg-surface-container-high cursor-pointer"
+              className="min-h-[40px] min-w-[40px] flex items-center justify-center p-2 rounded-lg text-outline hover:text-rose-400 hover:bg-surface-container-high cursor-pointer"
               title="Delete candidate"
               aria-label={`Delete ${liveCandidate.name}`}
             >
@@ -919,7 +921,7 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
             className="fixed inset-0 bg-black/75 backdrop-blur-xs"
             onClick={() => setConfirmDelete(false)}
           />
-          <div className="relative w-full max-w-md rounded-2xl bg-[#111827] border border-rose-500/40 shadow-2xl p-6 z-10 space-y-4">
+          <div className="relative w-full max-w-md rounded-2xl bg-[#111827] border border-rose-500/40 shadow-2xl p-4 sm:p-6 z-10 space-y-4">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center shrink-0">
                 <span className="material-symbols-outlined text-rose-400">warning</span>
@@ -939,11 +941,11 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
                 </p>
               </div>
             </div>
-            <div className="flex items-center justify-end gap-2.5 pt-2">
+            <div className="flex items-center justify-end flex-wrap gap-2.5 pt-2">
               <button
                 type="button"
                 onClick={() => setConfirmDelete(false)}
-                className="px-4 py-2 rounded-xl bg-surface-container-high hover:bg-surface-bright text-xs font-medium text-on-surface cursor-pointer"
+                className="px-4 py-2 min-h-[40px] rounded-xl bg-surface-container-high hover:bg-surface-bright text-xs font-medium text-on-surface cursor-pointer"
               >
                 Cancel
               </button>
@@ -954,7 +956,7 @@ export const CandidateDrawer: React.FC<CandidateDrawerProps> = ({
                   setConfirmDelete(false);
                   onClose();
                 }}
-                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-semibold text-white cursor-pointer"
+                className="px-4 py-2 min-h-[40px] rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-semibold text-white cursor-pointer"
               >
                 Yes, Delete Candidate
               </button>

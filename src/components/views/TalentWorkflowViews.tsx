@@ -72,19 +72,19 @@ export const AIMatchingView: React.FC<ViewProps> = ({
             <span className="text-outline">/</span>
             <span>EXPLAINABLE SCORING</span>
           </div>
-          <h1 className="font-heading font-extrabold text-headline-lg text-white tracking-tight">
+          <h1 className="font-heading font-extrabold text-2xl sm:text-headline-lg text-white tracking-tight">
             Talent Pipeline &amp; Matching
           </h1>
           <p className="font-body-md text-body-md text-[#94A3B8]">
             Select any open job to compute deterministic weighted fit scores and grounded AI explanations.
           </p>
         </div>
-        <div className="flex items-center gap-space-sm flex-wrap">
+        <div className="flex items-center gap-2 sm:gap-space-sm flex-wrap">
           {jobs.length > 0 && (
             <select
               value={activeJobId}
               onChange={(e) => setSelectedJobId(e.target.value)}
-              className="h-10 px-3 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs outline-none"
+              className="w-full sm:w-auto max-w-full min-w-0 h-10 px-3 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs outline-none"
             >
               {jobs.map((j) => (
                 <option key={j.id} value={j.id}>
@@ -96,7 +96,7 @@ export const AIMatchingView: React.FC<ViewProps> = ({
           <button
             type="button"
             onClick={() => setShowCustomJobModal(true)}
-            className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-[#4F46E5]/20 hover:bg-[#4F46E5]/35 border border-[#8B5CF6]/40 text-primary text-xs font-semibold cursor-pointer"
+            className="h-10 flex items-center justify-center gap-1.5 px-3 rounded-xl bg-[#4F46E5]/20 hover:bg-[#4F46E5]/35 border border-[#8B5CF6]/40 text-primary text-xs font-semibold cursor-pointer whitespace-nowrap"
           >
             <span className="material-symbols-outlined text-[16px]">add_circle</span>
             <span>Custom Role</span>
@@ -104,7 +104,7 @@ export const AIMatchingView: React.FC<ViewProps> = ({
           <button
             type="button"
             onClick={() => onNavigate('compare-candidates')}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#151E32] hover:bg-[#1B2740] border border-[#263449] text-white font-label-md text-label-md cursor-pointer"
+            className="h-10 flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#151E32] hover:bg-[#1B2740] border border-[#263449] text-white font-label-md text-label-md cursor-pointer whitespace-nowrap"
           >
             <span className="material-symbols-outlined text-[17px] text-[#8B5CF6]">
               compare_arrows
@@ -115,7 +115,7 @@ export const AIMatchingView: React.FC<ViewProps> = ({
             type="button"
             disabled={!activeJobId}
             onClick={() => runBulkMatchForJob(activeJobId)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-white font-label-md font-semibold border border-white/15 shadow-lg shadow-indigo-600/25 disabled:opacity-50 cursor-pointer"
+            className="w-full sm:w-auto h-10 flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-white font-label-md font-semibold border border-white/15 shadow-lg shadow-indigo-600/25 disabled:opacity-50 cursor-pointer whitespace-nowrap"
           >
             <span className="material-symbols-outlined text-[17px]">auto_awesome</span>
             <span>Re-Score All Candidates</span>
@@ -228,7 +228,7 @@ export const AIMatchingView: React.FC<ViewProps> = ({
               <span className="font-headline-sm text-on-surface font-semibold block mb-2.5 text-sm">
                 Filter by Hiring Stage
               </span>
-              <div className="grid grid-cols-3 gap-2 tabular-nums">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 tabular-nums">
                 {stageCounts.map((st) => {
                   const isSelected = activeStageFilter === st.name;
                   return (
@@ -360,6 +360,7 @@ const PIPELINE_STAGES: HiringStage[] = ['Applied', 'Shortlisted', 'Interview', '
 export const HiringPipelineView: React.FC<ViewProps> = ({ onSelectCandidate }) => {
   const { candidates, jobs, moveCandidateStage } = useAts();
   const [jobFilterId, setJobFilterId] = useState<string>('all');
+  const [activeStageTab, setActiveStageTab] = useState<'All' | HiringStage>('All');
   const [draggedCandId, setDraggedCandId] = useState<string | null>(null);
   const [stagePrompt, setStagePrompt] = useState<{
     candidate: CandidateProfile;
@@ -390,21 +391,21 @@ export const HiringPipelineView: React.FC<ViewProps> = ({ onSelectCandidate }) =
   };
 
   return (
-    <div className="flex flex-col w-full gap-space-xl">
+    <div className="flex flex-col w-full gap-space-lg sm:gap-space-xl">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md">
         <div>
-          <h1 className="font-heading font-extrabold text-headline-lg text-white">
+          <h1 className="font-heading font-extrabold text-2xl sm:text-headline-lg text-white">
             Hiring Pipeline
           </h1>
           <p className="font-body-md text-body-md text-[#94A3B8]">
             Drag and drop candidates or step across Applied, Shortlisted, Interview, Offer, and Rejected stages.
           </p>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
           <select
             value={jobFilterId}
             onChange={(e) => setJobFilterId(e.target.value)}
-            className="h-9 px-3 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs outline-none"
+            className="w-full sm:w-auto max-w-full min-w-0 h-10 sm:h-9 px-3 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs outline-none"
           >
             <option value="all">All Jobs ({candidates.length} Candidates)</option>
             {jobs.map((j) => (
@@ -419,9 +420,42 @@ export const HiringPipelineView: React.FC<ViewProps> = ({ onSelectCandidate }) =
         </div>
       </div>
 
+      {/* Mobile & Tablet Stage Filter Pills */}
+      <div className="xl:hidden flex items-center gap-1.5 overflow-x-auto pb-1">
+        <button
+          type="button"
+          onClick={() => setActiveStageTab('All')}
+          className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 cursor-pointer border transition-colors ${
+            activeStageTab === 'All'
+              ? 'bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white border-transparent'
+              : 'bg-[#151E32] border-[#263449] text-[#94A3B8] hover:text-white'
+          }`}
+        >
+          All ({visibleCandidates.length})
+        </button>
+        {PIPELINE_STAGES.map((stage) => {
+          const count = visibleCandidates.filter((c) => c.status === stage).length;
+          return (
+            <button
+              key={stage}
+              type="button"
+              onClick={() => setActiveStageTab(stage)}
+              className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 cursor-pointer border transition-colors ${
+                activeStageTab === stage
+                  ? 'bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white border-transparent'
+                  : 'bg-[#151E32] border-[#263449] text-[#94A3B8] hover:text-white'
+              }`}
+            >
+              {stage} ({count})
+            </button>
+          );
+        })}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 items-start">
         {PIPELINE_STAGES.map((stage, colIdx) => {
           const cards = visibleCandidates.filter((c) => c.status === stage);
+          const hiddenOnCompact = activeStageTab !== 'All' && activeStageTab !== stage;
           return (
             <div
               key={stage}
@@ -432,7 +466,9 @@ export const HiringPipelineView: React.FC<ViewProps> = ({ onSelectCandidate }) =
                 if (cand) handleMove(cand, stage);
                 setDraggedCandId(null);
               }}
-              className="rounded-2xl bg-[#0B1020]/70 backdrop-blur-md border border-[#263449] p-3 flex flex-col gap-3 min-h-[460px]"
+              className={`${
+                hiddenOnCompact ? 'hidden xl:flex' : 'flex'
+              } rounded-2xl bg-[#0B1020]/70 backdrop-blur-md border border-[#263449] p-3 flex-col gap-3 min-h-[140px] xl:min-h-[460px]`}
             >
               <div className="flex items-center justify-between px-1 py-1">
                 <span
@@ -495,7 +531,7 @@ export const HiringPipelineView: React.FC<ViewProps> = ({ onSelectCandidate }) =
                         <span className="font-mono-code text-[10px] text-outline">
                           {card.experience}
                         </span>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5">
                           {colIdx > 0 && (
                             <button
                               type="button"
@@ -503,10 +539,10 @@ export const HiringPipelineView: React.FC<ViewProps> = ({ onSelectCandidate }) =
                                 e.stopPropagation();
                                 handleMove(card, PIPELINE_STAGES[colIdx - 1]);
                               }}
-                              className="p-1 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface-variant cursor-pointer"
+                              className="min-h-[36px] min-w-[36px] xl:min-h-0 xl:min-w-0 p-1.5 xl:p-1 flex items-center justify-center rounded-lg xl:rounded bg-surface-container-high hover:bg-surface-bright text-on-surface-variant cursor-pointer"
                               title={`Move to ${PIPELINE_STAGES[colIdx - 1]}`}
                             >
-                              <span className="material-symbols-outlined text-[14px]">
+                              <span className="material-symbols-outlined text-[15px] xl:text-[14px]">
                                 chevron_left
                               </span>
                             </button>
@@ -518,10 +554,10 @@ export const HiringPipelineView: React.FC<ViewProps> = ({ onSelectCandidate }) =
                                 e.stopPropagation();
                                 handleMove(card, PIPELINE_STAGES[colIdx + 1]);
                               }}
-                              className="p-1 rounded bg-primary-container/30 hover:bg-primary-container text-primary hover:text-white cursor-pointer"
+                              className="min-h-[36px] min-w-[36px] xl:min-h-0 xl:min-w-0 p-1.5 xl:p-1 flex items-center justify-center rounded-lg xl:rounded bg-primary-container/30 hover:bg-primary-container text-primary hover:text-white cursor-pointer"
                               title={`Move to ${PIPELINE_STAGES[colIdx + 1]}`}
                             >
-                              <span className="material-symbols-outlined text-[14px]">
+                              <span className="material-symbols-outlined text-[15px] xl:text-[14px]">
                                 chevron_right
                               </span>
                             </button>
@@ -626,7 +662,7 @@ export const JobManagementView: React.FC<{ onNavigate: (r: WorkspaceRoute) => vo
     <div className="flex flex-col w-full gap-space-xl">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md">
         <div>
-          <h1 className="font-heading font-extrabold text-headline-lg text-white">
+          <h1 className="font-heading font-extrabold text-2xl sm:text-headline-lg text-white">
             Job Management
           </h1>
           <p className="font-body-md text-body-md text-[#94A3B8]">
@@ -636,14 +672,14 @@ export const JobManagementView: React.FC<{ onNavigate: (r: WorkspaceRoute) => vo
         <button
           type="button"
           onClick={openCreateModal}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-white font-label-md font-semibold border border-white/15 shadow-lg cursor-pointer"
+          className="w-full sm:w-auto min-h-[42px] sm:min-h-0 flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-white font-label-md font-semibold border border-white/15 shadow-lg cursor-pointer whitespace-nowrap"
         >
           <span className="material-symbols-outlined text-[18px]">add</span>
           <span>Create New Job</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-space-lg tabular-nums">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-space-lg tabular-nums">
         {jobs.map((job) => {
           const applicantCands = candidates.filter((c) => c.targetJobId === job.id);
           const shortlistedCount = applicantCands.filter((c) => c.status === 'Shortlisted').length;
@@ -824,7 +860,7 @@ export const JobDetailsView: React.FC<ViewProps> = ({ onNavigate, onSelectCandid
           >
             ← Back to Job Management
           </button>
-          <h1 className="font-heading font-extrabold text-headline-lg text-white">{job.title}</h1>
+          <h1 className="font-heading font-extrabold text-2xl sm:text-headline-lg text-white">{job.title}</h1>
           <p className="text-xs text-[#94A3B8] mt-1">
             {job.department} · {job.location} · {job.employmentType} · Status: {job.status}
           </p>
@@ -833,7 +869,7 @@ export const JobDetailsView: React.FC<ViewProps> = ({ onNavigate, onSelectCandid
           <select
             value={job.id}
             onChange={(e) => setSelectedJobId(e.target.value)}
-            className="h-9 px-3 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs outline-none"
+            className="w-full sm:w-auto max-w-full min-w-0 h-10 sm:h-9 px-3 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs outline-none"
           >
             {jobs.map((j) => (
               <option key={j.id} value={j.id}>
@@ -844,7 +880,7 @@ export const JobDetailsView: React.FC<ViewProps> = ({ onNavigate, onSelectCandid
           <button
             type="button"
             onClick={() => runBulkMatchForJob(job.id)}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white text-xs font-semibold cursor-pointer"
+            className="w-full sm:w-auto min-h-[40px] sm:min-h-0 px-4 py-2 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white text-xs font-semibold cursor-pointer"
           >
             Run Matching for All Candidates
           </button>
@@ -919,58 +955,67 @@ export const JobDetailsView: React.FC<ViewProps> = ({ onNavigate, onSelectCandid
       </div>
 
       <div className="rounded-2xl glass-card overflow-hidden">
-        <div className="p-4 border-b border-[#263449] flex items-center justify-between">
+        <div className="p-4 border-b border-[#263449] flex items-center justify-between flex-wrap gap-2">
           <h3 className="font-headline-sm text-white font-semibold">
             Top Candidates Matched to {job.title}
           </h3>
           <button
             type="button"
             onClick={() => onNavigate('candidate-ranking')}
-            className="text-xs text-primary hover:underline cursor-pointer"
+            className="text-xs text-primary hover:underline cursor-pointer shrink-0"
           >
             Open Full Ranking →
           </button>
         </div>
-        <table className="w-full text-left text-xs tabular-nums">
-          <thead>
-            <tr className="bg-surface-container-lowest/60 text-outline uppercase">
-              <th className="py-2.5 px-4">Candidate</th>
-              <th className="py-2.5 px-4">Match Score</th>
-              <th className="py-2.5 px-4">Required Coverage</th>
-              <th className="py-2.5 px-4">Missing Required</th>
-              <th className="py-2.5 px-4">Stage</th>
-              <th className="py-2.5 px-4 text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#263449]/60">
-            {rankedForJob.slice(0, 8).map(({ cand, match }) => (
-              <tr key={cand.id} className="hover:bg-surface-container/50">
-                <td className="py-3 px-4 font-semibold text-on-surface">{cand.name}</td>
-                <td className="py-3 px-4 font-mono-code text-emerald-400 font-bold">
-                  {match.overallScore}%
-                </td>
-                <td className="py-3 px-4 font-mono-code text-tertiary">
-                  {match.requiredSkillCoverage}%
-                </td>
-                <td className="py-3 px-4 text-rose-300">
-                  {match.missingRequiredSkills.length > 0
-                    ? match.missingRequiredSkills.join(', ')
-                    : 'None'}
-                </td>
-                <td className="py-3 px-4">{cand.status}</td>
-                <td className="py-3 px-4 text-right">
-                  <button
-                    type="button"
-                    onClick={() => onSelectCandidate(cand)}
-                    className="px-3 py-1 rounded bg-surface-container-high hover:bg-primary-container hover:text-white cursor-pointer"
-                  >
-                    Inspect
-                  </button>
-                </td>
+        <div className="md:overflow-x-auto">
+          <table className="block md:table w-full text-left text-xs tabular-nums">
+            <thead className="hidden md:table-header-group">
+              <tr className="bg-surface-container-lowest/60 text-outline uppercase">
+                <th className="py-2.5 px-4">Candidate</th>
+                <th className="py-2.5 px-4">Match Score</th>
+                <th className="py-2.5 px-4">Required Coverage</th>
+                <th className="py-2.5 px-4">Missing Required</th>
+                <th className="py-2.5 px-4">Stage</th>
+                <th className="py-2.5 px-4 text-right">Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="block md:table-row-group divide-y divide-[#263449]/60">
+              {rankedForJob.slice(0, 8).map(({ cand, match }) => (
+                <tr
+                  key={cand.id}
+                  className="flex flex-wrap items-center justify-between gap-2 p-3.5 md:p-0 md:table-row hover:bg-surface-container/50"
+                >
+                  <td className="flex-1 min-w-[140px] py-0.5 md:py-3 md:px-4 font-semibold text-on-surface">
+                    {cand.name}
+                  </td>
+                  <td className="py-0.5 md:py-3 md:px-4 font-mono-code text-emerald-400 font-bold">
+                    {match.overallScore}%
+                  </td>
+                  <td className="py-0.5 md:py-3 md:px-4 font-mono-code text-tertiary">
+                    <span className="md:hidden text-outline font-sans mr-1">Req:</span>
+                    {match.requiredSkillCoverage}%
+                  </td>
+                  <td className="w-full md:w-auto py-0.5 md:py-3 md:px-4 text-rose-300">
+                    <span className="md:hidden text-outline mr-1">Missing:</span>
+                    {match.missingRequiredSkills.length > 0
+                      ? match.missingRequiredSkills.join(', ')
+                      : 'None'}
+                  </td>
+                  <td className="py-0.5 md:py-3 md:px-4 text-on-surface-variant">{cand.status}</td>
+                  <td className="ml-auto md:ml-0 py-0.5 md:py-3 md:px-4 text-right">
+                    <button
+                      type="button"
+                      onClick={() => onSelectCandidate(cand)}
+                      className="px-3 py-1.5 md:py-1 rounded bg-surface-container-high hover:bg-primary-container hover:text-white cursor-pointer"
+                    >
+                      Inspect
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
@@ -1035,7 +1080,7 @@ export const CandidateRankingView: React.FC<ViewProps> = ({ onSelectCandidate })
     <div className="flex flex-col w-full gap-space-xl">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="font-heading font-extrabold text-headline-lg text-white">
+          <h1 className="font-heading font-extrabold text-2xl sm:text-headline-lg text-white">
             Candidate Ranking
           </h1>
           <p className="font-body-md text-body-md text-[#94A3B8]">
@@ -1043,12 +1088,12 @@ export const CandidateRankingView: React.FC<ViewProps> = ({ onSelectCandidate })
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
           {jobs.length > 0 && (
             <select
               value={activeJob?.id || ''}
               onChange={(e) => setSelectedJobId(e.target.value)}
-              className="h-9 px-3 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs outline-none"
+              className="w-full sm:w-auto max-w-full min-w-0 h-10 sm:h-9 px-3 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs outline-none"
             >
               {jobs.map((j) => (
                 <option key={j.id} value={j.id}>
@@ -1060,7 +1105,7 @@ export const CandidateRankingView: React.FC<ViewProps> = ({ onSelectCandidate })
           <button
             type="button"
             onClick={() => setShowCustomJobModal(true)}
-            className="h-9 flex items-center gap-1 px-3 rounded-xl bg-[#4F46E5]/20 hover:bg-[#4F46E5]/35 border border-[#8B5CF6]/40 text-primary text-xs font-semibold cursor-pointer"
+            className="h-10 sm:h-9 flex items-center gap-1 px-3 rounded-xl bg-[#4F46E5]/20 hover:bg-[#4F46E5]/35 border border-[#8B5CF6]/40 text-primary text-xs font-semibold cursor-pointer whitespace-nowrap"
           >
             <span className="material-symbols-outlined text-[15px]">add_circle</span>
             <span>Custom Role</span>
@@ -1068,7 +1113,7 @@ export const CandidateRankingView: React.FC<ViewProps> = ({ onSelectCandidate })
           <select
             value={topN}
             onChange={(e) => setTopN(parseInt(e.target.value, 10))}
-            className="h-9 px-3 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs outline-none"
+            className="flex-1 sm:flex-initial min-w-0 h-10 sm:h-9 px-3 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs outline-none"
           >
             <option value={0}>All Candidates</option>
             <option value={5}>Top 5</option>
@@ -1079,7 +1124,7 @@ export const CandidateRankingView: React.FC<ViewProps> = ({ onSelectCandidate })
             aria-label="Ranking Sort Order"
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value as 'desc' | 'asc' | 'name')}
-            className="h-9 px-3 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs outline-none"
+            className="w-full sm:w-auto max-w-full min-w-0 h-10 sm:h-9 px-3 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs outline-none"
           >
             <option value="desc">Order: Highest → Lowest</option>
             <option value="asc">Order: Lowest → Highest</option>
@@ -1088,7 +1133,7 @@ export const CandidateRankingView: React.FC<ViewProps> = ({ onSelectCandidate })
           <button
             type="button"
             onClick={handleExportRanked}
-            className="h-9 px-3.5 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white text-xs font-semibold cursor-pointer"
+            className="w-full sm:w-auto h-10 sm:h-9 px-3.5 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white text-xs font-semibold cursor-pointer whitespace-nowrap"
           >
             Export Ranked CSV
           </button>
@@ -1096,9 +1141,9 @@ export const CandidateRankingView: React.FC<ViewProps> = ({ onSelectCandidate })
       </div>
 
       <div className="rounded-2xl glass-card overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left tabular-nums">
-            <thead>
+        <div className="md:overflow-x-auto">
+          <table className="block md:table w-full text-left tabular-nums">
+            <thead className="hidden md:table-header-group">
               <tr className="bg-surface-container-high/60 text-outline font-label-sm uppercase tracking-wider">
                 <th className="py-3 px-4">Rank</th>
                 <th className="py-3 px-4">Candidate</th>
@@ -1109,44 +1154,51 @@ export const CandidateRankingView: React.FC<ViewProps> = ({ onSelectCandidate })
                 <th className="py-3 px-4 text-right">Profile</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#263449]/60 text-sm">
+            <tbody className="block md:table-row-group divide-y divide-[#263449]/60 text-sm">
               {ranked.map(({ cand, match }, idx) => (
-                <tr key={cand.id} className="hover:bg-surface-container/60 transition-colors">
-                  <td className="py-3.5 px-4 font-mono-code font-bold text-primary">#{idx + 1}</td>
-                  <td className="py-3.5 px-4">
+                <tr
+                  key={cand.id}
+                  className="flex flex-wrap items-center gap-x-2 gap-y-2 p-3.5 md:p-0 md:table-row hover:bg-surface-container/60 transition-colors"
+                >
+                  <td className="py-1 md:py-3.5 md:px-4 font-mono-code font-bold text-primary shrink-0">
+                    #{idx + 1}
+                  </td>
+                  <td className="flex-1 min-w-[180px] py-1 md:py-3.5 md:px-4">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${cand.avatarTone}`}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${cand.avatarTone}`}
                       >
                         {cand.initials}
                       </div>
-                      <div>
-                        <p className="font-medium text-on-surface">{cand.name}</p>
-                        <p className="font-mono-code text-[11px] text-outline">
+                      <div className="min-w-0">
+                        <p className="font-medium text-on-surface truncate">{cand.name}</p>
+                        <p className="font-mono-code text-[11px] text-outline truncate">
                           {cand.experience} · {cand.location}
                         </p>
                       </div>
                     </div>
                   </td>
-                  <td className="py-3.5 px-4">
+                  <td className="py-1 md:py-3.5 md:px-4 shrink-0">
                     <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 font-mono-code text-xs font-bold">
                       {match.overallScore}% ({match.category.replace(' Match', '')})
                     </span>
                   </td>
-                  <td className="py-3.5 px-4 font-mono-code text-tertiary">
+                  <td className="py-1 md:py-3.5 md:px-4 font-mono-code text-xs md:text-sm text-tertiary">
+                    <span className="md:hidden text-outline font-sans mr-1">Coverage:</span>
                     {match.requiredSkillCoverage}%
                   </td>
-                  <td className="py-3.5 px-4 font-mono-code text-on-surface-variant">
+                  <td className="py-1 md:py-3.5 md:px-4 font-mono-code text-xs md:text-sm text-on-surface-variant">
+                    <span className="md:hidden text-outline font-sans mr-1">CGPA:</span>
                     {cand.cgpa}
                   </td>
-                  <td className="py-3.5 px-4 text-xs text-on-surface-variant max-w-xs truncate">
+                  <td className="w-full md:w-auto py-0.5 md:py-3.5 md:px-4 text-xs text-on-surface-variant md:max-w-xs md:truncate">
                     {match.explanation}
                   </td>
-                  <td className="py-3.5 px-4 text-right">
+                  <td className="ml-auto md:ml-0 py-1 md:py-3.5 md:px-4 text-right">
                     <button
                       type="button"
                       onClick={() => onSelectCandidate(cand)}
-                      className="px-3 py-1 rounded-lg bg-surface-container-high hover:bg-primary-container hover:text-white text-xs text-on-surface cursor-pointer"
+                      className="px-3 py-1.5 md:py-1 rounded-lg bg-surface-container-high hover:bg-primary-container hover:text-white text-xs text-on-surface cursor-pointer"
                     >
                       Inspect
                     </button>
@@ -1197,7 +1249,7 @@ export const CompareCandidatesView: React.FC<ViewProps> = ({ onSelectCandidate }
     <div className="flex flex-col w-full gap-space-xl">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="font-heading font-extrabold text-headline-lg text-white">
+          <h1 className="font-heading font-extrabold text-2xl sm:text-headline-lg text-white">
             Compare Candidates
           </h1>
           <p className="font-body-md text-body-md text-[#94A3B8]">
@@ -1205,12 +1257,12 @@ export const CompareCandidatesView: React.FC<ViewProps> = ({ onSelectCandidate }
           </p>
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
           {jobs.length > 0 && (
             <select
               value={activeJobId}
               onChange={(e) => setSelectedJobId(e.target.value)}
-              className="h-9 px-3 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs outline-none"
+              className="w-full sm:w-auto max-w-full min-w-0 h-10 sm:h-9 px-3 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs outline-none"
             >
               {jobs.map((j) => (
                 <option key={j.id} value={j.id}>
@@ -1238,7 +1290,7 @@ export const CompareCandidatesView: React.FC<ViewProps> = ({ onSelectCandidate }
                 key={c.id}
                 type="button"
                 onClick={() => toggleCompareCandidate(c.id)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer border transition-colors ${
+                className={`px-2.5 py-1.5 sm:py-1 rounded-lg text-xs font-medium cursor-pointer border transition-colors ${
                   active
                     ? 'bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white border-transparent'
                     : 'bg-surface-container text-on-surface-variant border-[#263449] hover:text-white'
@@ -1266,7 +1318,7 @@ export const CompareCandidatesView: React.FC<ViewProps> = ({ onSelectCandidate }
             return (
               <div
                 key={cand.id}
-                className="rounded-2xl glass-card p-5 flex flex-col gap-4 border border-[#263449]"
+                className="rounded-2xl glass-card p-4 sm:p-5 flex flex-col gap-4 border border-[#263449]"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3 min-w-0">
@@ -1288,35 +1340,35 @@ export const CompareCandidatesView: React.FC<ViewProps> = ({ onSelectCandidate }
                 </div>
 
                 <div className="text-xs space-y-2 pt-2 border-t border-[#263449]">
-                  <div className="flex justify-between">
-                    <span className="text-outline">Education:</span>
-                    <span className="text-on-surface text-right">{cand.education}</span>
+                  <div className="flex justify-between gap-2">
+                    <span className="text-outline shrink-0">Education:</span>
+                    <span className="text-on-surface text-right truncate">{cand.education}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-outline">College:</span>
+                  <div className="flex justify-between gap-2">
+                    <span className="text-outline shrink-0">College:</span>
                     <span className="text-on-surface text-right truncate max-w-[160px]">
                       {cand.educationDetail.college}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-outline">10th / 12th / CGPA:</span>
-                    <span className="text-tertiary font-mono-code">
+                  <div className="flex justify-between gap-2">
+                    <span className="text-outline shrink-0">10th / 12th / CGPA:</span>
+                    <span className="text-tertiary font-mono-code text-right">
                       {cand.tenthTwelfth} · {cand.cgpa}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-outline">Experience:</span>
-                    <span className="text-on-surface">{cand.experience}</span>
+                  <div className="flex justify-between gap-2">
+                    <span className="text-outline shrink-0">Experience:</span>
+                    <span className="text-on-surface text-right">{cand.experience}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-outline">Required Coverage:</span>
-                    <span className="text-emerald-400 font-mono-code font-bold">
+                  <div className="flex justify-between gap-2">
+                    <span className="text-outline shrink-0">Required Coverage:</span>
+                    <span className="text-emerald-400 font-mono-code font-bold text-right">
                       {match?.requiredSkillCoverage ?? 0}%
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-outline">Stage:</span>
-                    <span className="text-primary font-semibold">{cand.status}</span>
+                  <div className="flex justify-between gap-2">
+                    <span className="text-outline shrink-0">Stage:</span>
+                    <span className="text-primary font-semibold text-right">{cand.status}</span>
                   </div>
                 </div>
 

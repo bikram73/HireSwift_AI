@@ -7,6 +7,7 @@ import { CandidatesView } from '../src/components/views/CandidatesView';
 import { DashboardView } from '../src/components/views/DashboardView';
 import { EmailCenterView, HelpCenterView, SettingsView } from '../src/components/views/OperationsViews';
 import { ResumeUploadView } from '../src/components/views/ResumeUploadView';
+import { WorkspaceShell } from '../src/components/WorkspaceShell';
 import {
   CompareCandidatesView,
   HiringPipelineView,
@@ -540,5 +541,40 @@ describe('UI Integration & Defect Verification (PRD Modules 4–23)', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
     const stored = JSON.parse(localStorage.getItem('hireswift_ats_session_v2') || '{}');
     expect(stored.candidates.some((c: CandidateProfile) => c.id === target.id)).toBe(false);
+  });
+
+  it('MOBILE-TAB-UX: WorkspaceShell provides mobile drawer close & quick search trigger; HiringPipeline provides compact stage filter pills', () => {
+    const onNavigate = vi.fn();
+    render(
+      <AtsProvider>
+        <WorkspaceShell
+          activeRoute="hiring-pipeline"
+          onNavigate={onNavigate}
+          onGoLanding={vi.fn()}
+          onSelectCandidate={vi.fn()}
+        >
+          <HiringPipelineView onNavigate={onNavigate} onSelectCandidate={vi.fn()} />
+        </WorkspaceShell>
+      </AtsProvider>
+    );
+
+    // Open mobile navigation drawer -> close button works -> quick search button opens Command modal
+    fireEvent.click(screen.getByRole('button', { name: 'Open navigation menu' }));
+    expect(screen.getByRole('button', { name: 'Close navigation menu' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Close navigation menu' }));
+    expect(screen.queryByRole('button', { name: 'Close navigation menu' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open quick search' }));
+    expect(screen.getByPlaceholderText(/Jump to candidate/i)).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByPlaceholderText(/Jump to candidate/i)).not.toBeInTheDocument();
+
+    // Mobile/tablet stage filter pills switch active stage cleanly
+    const shortlistedPill = screen.getByRole('button', { name: /^Shortlisted \(\d+\)$/i });
+    fireEvent.click(shortlistedPill);
+    expect(shortlistedPill.className).toContain('from-[#4F46E5]');
+    const allPill = screen.getByRole('button', { name: /^All \(\d+\)$/i });
+    fireEvent.click(allPill);
+    expect(allPill.className).toContain('from-[#4F46E5]');
   });
 });

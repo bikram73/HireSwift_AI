@@ -63,21 +63,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
       <AmbientBackground />
       {/* MainHeader */}
       <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-[#0B1020]/80 border-b border-[#263449]/70 transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2">
           {/* Brand Logo */}
-          <a className="flex items-center gap-3 group" href="#top" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform duration-200">
-              <BrandLogo className="w-10 h-10" />
+          <a className="flex items-center gap-2 sm:gap-3 group min-w-0 shrink-0" href="#top" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform duration-200 shrink-0">
+              <BrandLogo className="w-8 h-8 sm:w-10 sm:h-10" />
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-heading font-bold text-xl tracking-tight text-white">
+              <span className="font-heading font-bold text-lg sm:text-xl tracking-tight text-white">
                 HireSwift<span className="text-[#8B5CF6]">AI</span>
               </span>
             </div>
           </a>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-[#94A3B8]">
+          <nav className="hidden md:flex items-center gap-6 lg:gap-8 text-sm font-medium text-[#94A3B8]">
             <a className="hover:text-white transition-colors duration-150 whitespace-nowrap" href="#features">
               Features
             </a>
@@ -93,40 +93,40 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
           </nav>
 
           {/* Header Actions */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             <button
               type="button"
               onClick={() => onEnterWorkspace('dashboard')}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#4F46E5] to-[#3B82F6] hover:from-[#4338CA] hover:to-[#2563EB] shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 transition-all duration-200 border border-white/10 cursor-pointer whitespace-nowrap"
+              className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 min-h-[40px] rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-[#4F46E5] to-[#3B82F6] hover:from-[#4338CA] hover:to-[#2563EB] shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 transition-all duration-200 border border-white/10 cursor-pointer whitespace-nowrap"
             >
               <span>Open Workspace</span>
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4 shrink-0" />
             </button>
           </div>
         </div>
       </header>
 
       {/* HeroSection */}
-      <section className="relative z-10 pt-12 pb-24 lg:pt-20 lg:pb-32 overflow-hidden">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] h-[500px] glow-conic pointer-events-none blur-3xl opacity-80" />
+      <section className="relative z-10 pt-8 pb-16 sm:pt-12 sm:pb-24 lg:pt-20 lg:pb-32 overflow-hidden">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] sm:w-[720px] h-[360px] sm:h-[500px] glow-conic pointer-events-none blur-3xl opacity-80" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 page-enter">
           {/* Announcement Pill Badge */}
-          <div className="flex justify-center mb-6">
-            <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-[#151E32]/90 border border-[#263449] shadow-inner text-xs sm:text-sm font-medium text-[#F8FAFC]">
-              <span className="inline-flex items-center justify-center w-2 h-2 rounded-full bg-[#8B5CF6] animate-pulse" />
+          <div className="flex justify-center mb-5 sm:mb-6">
+            <div className="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2.5 px-3 sm:px-4 py-1.5 rounded-full bg-[#151E32]/90 border border-[#263449] shadow-inner text-[11px] sm:text-sm font-medium text-[#F8FAFC] text-center">
+              <span className="inline-flex items-center justify-center w-2 h-2 rounded-full bg-[#8B5CF6] animate-pulse shrink-0" />
               <span>Smart AI ATS Parser Engine</span>
-              <span className="text-[#263449]">•</span>
+              <span className="hidden sm:inline text-[#263449]">•</span>
               <span className="text-[#8B5CF6] font-semibold">99.4% Extraction Accuracy</span>
             </div>
           </div>
 
           {/* Main Headline & Subtitle */}
-          <div className="text-center max-w-4xl mx-auto mb-10">
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-heading font-extrabold tracking-tight leading-[1.12] mb-6 text-balance">
+          <div className="text-center max-w-4xl mx-auto mb-8 sm:mb-10">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-heading font-extrabold tracking-tight leading-[1.12] mb-4 sm:mb-6 text-balance">
               Hire Smarter. Shortlist Faster. <br className="hidden sm:inline" />
               <span className="gradient-hero-text">Find the Right Talent.</span>
             </h1>
-            <p className="text-lg sm:text-xl text-[#94A3B8] leading-relaxed max-w-3xl mx-auto font-normal">
+            <p className="text-base sm:text-xl text-[#94A3B8] leading-relaxed max-w-3xl mx-auto font-normal">
               HireSwift AI is the intelligent ATS built for high-growth startups and small teams. Ingest hundreds of resumes in seconds, score semantic fit automatically, and eliminate hiring bias without the enterprise bloat.
             </p>
           </div>
@@ -183,21 +183,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
             <div className="absolute -inset-1.5 bg-gradient-to-r from-[#4F46E5] via-[#8B5CF6] to-[#3B82F6] rounded-2xl blur-xl opacity-40 group-hover:opacity-75 transition duration-1000" />
             <div className="relative rounded-2xl bg-[#0B1020] border border-[#263449] shadow-2xl overflow-hidden">
               {/* Mockup Window Bar */}
-              <div className="flex items-center justify-between px-4 py-3 bg-[#151E32]/90 border-b border-[#263449]">
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-rose-500/80 inline-block" />
-                  <span className="w-3 h-3 rounded-full bg-amber-500/80 inline-block" />
-                  <span className="w-3 h-3 rounded-full bg-emerald-500/80 inline-block" />
+              <div className="flex items-center justify-between gap-2 px-3 sm:px-4 py-2.5 sm:py-3 bg-[#151E32]/90 border-b border-[#263449]">
+                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                  <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-rose-500/80 inline-block" />
+                  <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-amber-500/80 inline-block" />
+                  <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-500/80 inline-block" />
                 </div>
-                <div className="text-xs font-mono text-[#94A3B8] bg-[#0B1020] px-4 py-1 rounded-md border border-[#263449] flex items-center gap-2">
-                  <Lock className="w-3 h-3 text-[#8B5CF6]" />
-                  <span>app.hireswift.ai/pipeline/senior-fullstack</span>
+                <div className="text-[11px] sm:text-xs font-mono text-[#94A3B8] bg-[#0B1020] px-2.5 sm:px-4 py-1 rounded-md border border-[#263449] flex items-center gap-1.5 sm:gap-2 min-w-0 max-w-[175px] sm:max-w-sm md:max-w-none">
+                  <Lock className="w-3 h-3 text-[#8B5CF6] shrink-0" />
+                  <span className="truncate">app.hireswift.ai/pipeline/senior-fullstack</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => onEnterWorkspace('ai-matching')}
-                  className="flex items-center gap-2 text-[#94A3B8] hover:text-white transition-colors cursor-pointer"
+                  className="flex items-center gap-2 text-[#94A3B8] hover:text-white transition-colors cursor-pointer shrink-0 p-1"
                   title="Open Interactive Workspace"
+                  aria-label="Refresh interactive preview"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                 </button>
@@ -277,27 +278,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center tabular-nums">
-            <div className="p-4 rounded-xl border border-[#263449]/60 bg-[#151E32]/20">
-              <p className="text-3xl lg:text-4xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-[#8B5CF6]">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 text-center tabular-nums">
+            <div className="p-3.5 sm:p-4 rounded-xl border border-[#263449]/60 bg-[#151E32]/20">
+              <p className="text-2xl sm:text-3xl lg:text-4xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-[#8B5CF6]">
                 10x
               </p>
               <p className="text-xs sm:text-sm font-medium text-[#94A3B8] mt-1">Faster Screening</p>
             </div>
-            <div className="p-4 rounded-xl border border-[#263449]/60 bg-[#151E32]/20">
-              <p className="text-3xl lg:text-4xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-[#3B82F6]">
+            <div className="p-3.5 sm:p-4 rounded-xl border border-[#263449]/60 bg-[#151E32]/20">
+              <p className="text-2xl sm:text-3xl lg:text-4xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-[#3B82F6]">
                 99.4%
               </p>
               <p className="text-xs sm:text-sm font-medium text-[#94A3B8] mt-1">Parsing Accuracy</p>
             </div>
-            <div className="p-4 rounded-xl border border-[#263449]/60 bg-[#151E32]/20">
-              <p className="text-3xl lg:text-4xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-emerald-400">
+            <div className="p-3.5 sm:p-4 rounded-xl border border-[#263449]/60 bg-[#151E32]/20">
+              <p className="text-2xl sm:text-3xl lg:text-4xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-emerald-400">
                 0
               </p>
               <p className="text-xs sm:text-sm font-medium text-[#94A3B8] mt-1">Duplicate Resumes</p>
             </div>
-            <div className="p-4 rounded-xl border border-[#263449]/60 bg-[#151E32]/20">
-              <p className="text-3xl lg:text-4xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-[#4F46E5]">
+            <div className="p-3.5 sm:p-4 rounded-xl border border-[#263449]/60 bg-[#151E32]/20">
+              <p className="text-2xl sm:text-3xl lg:text-4xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-[#4F46E5]">
                 64%
               </p>
               <p className="text-xs sm:text-sm font-medium text-[#94A3B8] mt-1">Lower Time-to-Hire</p>
@@ -307,30 +308,30 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
       </section>
 
       {/* CoreFeaturesSection */}
-      <section className="py-24 relative" id="features">
+      <section className="py-16 sm:py-24 relative" id="features">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
             <span className="text-xs font-bold tracking-widest text-[#8B5CF6] uppercase">
               High Performance Architecture
             </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-extrabold text-white mt-3 mb-4 text-balance">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-heading font-extrabold text-white mt-3 mb-4 text-balance">
               Everything You Need to Hire Top 1% Engineers &amp; Leaders
             </h2>
-            <p className="text-[#94A3B8] text-base sm:text-lg">
+            <p className="text-[#94A3B8] text-sm sm:text-lg">
               Ditch clunky 2012 enterprise systems. HireSwift AI gives your lean team sovereign superpower recruiting workflows.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8">
             <button
               type="button"
               onClick={() => onEnterWorkspace('resume-upload')}
-              className="text-left glass-card rounded-2xl p-7 border border-[#263449] hover:border-[#4F46E5]/60 transition-all duration-300 group hover:-translate-y-1 cursor-pointer"
+              className="text-left glass-card rounded-2xl p-5 sm:p-7 border border-[#263449] hover:border-[#4F46E5]/60 transition-all duration-300 group hover:-translate-y-1 cursor-pointer"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#4F46E5]/15 border border-[#4F46E5]/30 flex items-center justify-center text-[#8B5CF6] mb-5 group-hover:bg-[#4F46E5] group-hover:text-white transition-all">
+              <div className="w-12 h-12 rounded-xl bg-[#4F46E5]/15 border border-[#4F46E5]/30 flex items-center justify-center text-[#8B5CF6] mb-4 sm:mb-5 group-hover:bg-[#4F46E5] group-hover:text-white transition-all">
                 <FileText className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-heading font-semibold text-white mb-2.5">
+              <h3 className="text-lg sm:text-xl font-heading font-semibold text-white mb-2">
                 Bulk AI Resume Parsing &amp; OCR
               </h3>
               <p className="text-sm text-[#94A3B8] leading-relaxed">
@@ -512,20 +513,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
             </div>
 
             <div className="lg:col-span-7">
-              <div className="glass-card rounded-2xl p-6 sm:p-8 border border-[#263449] shadow-2xl relative">
-                <div className="flex items-center justify-between border-b border-[#263449] pb-5 mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
+              <div className="glass-card rounded-2xl p-5 sm:p-8 border border-[#263449] shadow-2xl relative">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#263449] pb-4 sm:pb-5 mb-5 sm:mb-6">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center text-white font-bold text-base sm:text-lg shrink-0">
                       SC
                     </div>
-                    <div>
-                      <h4 className="font-heading font-bold text-white text-lg">Sarah Chen</h4>
+                    <div className="min-w-0">
+                      <h4 className="font-heading font-bold text-white text-base sm:text-lg truncate">Sarah Chen</h4>
                       <p className="text-xs text-[#94A3B8]">
                         Senior Fullstack / Cloud Architect • 7.5 Yrs Exp
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold tabular-nums">
                       <ShieldCheck className="w-3.5 h-3.5" /> 94% Match
                     </div>
@@ -535,11 +536,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                 {/* Score Bars */}
                 <div className="space-y-4 mb-6 tabular-nums">
                   <div>
-                    <div className="flex justify-between text-xs font-medium mb-1.5">
+                    <div className="flex justify-between gap-2 text-xs font-medium mb-1.5">
                       <span className="text-slate-300">
                         Technical Stack Alignment (React, Go, AWS, Docker)
                       </span>
-                      <span className="text-white font-semibold">96%</span>
+                      <span className="text-white font-semibold shrink-0">96%</span>
                     </div>
                     <div className="w-full bg-[#1B2740] rounded-full h-2 overflow-hidden">
                       <div
@@ -549,9 +550,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                     </div>
                   </div>
                   <div>
-                    <div className="flex justify-between text-xs font-medium mb-1.5">
+                    <div className="flex justify-between gap-2 text-xs font-medium mb-1.5">
                       <span className="text-slate-300">System Design &amp; High-Load Scale</span>
-                      <span className="text-white font-semibold">91%</span>
+                      <span className="text-white font-semibold shrink-0">91%</span>
                     </div>
                     <div className="w-full bg-[#1B2740] rounded-full h-2 overflow-hidden">
                       <div
@@ -561,9 +562,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                     </div>
                   </div>
                   <div>
-                    <div className="flex justify-between text-xs font-medium mb-1.5">
+                    <div className="flex justify-between gap-2 text-xs font-medium mb-1.5">
                       <span className="text-slate-300">Academic &amp; Foundation Credential</span>
-                      <span className="text-white font-semibold">88%</span>
+                      <span className="text-white font-semibold shrink-0">88%</span>
                     </div>
                     <div className="w-full bg-[#1B2740] rounded-full h-2 overflow-hidden">
                       <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '88%' }} />
@@ -582,18 +583,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                   <button
                     type="button"
                     onClick={() => onEnterWorkspace('email-center')}
-                    className="flex-1 py-2.5 px-4 rounded-lg bg-[#4F46E5] hover:bg-[#4338CA] text-xs font-semibold text-white transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                    className="flex-1 min-h-[44px] sm:min-h-0 py-2.5 px-4 rounded-lg bg-[#4F46E5] hover:bg-[#4338CA] text-xs font-semibold text-white transition-colors flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <Calendar className="w-3.5 h-3.5" /> Schedule 45-Min Interview
+                    <Calendar className="w-3.5 h-3.5 shrink-0" /> Schedule 45-Min Interview
                   </button>
                   <button
                     type="button"
                     onClick={() => onEnterWorkspace('ai-matching')}
-                    className="py-2.5 px-4 rounded-lg bg-[#1B2740] hover:bg-[#263449] text-xs font-medium text-[#94A3B8] hover:text-white transition-colors border border-[#263449] cursor-pointer"
+                    className="min-h-[44px] sm:min-h-0 py-2.5 px-4 rounded-lg bg-[#1B2740] hover:bg-[#263449] text-xs font-medium text-[#94A3B8] hover:text-white transition-colors border border-[#263449] cursor-pointer text-center"
                   >
                     View Full Dossier
                   </button>
@@ -666,23 +667,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
       </section>
 
       {/* FinalCallToAction */}
-      <section className="py-20 relative overflow-hidden" id="get-started">
+      <section className="py-16 sm:py-20 relative overflow-hidden" id="get-started">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="glass-card rounded-3xl p-8 sm:p-14 border border-[#4F46E5]/40 text-center relative overflow-hidden shadow-2xl">
+          <div className="glass-card rounded-3xl p-6 sm:p-14 border border-[#4F46E5]/40 text-center relative overflow-hidden shadow-2xl">
             <div className="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-[#4F46E5]/20 blur-3xl pointer-events-none" />
             <div className="absolute -left-20 -top-20 w-80 h-80 rounded-full bg-[#8B5CF6]/20 blur-3xl pointer-events-none" />
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-extrabold text-white mb-4 tracking-tight">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-heading font-extrabold text-white mb-4 tracking-tight">
               Ready to Modernize Your Recruitment Pipeline?
             </h2>
-            <p className="text-[#94A3B8] text-base sm:text-lg max-w-2xl mx-auto mb-8 font-normal">
+            <p className="text-[#94A3B8] text-sm sm:text-lg max-w-2xl mx-auto mb-8 font-normal">
               Join 1,200+ recruiters and founders who hire 10x faster with AI precision. Launch your team workspace right now.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
               <button
                 type="button"
                 onClick={() => onEnterWorkspace('dashboard')}
-                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-white font-semibold text-sm shadow-lg shadow-indigo-600/30 whitespace-nowrap transition-all duration-200 cursor-pointer"
+                className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-white font-semibold text-sm shadow-lg shadow-indigo-600/30 whitespace-nowrap transition-all duration-200 cursor-pointer"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>Launch Workspace</span>
@@ -690,7 +691,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
               <button
                 type="button"
                 onClick={() => onEnterWorkspace('ai-matching')}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#151E32] hover:bg-[#1B2740] border border-[#263449] text-white font-semibold text-sm whitespace-nowrap transition-all duration-200 cursor-pointer"
+                className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#151E32] hover:bg-[#1B2740] border border-[#263449] text-white font-semibold text-sm whitespace-nowrap transition-all duration-200 cursor-pointer"
               >
                 <span>Explore AI Matching</span>
                 <ChevronRight className="w-4 h-4" />
@@ -705,10 +706,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#263449] bg-[#0B1020]/90 backdrop-blur-xs pt-16 pb-12 text-[#94A3B8] text-sm relative z-10">
+      <footer className="border-t border-[#263449] bg-[#0B1020]/90 backdrop-blur-xs pt-12 sm:pt-16 pb-10 sm:pb-12 text-[#94A3B8] text-sm relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
-            <div className="col-span-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 mb-10 sm:mb-12">
+            <div className="col-span-2 sm:col-span-3 md:col-span-2">
               <div className="flex items-center gap-2.5 mb-4">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-md shadow-indigo-500/25">
                   <BrandLogo className="w-8 h-8" />
@@ -863,20 +864,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
       {/* Footer Info / Policy / Security Modal */}
       {infoModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-labelledby="footer-info-modal-title"
           onClick={() => setInfoModal(null)}
         >
           <div
-            className="w-full max-w-2xl rounded-2xl bg-[#0F172A] border border-[#263449] shadow-2xl overflow-hidden text-left"
+            className="w-full max-w-2xl max-h-[90dvh] flex flex-col rounded-2xl bg-[#0F172A] border border-[#263449] shadow-2xl overflow-hidden text-left"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-6 py-4 border-b border-[#263449] flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2.5">
-                <ShieldCheck className="w-5 h-5 text-[#8B5CF6]" />
-                <h2 id="footer-info-modal-title" className="font-heading font-bold text-base text-white">
+            <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-[#263449] flex items-center justify-between gap-4 shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <ShieldCheck className="w-5 h-5 text-[#8B5CF6] shrink-0" />
+                <h2 id="footer-info-modal-title" className="font-heading font-bold text-sm sm:text-base text-white truncate">
                   {infoModal === 'privacy'
                     ? 'Privacy Policy & Data Handling'
                     : infoModal === 'terms'
@@ -888,7 +889,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
                 type="button"
                 onClick={() => setInfoModal(null)}
                 aria-label="Close modal"
-                className="p-1.5 rounded-lg text-[#94A3B8] hover:text-white hover:bg-[#1E293B] transition-colors cursor-pointer"
+                className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-[#94A3B8] hover:text-white hover:bg-[#1E293B] transition-colors cursor-pointer shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>

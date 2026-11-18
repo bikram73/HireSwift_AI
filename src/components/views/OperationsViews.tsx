@@ -104,7 +104,7 @@ export const SkillGapAnalysisView: React.FC = () => {
     <div className="flex flex-col w-full gap-space-xl">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="font-heading font-extrabold text-headline-lg text-white">
+          <h1 className="font-heading font-extrabold text-2xl sm:text-headline-lg text-white">
             Skill Gap Analysis
           </h1>
           <p className="font-body-md text-body-md text-[#94A3B8]">
@@ -112,11 +112,11 @@ export const SkillGapAnalysisView: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex items-center gap-2.5 flex-wrap w-full lg:w-auto">
           <select
             value={activeCand.id}
             onChange={(e) => setCandidateId(e.target.value)}
-            className="h-9 px-3 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs outline-none"
+            className="h-10 sm:h-9 px-3 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs outline-none w-full sm:w-auto max-w-full min-w-0"
           >
             {candidates.map((c) => (
               <option key={c.id} value={c.id}>
@@ -127,7 +127,7 @@ export const SkillGapAnalysisView: React.FC = () => {
           <select
             value={activeJob.id}
             onChange={(e) => setSelectedJobId(e.target.value)}
-            className="h-9 px-3 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs outline-none"
+            className="h-10 sm:h-9 px-3 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs outline-none w-full sm:w-auto max-w-full min-w-0"
           >
             {jobs.map((j) => (
               <option key={j.id} value={j.id}>
@@ -138,7 +138,7 @@ export const SkillGapAnalysisView: React.FC = () => {
           <button
             type="button"
             onClick={() => setShowCustomJobModal(true)}
-            className="h-9 flex items-center gap-1 px-3 rounded-xl bg-[#4F46E5]/20 hover:bg-[#4F46E5]/35 border border-[#8B5CF6]/40 text-primary text-xs font-semibold cursor-pointer"
+            className="h-10 sm:h-9 flex items-center justify-center gap-1 px-3 rounded-xl bg-[#4F46E5]/20 hover:bg-[#4F46E5]/35 border border-[#8B5CF6]/40 text-primary text-xs font-semibold cursor-pointer"
           >
             <span className="material-symbols-outlined text-[15px]">add_circle</span>
             <span>Custom Role</span>
@@ -147,7 +147,7 @@ export const SkillGapAnalysisView: React.FC = () => {
             type="button"
             disabled={loadingAi}
             onClick={handleGenerateRecommendations}
-            className="h-9 px-4 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
+            className="h-10 sm:h-9 px-4 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60"
           >
             <span className={`material-symbols-outlined text-[16px] ${loadingAi ? 'animate-spin' : ''}`}>
               {loadingAi ? 'refresh' : 'auto_awesome'}
@@ -270,17 +270,17 @@ export const SkillGapAnalysisView: React.FC = () => {
       )}
 
       {/* Cohort Coverage Matrix */}
-      <div className="rounded-2xl glass-card p-space-lg shadow-sm space-y-4 tabular-nums">
-        <h3 className="font-headline-sm text-on-surface font-semibold">
+      <div className="rounded-2xl glass-card p-4 sm:p-space-lg shadow-sm space-y-4 tabular-nums">
+        <h3 className="font-headline-sm text-on-surface font-semibold break-words">
           Applicant Cohort Skill Coverage for {activeJob.title}
         </h3>
         {cohortSkillStats.map((row) => (
           <div
             key={`${row.skill}-${row.mandatory}`}
-            className="p-3.5 rounded-xl bg-surface-container flex flex-col md:flex-row md:items-center justify-between gap-4"
+            className="p-3.5 rounded-xl bg-surface-container flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4"
           >
-            <div className="min-w-[220px]">
-              <div className="flex items-center gap-2">
+            <div className="w-full md:w-auto md:min-w-[220px] min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-semibold text-on-surface text-sm">{row.skill}</p>
                 <span
                   className={`px-2 py-0.5 rounded font-mono-code text-[10px] ${
@@ -457,15 +457,15 @@ export const EmailCenterView: React.FC = () => {
   return (
     <div className="flex flex-col w-full gap-space-xl">
       <div>
-        <h1 className="font-heading font-extrabold text-headline-lg text-white">Email Center</h1>
+        <h1 className="font-heading font-extrabold text-2xl sm:text-headline-lg text-white">Email Center</h1>
         <p className="font-body-md text-body-md text-[#94A3B8]">
           Select shortlisted or pipeline candidates, apply templates with dynamic variables, and preview personalized drafts.
         </p>
       </div>
 
       {/* Clear Notice per Spec Section 17 */}
-      <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-2.5 text-xs text-amber-200">
-        <span className="material-symbols-outlined text-[18px] text-amber-400">info</span>
+      <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start sm:items-center gap-2.5 text-xs text-amber-200">
+        <span className="material-symbols-outlined text-[18px] text-amber-400 shrink-0">info</span>
         <span>
           Direct bulk SMTP sending is not configured in this local workspace. Drafts are personalized per recipient and marked <strong>Prepared</strong> for clipboard copy or opening in your default email application via <code>mailto:</code>.
         </span>
@@ -618,12 +618,12 @@ export const EmailCenterView: React.FC = () => {
             )}
 
             {activePreview ? (
-              <div className="p-4 rounded-xl bg-surface-container border border-[#263449] space-y-3">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div className="font-mono-code text-[11px] text-tertiary">
+              <div className="p-3.5 sm:p-4 rounded-xl bg-surface-container border border-[#263449] space-y-3">
+                <div className="flex items-start sm:items-center justify-between flex-wrap gap-2">
+                  <div className="font-mono-code text-[11px] text-tertiary break-words min-w-0 max-w-full">
                     To: {activePreview.email} · Subject: {activeSubject}
                   </div>
-                  <span className="font-mono-code text-[10px] text-outline">
+                  <span className="font-mono-code text-[10px] text-outline shrink-0">
                     Status: {preparedIds[activePreview.id] ? 'Prepared' : 'Draft'}
                   </span>
                 </div>
@@ -639,25 +639,25 @@ export const EmailCenterView: React.FC = () => {
                   className="w-full p-3 rounded-lg bg-[#0B1020] border border-[#263449] text-on-surface text-xs outline-none resize-none leading-relaxed"
                 />
                 <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center flex-wrap gap-2">
                     <button
                       type="button"
                       onClick={handleCopyDraft}
-                      className="px-3.5 py-2 rounded-lg bg-surface-container-high hover:bg-surface-bright text-white font-medium cursor-pointer"
+                      className="px-3.5 py-2 min-h-[40px] rounded-lg bg-surface-container-high hover:bg-surface-bright text-white font-medium cursor-pointer"
                     >
                       Copy Draft
                     </button>
                     <button
                       type="button"
                       onClick={handleDownloadEml}
-                      className="px-3.5 py-2 rounded-lg bg-surface-container-high hover:bg-surface-bright text-tertiary font-medium cursor-pointer"
+                      className="px-3.5 py-2 min-h-[40px] rounded-lg bg-surface-container-high hover:bg-surface-bright text-tertiary font-medium cursor-pointer"
                     >
                       Download .eml
                     </button>
                     {isValidEmail(activePreview.email) && (
                       <a
                         href={`mailto:${encodeURIComponent(activePreview.email)}?subject=${encodeURIComponent(activeSubject)}&body=${encodeURIComponent(activeBody)}`}
-                        className="px-3.5 py-2 rounded-lg bg-primary-container/30 text-primary hover:bg-primary-container hover:text-white font-medium transition-colors"
+                        className="px-3.5 py-2 min-h-[40px] inline-flex items-center rounded-lg bg-primary-container/30 text-primary hover:bg-primary-container hover:text-white font-medium transition-colors"
                       >
                         Open in Mail App
                       </a>
@@ -666,7 +666,7 @@ export const EmailCenterView: React.FC = () => {
                   <button
                     type="button"
                     onClick={handlePrepareAll}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-semibold cursor-pointer"
+                    className="w-full sm:w-auto px-4 py-2 min-h-[40px] rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-semibold cursor-pointer"
                   >
                     Mark {selectedCandidates.length} Draft(s) Prepared
                   </button>
@@ -785,7 +785,7 @@ export const ReportsView: React.FC = () => {
     <div className="flex flex-col w-full gap-space-xl tabular-nums">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-heading font-extrabold text-headline-lg text-white">
+          <h1 className="font-heading font-extrabold text-2xl sm:text-headline-lg text-white">
             Recruitment Reports &amp; Exports
           </h1>
           <p className="font-body-md text-body-md text-[#94A3B8]">
@@ -796,47 +796,47 @@ export const ReportsView: React.FC = () => {
           <button
             type="button"
             onClick={exportCandidatesCsv}
-            className="px-3.5 py-2 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs cursor-pointer hover:bg-[#1B2740]"
+            className="px-3.5 py-2 min-h-[40px] rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs cursor-pointer hover:bg-[#1B2740]"
           >
             Export Candidates CSV
           </button>
           <button
             type="button"
             onClick={exportJobsCsv}
-            className="px-3.5 py-2 rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs cursor-pointer hover:bg-[#1B2740]"
+            className="px-3.5 py-2 min-h-[40px] rounded-xl bg-[#151E32] border border-[#263449] text-white text-xs cursor-pointer hover:bg-[#1B2740]"
           >
             Export Jobs CSV
           </button>
           <button
             type="button"
             onClick={exportSummaryJson}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white text-xs font-semibold cursor-pointer"
+            className="px-4 py-2 min-h-[40px] rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white text-xs font-semibold cursor-pointer"
           >
             Export Summary JSON
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-2xl glass-card p-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="rounded-2xl glass-card p-4 sm:p-5">
           <span className="font-label-sm text-outline uppercase">Shortlist Rate</span>
-          <p className="font-headline-xl text-on-surface mt-1">{shortlistedPct}%</p>
+          <p className="text-2xl sm:text-headline-xl font-heading font-bold text-on-surface mt-1">{shortlistedPct}%</p>
         </div>
-        <div className="rounded-2xl glass-card p-5">
+        <div className="rounded-2xl glass-card p-4 sm:p-5">
           <span className="font-label-sm text-outline uppercase">Interview Conversion</span>
-          <p className="font-headline-xl text-tertiary mt-1">{interviewPct}%</p>
+          <p className="text-2xl sm:text-headline-xl font-heading font-bold text-tertiary mt-1">{interviewPct}%</p>
         </div>
-        <div className="rounded-2xl glass-card p-5">
+        <div className="rounded-2xl glass-card p-4 sm:p-5">
           <span className="font-label-sm text-outline uppercase">Offer Rate</span>
-          <p className="font-headline-xl text-emerald-400 mt-1">{offerPct}%</p>
+          <p className="text-2xl sm:text-headline-xl font-heading font-bold text-emerald-400 mt-1">{offerPct}%</p>
         </div>
-        <div className="rounded-2xl glass-card p-5">
+        <div className="rounded-2xl glass-card p-4 sm:p-5">
           <span className="font-label-sm text-outline uppercase">Rejection Rate</span>
-          <p className="font-headline-xl text-rose-400 mt-1">{rejectedPct}%</p>
+          <p className="text-2xl sm:text-headline-xl font-heading font-bold text-rose-400 mt-1">{rejectedPct}%</p>
         </div>
       </div>
 
-      <div className="rounded-2xl glass-card p-5 space-y-4">
+      <div className="rounded-2xl glass-card p-4 sm:p-5 space-y-4">
         <h3 className="font-headline-sm text-on-surface font-semibold">
           Applicants &amp; Average Match by Job Opening
         </h3>
@@ -845,7 +845,7 @@ export const ReportsView: React.FC = () => {
             No jobs available for reporting.
           </div>
         ) : (
-          <div className="w-full h-64">
+          <div className="w-full h-56 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={jobSummaryData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#263449" />
@@ -917,7 +917,7 @@ export const SettingsView: React.FC = () => {
   return (
     <div className="flex flex-col w-full gap-space-xl max-w-4xl">
       <div>
-        <h1 className="font-heading font-extrabold text-headline-lg text-white">
+        <h1 className="font-heading font-extrabold text-2xl sm:text-headline-lg text-white">
           Workspace Settings
         </h1>
         <p className="font-body-md text-body-md text-[#94A3B8]">
@@ -926,10 +926,10 @@ export const SettingsView: React.FC = () => {
       </div>
 
       {/* Upload Config */}
-      <div className="rounded-2xl glass-card p-5 space-y-4">
+      <div className="rounded-2xl glass-card p-4 sm:p-5 space-y-4">
 
-        <div className="flex items-center justify-between gap-4">
-          <div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="min-w-0">
             <p className="font-body-md text-on-surface font-semibold">Max Resume File Size</p>
             <p className="font-body-sm text-on-surface-variant text-xs">
               Validation limit per PDF/DOCX file (4 MB keeps scanned PDFs under the 6 MB Netlify OCR limit after +33% base64 encoding).
@@ -938,7 +938,7 @@ export const SettingsView: React.FC = () => {
           <select
             value={maxFileSizeMb}
             onChange={(e) => setMaxFileSizeMb(parseInt(e.target.value, 10))}
-            className="h-9 px-3 rounded-lg bg-surface-container-highest text-on-surface text-xs outline-none"
+            className="h-10 sm:h-9 px-3 rounded-lg bg-surface-container-highest text-on-surface text-xs outline-none w-full sm:w-auto max-w-full min-w-0"
           >
             <option value={4}>4 MB (Serverless OCR Safe · Default)</option>
             <option value={6}>6 MB (Text PDFs / DOCX)</option>
@@ -1000,20 +1000,20 @@ export const SettingsView: React.FC = () => {
           ))}
         </div>
 
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           <button
             type="button"
             onClick={() => {
               setDraftWeights(DEFAULT_SCORING_WEIGHTS);
               updateScoringWeights(DEFAULT_SCORING_WEIGHTS);
             }}
-            className="px-4 py-2 rounded-xl bg-surface-container-high text-on-surface cursor-pointer"
+            className="px-4 py-2 min-h-[40px] rounded-xl bg-surface-container-high text-on-surface cursor-pointer"
           >
             Reset Defaults (35/20/15/15/5/10)
           </button>
           <button
             type="submit"
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-semibold cursor-pointer"
+            className="px-4 py-2 min-h-[40px] rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-semibold cursor-pointer"
           >
             Apply Scoring Weights
           </button>
@@ -1034,21 +1034,21 @@ export const SettingsView: React.FC = () => {
           <button
             type="button"
             onClick={resetDemoData}
-            className="px-3.5 py-2 rounded-xl bg-surface-container-high hover:bg-surface-bright text-on-surface font-medium cursor-pointer"
+            className="px-3.5 py-2 min-h-[40px] rounded-xl bg-surface-container-high hover:bg-surface-bright text-on-surface font-medium cursor-pointer"
           >
             Reset Demo Data
           </button>
           <button
             type="button"
             onClick={importDemoDataset}
-            className="px-3.5 py-2 rounded-xl bg-primary-container/25 text-primary hover:bg-primary-container hover:text-white font-medium cursor-pointer"
+            className="px-3.5 py-2 min-h-[40px] rounded-xl bg-primary-container/25 text-primary hover:bg-primary-container hover:text-white font-medium cursor-pointer"
           >
             Import Demo Dataset
           </button>
           <button
             type="button"
             onClick={exportSessionJson}
-            className="px-3.5 py-2 rounded-xl bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 font-medium cursor-pointer"
+            className="px-3.5 py-2 min-h-[40px] rounded-xl bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 font-medium cursor-pointer"
           >
             Export Session JSON
           </button>
@@ -1056,26 +1056,26 @@ export const SettingsView: React.FC = () => {
             type="button"
             onClick={() => setConfirmDeleteAllCandidates(true)}
             disabled={candidates.length === 0}
-            className="px-3.5 py-2 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 hover:bg-rose-500/25 disabled:opacity-40 disabled:cursor-not-allowed font-medium cursor-pointer"
+            className="px-3.5 py-2 min-h-[40px] rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 hover:bg-rose-500/25 disabled:opacity-40 disabled:cursor-not-allowed font-medium cursor-pointer"
           >
             Delete All Candidates
           </button>
           {confirmClearSession ? (
-            <div className="inline-flex items-center gap-2">
+            <div className="inline-flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={() => {
                   clearSessionData();
                   setConfirmClearSession(false);
                 }}
-                className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold cursor-pointer"
+                className="px-3.5 py-2 min-h-[40px] rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold cursor-pointer"
               >
                 Confirm Clear All
               </button>
               <button
                 type="button"
                 onClick={() => setConfirmClearSession(false)}
-                className="px-3 py-2 rounded-xl bg-surface-container-high text-on-surface cursor-pointer"
+                className="px-3 py-2 min-h-[40px] rounded-xl bg-surface-container-high text-on-surface cursor-pointer"
               >
                 Cancel
               </button>
@@ -1084,7 +1084,7 @@ export const SettingsView: React.FC = () => {
             <button
               type="button"
               onClick={() => setConfirmClearSession(true)}
-              className="px-3.5 py-2 rounded-xl bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 font-medium cursor-pointer"
+              className="px-3.5 py-2 min-h-[40px] rounded-xl bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 font-medium cursor-pointer"
             >
               Clear Session Data
             </button>
@@ -1103,7 +1103,7 @@ export const SettingsView: React.FC = () => {
             className="fixed inset-0 bg-black/75 backdrop-blur-xs"
             onClick={() => setConfirmDeleteAllCandidates(false)}
           />
-          <div className="relative w-full max-w-md rounded-2xl bg-[#111827] border border-rose-500/40 shadow-2xl p-6 z-10 space-y-4">
+          <div className="relative w-full max-w-md rounded-2xl bg-[#111827] border border-rose-500/40 shadow-2xl p-4 sm:p-6 z-10 space-y-4">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center shrink-0">
                 <span className="material-symbols-outlined text-rose-400">warning</span>
@@ -1123,11 +1123,11 @@ export const SettingsView: React.FC = () => {
                 </p>
               </div>
             </div>
-            <div className="flex items-center justify-end gap-2.5 pt-2">
+            <div className="flex items-center justify-end flex-wrap gap-2.5 pt-2">
               <button
                 type="button"
                 onClick={() => setConfirmDeleteAllCandidates(false)}
-                className="px-4 py-2 rounded-xl bg-surface-container-high hover:bg-surface-bright text-xs font-medium text-on-surface cursor-pointer"
+                className="px-4 py-2 min-h-[40px] rounded-xl bg-surface-container-high hover:bg-surface-bright text-xs font-medium text-on-surface cursor-pointer"
               >
                 Cancel
               </button>
@@ -1137,7 +1137,7 @@ export const SettingsView: React.FC = () => {
                   deleteAllCandidates();
                   setConfirmDeleteAllCandidates(false);
                 }}
-                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-semibold text-white cursor-pointer"
+                className="px-4 py-2 min-h-[40px] rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-semibold text-white cursor-pointer"
               >
                 Yes, Delete All Candidates
               </button>
@@ -1188,7 +1188,7 @@ export const HelpCenterView: React.FC<{ onNavigate: (r: WorkspaceRoute) => void 
   return (
     <div className="flex flex-col w-full gap-space-xl max-w-4xl">
       <div>
-        <h1 className="font-heading font-extrabold text-headline-lg text-white">
+        <h1 className="font-heading font-extrabold text-2xl sm:text-headline-lg text-white">
           Documentation, Migration &amp; Shortcuts
         </h1>
         <p className="font-body-md text-body-md text-[#94A3B8]">
@@ -1197,7 +1197,7 @@ export const HelpCenterView: React.FC<{ onNavigate: (r: WorkspaceRoute) => void 
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-space-lg">
-        <div className="rounded-2xl glass-card p-5 space-y-2">
+        <div className="rounded-2xl glass-card p-4 sm:p-5 space-y-2">
           <span className="material-symbols-outlined text-primary">keyboard</span>
           <h3 className="font-headline-sm text-on-surface font-semibold">Global Command Search</h3>
           <p className="font-body-sm text-on-surface-variant text-xs">

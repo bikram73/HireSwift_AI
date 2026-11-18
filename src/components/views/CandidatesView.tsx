@@ -72,7 +72,9 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [drawerVisible, setDrawerVisible] = useState(true);
+  const [drawerVisible, setDrawerVisible] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth >= 768 : true
+  );
   const [duplicateReviewCand, setDuplicateReviewCand] = useState<CandidateProfile | null>(null);
   const [deletePrompt, setDeletePrompt] = useState<
     | { kind: 'single'; candidate: CandidateProfile }
@@ -411,7 +413,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
               </span>
             )}
           </div>
-          <h1 className="font-heading font-extrabold text-headline-xl text-white tracking-tight">
+          <h1 className="font-heading font-extrabold text-2xl sm:text-headline-xl text-white tracking-tight">
             Candidates
           </h1>
           <p className="font-body-md text-body-md text-[#94A3B8]">
@@ -419,13 +421,13 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-space-md flex-wrap">
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-space-md sm:flex-wrap">
           <button
             type="button"
             onClick={handleExportCsv}
-            className="flex items-center gap-space-xs px-4 py-2 rounded-xl bg-[#151E32] border border-[#263449] text-white font-label-md text-label-md hover:bg-[#1B2740] transition-all shadow-sm cursor-pointer"
+            className="min-h-[42px] sm:min-h-0 flex items-center justify-center gap-space-xs px-3 sm:px-4 py-2 rounded-xl bg-[#151E32] border border-[#263449] text-white font-label-md text-xs sm:text-label-md hover:bg-[#1B2740] transition-all shadow-sm cursor-pointer whitespace-nowrap"
           >
-            <span className="material-symbols-outlined text-[18px] text-[#94A3B8]">download</span>
+            <span className="material-symbols-outlined text-[17px] text-[#94A3B8]">download</span>
             <span>Export CSV</span>
           </button>
           <button
@@ -437,18 +439,18 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
               );
               showToast(`Exported ${filteredCandidates.length} profiles as JSON`);
             }}
-            className="flex items-center gap-space-xs px-4 py-2 rounded-xl bg-[#151E32] border border-[#263449] text-white font-label-md text-label-md hover:bg-[#1B2740] transition-all shadow-sm cursor-pointer"
+            className="min-h-[42px] sm:min-h-0 flex items-center justify-center gap-space-xs px-3 sm:px-4 py-2 rounded-xl bg-[#151E32] border border-[#263449] text-white font-label-md text-xs sm:text-label-md hover:bg-[#1B2740] transition-all shadow-sm cursor-pointer whitespace-nowrap"
           >
-            <span className="material-symbols-outlined text-[18px] text-[#94A3B8]">code</span>
+            <span className="material-symbols-outlined text-[17px] text-[#94A3B8]">code</span>
             <span>Export JSON</span>
           </button>
           <button
             type="button"
             onClick={() => setDeletePrompt({ kind: 'all' })}
             disabled={candidates.length === 0}
-            className="flex items-center gap-space-xs px-4 py-2 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 font-label-md text-label-md hover:bg-rose-500/25 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm cursor-pointer"
+            className="min-h-[42px] sm:min-h-0 flex items-center justify-center gap-space-xs px-3 sm:px-4 py-2 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 font-label-md text-xs sm:text-label-md hover:bg-rose-500/25 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm cursor-pointer whitespace-nowrap"
           >
-            <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
+            <span aria-hidden="true" className="material-symbols-outlined text-[17px]">
               delete_sweep
             </span>
             <span>Delete All Candidates</span>
@@ -456,16 +458,16 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
           <button
             type="button"
             onClick={() => onNavigate('resume-upload')}
-            className="flex items-center gap-space-xs px-5 py-2 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-label-md text-label-md font-semibold hover:opacity-95 shadow-lg shadow-indigo-600/25 border border-white/15 transition-all cursor-pointer"
+            className="min-h-[42px] sm:min-h-0 flex items-center justify-center gap-space-xs px-3 sm:px-5 py-2 rounded-xl bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-label-md text-xs sm:text-label-md font-semibold hover:opacity-95 shadow-lg shadow-indigo-600/25 border border-white/15 transition-all cursor-pointer whitespace-nowrap"
           >
-            <span className="material-symbols-outlined text-[18px]">upload_file</span>
+            <span className="material-symbols-outlined text-[17px]">upload_file</span>
             <span>Upload Resumes</span>
           </button>
         </div>
       </div>
 
       {/* Live Metric Tiles */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-lg mb-space-xl tabular-nums">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-space-lg mb-space-xl tabular-nums">
         <div className="rounded-2xl glass-card p-5">
           <span className="font-label-sm text-outline uppercase">Total Candidates</span>
           <div className="flex items-baseline gap-2 mt-1">
@@ -507,9 +509,9 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
         {/* Left Main Content (Table + Top Toolbar) */}
         <div className="flex-1 w-full flex flex-col gap-space-md min-w-0">
           {/* Quick Toolbar */}
-          <div className="p-4 rounded-2xl glass-card shadow-sm flex flex-col gap-3">
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="relative flex-1 min-w-[240px]">
+          <div className="p-3.5 sm:p-4 rounded-2xl glass-card shadow-sm flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2.5 sm:gap-3">
+              <div className="relative w-full sm:flex-1 sm:min-w-[200px]">
                 <span className="material-symbols-outlined text-[18px] text-outline absolute left-3 top-2.5">
                   search
                 </span>
@@ -536,7 +538,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                   setMatchJobId(val);
                   if (val !== 'target') setSelectedJobId(val);
                 }}
-                className="h-10 px-3 rounded-xl bg-surface-container-highest text-on-surface text-xs outline-none border border-[#263449]"
+                className="w-full sm:w-auto max-w-full min-w-0 h-10 px-3 rounded-xl bg-surface-container-highest text-on-surface text-xs outline-none border border-[#263449]"
               >
                 <option value="target">Match vs Candidate Target Job</option>
                 {jobs.map((j) => (
@@ -547,39 +549,41 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                 <option value={CUSTOM_JOB_OPTION_VALUE}>+ Add Custom Target Job Role...</option>
               </select>
 
-              <select
-                value={stageFilter}
-                onChange={(e) => {
-                  setStageFilter(e.target.value);
-                  setPage(1);
-                }}
-                className="h-10 px-3 rounded-xl bg-surface-container-highest text-on-surface text-xs outline-none border border-[#263449]"
-              >
-                <option value="All Stages">All Stages</option>
-                <option value="Applied">Applied</option>
-                <option value="Shortlisted">Shortlisted</option>
-                <option value="Interview">Interview</option>
-                <option value="Offer">Offer</option>
-                <option value="Rejected">Rejected</option>
-              </select>
+              <div className="grid grid-cols-2 sm:flex sm:items-center gap-2.5 sm:gap-3">
+                <select
+                  value={stageFilter}
+                  onChange={(e) => {
+                    setStageFilter(e.target.value);
+                    setPage(1);
+                  }}
+                  className="w-full sm:w-auto min-w-0 h-10 px-3 rounded-xl bg-surface-container-highest text-on-surface text-xs outline-none border border-[#263449]"
+                >
+                  <option value="All Stages">All Stages</option>
+                  <option value="Applied">Applied</option>
+                  <option value="Shortlisted">Shortlisted</option>
+                  <option value="Interview">Interview</option>
+                  <option value="Offer">Offer</option>
+                  <option value="Rejected">Rejected</option>
+                </select>
 
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                className="h-10 px-3 rounded-xl bg-surface-container-highest text-on-surface text-xs outline-none border border-[#263449]"
-              >
-                <option value="score">Sort: Match Score</option>
-                <option value="name">Sort: Name (A–Z)</option>
-                <option value="experience">Sort: Experience</option>
-                <option value="cgpa">Sort: CGPA</option>
-                <option value="gradYear">Sort: Graduation Year</option>
-                <option value="recent">Sort: Application Date</option>
-              </select>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                  className="w-full sm:w-auto min-w-0 h-10 px-3 rounded-xl bg-surface-container-highest text-on-surface text-xs outline-none border border-[#263449]"
+                >
+                  <option value="score">Sort: Match Score</option>
+                  <option value="name">Sort: Name (A–Z)</option>
+                  <option value="experience">Sort: Experience</option>
+                  <option value="cgpa">Sort: CGPA</option>
+                  <option value="gradYear">Sort: Graduation Year</option>
+                  <option value="recent">Sort: Application Date</option>
+                </select>
+              </div>
 
               <button
                 type="button"
                 onClick={() => setDrawerVisible((v) => !v)}
-                className="flex items-center gap-1.5 px-3.5 h-10 rounded-xl bg-primary-container/25 border border-primary/40 text-primary text-xs font-semibold cursor-pointer"
+                className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3.5 h-10 rounded-xl bg-primary-container/25 border border-primary/40 text-primary text-xs font-semibold cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[16px]">tune</span>
                 <span>Filters</span>
@@ -678,9 +682,9 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                 )}
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left font-body-sm text-body-sm tabular-nums">
-                  <thead>
+              <div className="md:overflow-x-auto">
+                <table className="block md:table w-full text-left font-body-sm text-body-sm tabular-nums">
+                  <thead className="hidden md:table-header-group">
                     <tr className="bg-surface-container-lowest/60 text-outline font-label-sm text-label-sm uppercase tracking-wider">
                       <th className="py-3 px-4 w-10">
                         <input
@@ -702,17 +706,17 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#263449]/60">
+                  <tbody className="block md:table-row-group divide-y divide-[#263449]/60">
                     {paginatedRows.map(({ cand, score, category }) => {
                       const isCompared = compareIds.includes(cand.id);
                       return (
                         <tr
                           key={cand.id}
                           onClick={() => onSelectCandidate(cand)}
-                          className="hover:bg-surface-container/50 transition-colors cursor-pointer"
+                          className="flex flex-wrap items-center gap-x-2 gap-y-2 p-3.5 md:p-0 md:table-row hover:bg-surface-container/50 transition-colors cursor-pointer"
                         >
                           <td
-                            className="py-3.5 px-4"
+                            className="py-1 md:py-3.5 px-1 md:px-4 shrink-0"
                             onClick={(e) => {
                               e.stopPropagation();
                             }}
@@ -724,7 +728,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                               className="w-4 h-4 accent-[#8B5CF6]"
                             />
                           </td>
-                          <td className="py-3.5 px-3 min-w-[200px]">
+                          <td className="flex-1 min-w-[180px] py-1 md:py-3.5 px-1.5 md:px-3 md:min-w-[200px]">
                             <div className="flex items-center gap-3">
                               <div
                                 className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${cand.avatarTone}`}
@@ -755,16 +759,16 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                               </div>
                             </div>
                           </td>
-                          <td className="py-3.5 px-3 text-xs">
+                          <td className="w-full md:w-auto py-0.5 md:py-3.5 px-1.5 md:px-3 text-xs">
                             <div className="text-on-surface font-medium">{cand.education}</div>
                             <div className="font-mono-code text-[11px] text-tertiary">
                               {cand.cgpa} · Class of {cand.educationDetail.graduationYear ?? 'N/A'}
                             </div>
                           </td>
-                          <td className="py-3.5 px-3 font-mono-code text-xs text-on-surface-variant whitespace-nowrap">
+                          <td className="py-0.5 md:py-3.5 px-1.5 md:px-3 font-mono-code text-xs text-on-surface-variant whitespace-nowrap">
                             {cand.experience}
                           </td>
-                          <td className="py-3.5 px-3 max-w-[210px]">
+                          <td className="w-full md:w-auto py-0.5 md:py-3.5 px-1.5 md:px-3 md:max-w-[210px]">
                             <div className="flex flex-wrap gap-1">
                               {cand.skills.slice(0, 3).map((s) => (
                                 <span
@@ -781,8 +785,8 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                               )}
                             </div>
                           </td>
-                          <td className="py-3.5 px-3 whitespace-nowrap">
-                            <div className="flex flex-col">
+                          <td className="py-1 md:py-3.5 px-1.5 md:px-3 whitespace-nowrap">
+                            <div className="flex md:flex-col items-baseline md:items-start gap-1.5 md:gap-0">
                               <span
                                 className={`font-mono-code text-xs font-bold ${
                                   score >= 85
@@ -798,7 +802,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                             </div>
                           </td>
                           <td
-                            className="py-3.5 px-3 whitespace-nowrap"
+                            className="py-1 md:py-3.5 px-1.5 md:px-3 whitespace-nowrap"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <select
@@ -806,7 +810,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                               onChange={(e) =>
                                 moveCandidateStage(cand.id, e.target.value as HiringStage)
                               }
-                              className="h-7 px-2 rounded-lg bg-surface-container-high border border-[#263449] text-[11px] text-on-surface outline-none cursor-pointer"
+                              className="h-8 md:h-7 px-2 rounded-lg bg-surface-container-high border border-[#263449] text-[11px] text-on-surface outline-none cursor-pointer"
                             >
                               <option value="Applied">Applied</option>
                               <option value="Shortlisted">Shortlisted</option>
@@ -816,7 +820,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                             </select>
                           </td>
                           <td
-                            className="py-3.5 px-4 text-right whitespace-nowrap"
+                            className="ml-auto md:ml-0 py-1 md:py-3.5 px-1 md:px-4 text-right whitespace-nowrap"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <div className="inline-flex items-center gap-1">
@@ -824,7 +828,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                                 type="button"
                                 onClick={() => toggleCompareCandidate(cand.id)}
                                 title={isCompared ? 'Remove from Compare' : 'Add to Compare'}
-                                className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                                className={`p-2 md:p-1.5 rounded-lg transition-colors cursor-pointer ${
                                   isCompared
                                     ? 'bg-[#8B5CF6]/25 text-[#c3c0ff]'
                                     : 'text-outline hover:text-white hover:bg-surface-container-high'
@@ -838,7 +842,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                                 type="button"
                                 onClick={() => onSelectCandidate(cand)}
                                 title="View Profile"
-                                className="p-1.5 rounded-lg text-outline hover:text-white hover:bg-surface-container-high cursor-pointer"
+                                className="p-2 md:p-1.5 rounded-lg text-outline hover:text-white hover:bg-surface-container-high cursor-pointer"
                               >
                                 <span className="material-symbols-outlined text-[16px]">
                                   visibility
@@ -849,7 +853,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                                 onClick={() => setDeletePrompt({ kind: 'single', candidate: cand })}
                                 title={`Delete ${cand.name}`}
                                 aria-label={`Delete ${cand.name}`}
-                                className="p-1.5 rounded-lg text-outline hover:text-rose-400 hover:bg-surface-container-high cursor-pointer"
+                                className="p-2 md:p-1.5 rounded-lg text-outline hover:text-rose-400 hover:bg-surface-container-high cursor-pointer"
                               >
                                 <span className="material-symbols-outlined text-[16px]">delete</span>
                               </button>
@@ -923,10 +927,10 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
           </div>
         </div>
 
-        {/* Right Advanced Filtering Drawer */}
+        {/* Right Advanced Filtering Drawer (Appears first on mobile/tablet when open) */}
         {drawerVisible && (
-          <aside className="w-full xl:w-[340px] shrink-0 rounded-2xl glass-card p-5 flex flex-col gap-4 text-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-[#263449]">
+          <aside className="order-first xl:order-last w-full xl:w-[340px] shrink-0 rounded-2xl glass-card p-4 sm:p-5 flex flex-col gap-4 text-xs">
+            <div className="flex items-center justify-between gap-2 pb-3 border-b border-[#263449]">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px] text-[#8B5CF6]">
                   filter_alt
@@ -940,13 +944,22 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                   </span>
                 )}
               </div>
-              <button
-                type="button"
-                onClick={handleResetFilters}
-                className="text-primary hover:underline cursor-pointer"
-              >
-                Clear All
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="text-primary hover:underline cursor-pointer"
+                >
+                  Clear All
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDrawerVisible(false)}
+                  className="xl:hidden px-2 py-1 rounded-lg bg-surface-container-high text-on-surface-variant hover:text-white cursor-pointer"
+                >
+                  Done
+                </button>
+              </div>
             </div>
 
             {/* Academic Filters */}
@@ -1333,7 +1346,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                 </div>
               );
             })()}
-            <div className="flex items-center justify-end gap-2 pt-2">
+            <div className="flex items-center justify-end flex-wrap gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => {

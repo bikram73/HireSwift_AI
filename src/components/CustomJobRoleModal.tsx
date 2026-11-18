@@ -277,7 +277,7 @@ export const CustomJobRoleModal: React.FC<CustomJobRoleModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center px-4 overflow-y-auto py-8"
+      className="fixed inset-0 z-50 flex items-start sm:items-center justify-center px-3 sm:px-4 overflow-y-auto py-4 sm:py-8"
       role="dialog"
       aria-modal="true"
       aria-label={editingJob ? 'Edit Job Description' : 'Add Custom Target Job Role'}
@@ -285,10 +285,10 @@ export const CustomJobRoleModal: React.FC<CustomJobRoleModalProps> = ({
       <div className="fixed inset-0 bg-black/70 backdrop-blur-xs" onClick={onClose} />
       <form
         onSubmit={handleSaveJob}
-        className="relative w-full max-w-2xl rounded-2xl bg-[#111827] border border-[#263449] shadow-2xl p-6 z-10 space-y-4 text-xs"
+        className="relative w-full max-w-2xl rounded-2xl bg-[#111827] border border-[#263449] shadow-2xl p-4 sm:p-6 z-10 space-y-4 text-xs max-h-[90dvh] overflow-y-auto"
       >
-        <div className="flex items-center justify-between gap-3">
-          <div>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
             <h3 className="font-headline-md text-white font-semibold">
               {editingJob ? 'Edit Job Description' : 'Add Custom Target Job Role'}
             </h3>
@@ -300,7 +300,7 @@ export const CustomJobRoleModal: React.FC<CustomJobRoleModalProps> = ({
             type="button"
             onClick={onClose}
             aria-label="Close job modal"
-            className="text-outline hover:text-white cursor-pointer"
+            className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-outline hover:text-white hover:bg-[#1E293B] shrink-0 cursor-pointer"
           >
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -308,7 +308,7 @@ export const CustomJobRoleModal: React.FC<CustomJobRoleModalProps> = ({
 
         {/* Input Mode Switcher: Text Description vs PDF / DOCX Document */}
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="inline-flex rounded-xl bg-surface-container-highest p-1 gap-1">
+          <div className="inline-flex flex-wrap rounded-xl bg-surface-container-highest p-1 gap-1">
             <button
               type="button"
               onClick={() => setInputMode('text')}
@@ -335,7 +335,7 @@ export const CustomJobRoleModal: React.FC<CustomJobRoleModalProps> = ({
             </button>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center flex-wrap gap-2">
             <button
               type="button"
               disabled={analyzingJd || extractingFile}
@@ -346,7 +346,7 @@ export const CustomJobRoleModal: React.FC<CustomJobRoleModalProps> = ({
                 setDescription(SAMPLE_JD_EXAMPLE);
                 await runAnalyzeRequest(SAMPLE_JD_EXAMPLE);
               }}
-              className="px-3 py-1.5 rounded-lg bg-surface-container-highest hover:bg-[#1E293B] border border-[#263449] text-tertiary font-semibold flex items-center gap-1 cursor-pointer disabled:opacity-60"
+              className="px-3 py-1.5 min-h-[36px] rounded-lg bg-surface-container-highest hover:bg-[#1E293B] border border-[#263449] text-tertiary font-semibold flex items-center gap-1 cursor-pointer disabled:opacity-60"
             >
               <span className="material-symbols-outlined text-[14px]">fact_check</span>
               <span>Load Sample JD</span>
@@ -355,7 +355,7 @@ export const CustomJobRoleModal: React.FC<CustomJobRoleModalProps> = ({
               type="button"
               disabled={analyzingJd || extractingFile}
               onClick={() => runAnalyzeRequest(description, pendingBase64Pdf)}
-              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-semibold flex items-center gap-1 cursor-pointer disabled:opacity-60"
+              className="px-3 py-1.5 min-h-[36px] rounded-lg bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-semibold flex items-center gap-1 cursor-pointer disabled:opacity-60"
             >
               <span
                 className={`material-symbols-outlined text-[14px] ${
@@ -589,17 +589,17 @@ export const CustomJobRoleModal: React.FC<CustomJobRoleModalProps> = ({
           </div>
         </div>
 
-        <div className="flex justify-end gap-2 pt-2">
+        <div className="flex flex-wrap justify-end gap-2 pt-2">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface cursor-pointer"
+            className="px-4 py-2 min-h-[40px] rounded-lg bg-surface-container-high text-on-surface cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-4 py-2 rounded-lg bg-primary-container text-white font-semibold cursor-pointer"
+            className="px-4 py-2 min-h-[40px] rounded-lg bg-primary-container text-white font-semibold cursor-pointer"
           >
             {editingJob ? 'Save Job Updates' : 'Publish Job'}
           </button>

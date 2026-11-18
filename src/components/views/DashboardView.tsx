@@ -179,7 +179,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               Recruiter Workspace
             </span>
           </div>
-          <h1 className="font-heading font-extrabold text-headline-xl text-white tracking-tight">
+          <h1 className="font-heading font-extrabold text-2xl sm:text-headline-xl text-white tracking-tight">
             Good Morning, <span className="gradient-hero-text">Recruiter</span>
           </h1>
           <p className="font-body-md text-body-md text-[#94A3B8] mt-0.5">
@@ -187,11 +187,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-space-md flex-wrap">
+        <div className="flex items-center gap-2.5 sm:gap-space-md flex-wrap">
           <button
             type="button"
             onClick={() => onNavigate('resume-upload')}
-            className="flex items-center gap-space-xs px-4 py-2 bg-[#151E32] hover:bg-[#1B2740] border border-[#263449] text-white rounded-xl font-label-md text-label-md transition-all shadow-sm cursor-pointer"
+            className="flex-1 sm:flex-initial min-h-[44px] sm:min-h-0 flex items-center justify-center gap-space-xs px-4 py-2 bg-[#151E32] hover:bg-[#1B2740] border border-[#263449] text-white rounded-xl font-label-md text-label-md transition-all shadow-sm cursor-pointer whitespace-nowrap"
           >
             <span className="material-symbols-outlined text-[18px] text-[#3B82F6]">upload_file</span>
             <span>Upload Resumes</span>
@@ -199,7 +199,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <button
             type="button"
             onClick={() => onNavigate('job-management')}
-            className="flex items-center gap-space-xs px-4 py-2 bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-white rounded-xl font-label-md text-label-md font-semibold transition-all shadow-lg shadow-indigo-600/25 border border-white/15 cursor-pointer"
+            className="flex-1 sm:flex-initial min-h-[44px] sm:min-h-0 flex items-center justify-center gap-space-xs px-4 py-2 bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-white rounded-xl font-label-md text-label-md font-semibold transition-all shadow-lg shadow-indigo-600/25 border border-white/15 cursor-pointer whitespace-nowrap"
           >
             <span className="material-symbols-outlined text-[18px]">add</span>
             <span>Create New Job</span>
@@ -239,11 +239,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       )}
 
       {/* Hero Spotlight / AI Engine Banner */}
-      <div className="relative overflow-hidden rounded-2xl glass-card p-space-lg mb-space-xl shadow-xl">
+      <div className="relative overflow-hidden rounded-2xl glass-card p-4 sm:p-space-lg mb-space-xl shadow-xl">
         <div className="absolute -right-20 -top-20 w-72 h-72 rounded-full bg-[#8B5CF6]/15 blur-3xl pointer-events-none" />
-        <div className="flex flex-col md:flex-row items-center justify-between gap-space-lg relative z-10">
-          <div className="flex items-center gap-space-lg">
-            <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-[#0B1020] shrink-0 flex items-center justify-center border border-[#263449]">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-space-lg relative z-10">
+          <div className="flex items-start sm:items-center gap-3.5 sm:gap-space-lg min-w-0">
+            <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-[#0B1020] shrink-0 flex items-center justify-center border border-[#263449]">
               <img
                 alt="AI Engine Visualization"
                 className="w-full h-full object-cover"
@@ -251,8 +251,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               />
               <div className="absolute inset-0 bg-primary-container/15 mix-blend-overlay" />
             </div>
-            <div>
-              <div className="flex items-center gap-space-sm mb-1">
+            <div className="min-w-0">
+              <div className="flex items-center flex-wrap gap-space-sm mb-1">
                 <span className="px-2 py-0.5 rounded-full bg-primary-container text-on-primary-container font-mono-code text-label-sm">
                   AI MATCHING
                 </span>
@@ -260,7 +260,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   Smart Candidate Screening
                 </span>
               </div>
-              <p className="font-headline-sm text-headline-sm text-on-surface">
+              <p className="font-headline-sm text-sm sm:text-headline-sm text-on-surface">
                 {metrics.total} candidates evaluated across {jobs.length} jobs · {metrics.avgScore}% avg alignment
               </p>
               <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
@@ -273,7 +273,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <button
               type="button"
               onClick={() => onNavigate('ai-matching')}
-              className="px-3.5 py-2 bg-[#1B2740] hover:bg-[#263449] border border-[#263449] text-white rounded-xl font-label-md text-label-md transition-colors flex items-center gap-1 cursor-pointer"
+              className="w-full md:w-auto min-h-[44px] sm:min-h-0 px-3.5 py-2 bg-[#1B2740] hover:bg-[#263449] border border-[#263449] text-white rounded-xl font-label-md text-label-md transition-colors flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap"
             >
               <span>Explore AI Matching</span>
               <span className="material-symbols-outlined text-[16px]">chevron_right</span>
@@ -687,12 +687,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Bottom Section: Top Matching Candidates + Recent Job Openings & Activity */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-space-lg">
         {/* Left Column: Top Matching Candidates */}
-        <div className="xl:col-span-2 p-space-lg rounded-2xl glass-card shadow-sm flex flex-col justify-between">
+        <div className="xl:col-span-2 p-4 sm:p-space-lg rounded-2xl glass-card shadow-sm flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-space-md">
-              <div className="flex items-center gap-space-sm">
-                <span className="material-symbols-outlined text-primary text-[20px]">stars</span>
-                <div>
+            <div className="flex items-center justify-between flex-wrap gap-2 mb-space-md">
+              <div className="flex items-center gap-space-sm min-w-0">
+                <span className="material-symbols-outlined text-primary text-[20px] shrink-0">stars</span>
+                <div className="min-w-0">
                   <h2 className="font-headline-md text-headline-md text-on-surface">
                     Top Matching Candidates
                   </h2>
@@ -704,7 +704,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate('candidate-ranking')}
-                className="font-label-md text-label-md text-primary hover:text-on-surface transition-colors flex items-center gap-1 cursor-pointer"
+                className="font-label-md text-label-md text-primary hover:text-on-surface transition-colors flex items-center gap-1 cursor-pointer whitespace-nowrap shrink-0"
               >
                 <span>View All Rankings</span>
                 <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -716,66 +716,100 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 No active candidates available to rank.
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left tabular-nums">
-                  <thead>
-                    <tr className="bg-surface-container-lowest/50 text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
-                      <th className="py-2.5 px-3 rounded-l-lg">Candidate</th>
-                      <th className="py-2.5 px-3">Role</th>
-                      <th className="py-2.5 px-3">Match Score</th>
-                      <th className="py-2.5 px-3">Experience</th>
-                      <th className="py-2.5 px-3">Stage</th>
-                      <th className="py-2.5 px-3 text-right rounded-r-lg">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-surface-container">
-                    {topMatching.map(({ cand, score }) => (
-                      <tr key={cand.id} className="hover:bg-surface-container/40 transition-colors">
-                        <td className="py-3 px-3">
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`w-8 h-8 rounded-full font-headline-sm text-label-md flex items-center justify-center shrink-0 ${cand.avatarTone}`}
-                            >
-                              {cand.initials}
-                            </div>
-                            <div className="flex flex-col min-w-0">
-                              <span className="font-label-md text-label-md text-on-surface font-semibold truncate">
-                                {cand.name}
-                              </span>
-                              <span className="font-body-sm text-body-sm text-on-surface-variant truncate">
-                                {cand.email}
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-3 px-3 text-xs text-on-surface">{cand.role}</td>
-                        <td className="py-3 px-3">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 font-mono-code text-label-sm font-semibold">
-                            {score}% Match
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 font-mono-code text-xs text-on-surface-variant">
-                          {cand.experience}
-                        </td>
-                        <td className="py-3 px-3">
-                          <span className="px-2 py-0.5 rounded bg-surface-container text-primary font-label-sm text-xs">
-                            {cand.status}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 text-right">
-                          <button
-                            type="button"
-                            onClick={() => onSelectCandidate(cand)}
-                            className="px-3 py-1 bg-surface-container-high hover:bg-primary-container hover:text-on-primary-container text-on-surface rounded-lg text-xs transition-colors cursor-pointer"
-                          >
-                            Review
-                          </button>
-                        </td>
+              <>
+                {/* Mobile Card Layout (< md) */}
+                <div className="md:hidden space-y-2.5 tabular-nums">
+                  {topMatching.map(({ cand, score }) => (
+                    <div
+                      key={cand.id}
+                      onClick={() => onSelectCandidate(cand)}
+                      className="p-3.5 rounded-xl bg-surface-container/60 border border-[#263449] flex items-center justify-between gap-3 cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div
+                          className={`w-9 h-9 rounded-full font-headline-sm text-label-md flex items-center justify-center shrink-0 ${cand.avatarTone}`}
+                        >
+                          {cand.initials}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-label-md text-on-surface font-semibold truncate">{cand.name}</p>
+                          <p className="text-[11px] text-on-surface-variant truncate">
+                            {cand.role} · {cand.experience}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 font-mono-code text-[11px] font-semibold">
+                          {score}%
+                        </span>
+                        <span className="text-[10px] text-primary font-label-sm">{cand.status}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Tablet & Desktop Table (>= md) */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-left tabular-nums">
+                    <thead>
+                      <tr className="bg-surface-container-lowest/50 text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+                        <th className="py-2.5 px-3 rounded-l-lg">Candidate</th>
+                        <th className="py-2.5 px-3">Role</th>
+                        <th className="py-2.5 px-3">Match Score</th>
+                        <th className="py-2.5 px-3">Experience</th>
+                        <th className="py-2.5 px-3">Stage</th>
+                        <th className="py-2.5 px-3 text-right rounded-r-lg">Action</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-surface-container">
+                      {topMatching.map(({ cand, score }) => (
+                        <tr key={cand.id} className="hover:bg-surface-container/40 transition-colors">
+                          <td className="py-3 px-3">
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-8 h-8 rounded-full font-headline-sm text-label-md flex items-center justify-center shrink-0 ${cand.avatarTone}`}
+                              >
+                                {cand.initials}
+                              </div>
+                              <div className="flex flex-col min-w-0">
+                                <span className="font-label-md text-label-md text-on-surface font-semibold truncate">
+                                  {cand.name}
+                                </span>
+                                <span className="font-body-sm text-body-sm text-on-surface-variant truncate">
+                                  {cand.email}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3 px-3 text-xs text-on-surface">{cand.role}</td>
+                          <td className="py-3 px-3">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 font-mono-code text-label-sm font-semibold">
+                              {score}% Match
+                            </span>
+                          </td>
+                          <td className="py-3 px-3 font-mono-code text-xs text-on-surface-variant">
+                            {cand.experience}
+                          </td>
+                          <td className="py-3 px-3">
+                            <span className="px-2 py-0.5 rounded bg-surface-container text-primary font-label-sm text-xs">
+                              {cand.status}
+                            </span>
+                          </td>
+                          <td className="py-3 px-3 text-right">
+                            <button
+                              type="button"
+                              onClick={() => onSelectCandidate(cand)}
+                              className="px-3 py-1 bg-surface-container-high hover:bg-primary-container hover:text-on-primary-container text-on-surface rounded-lg text-xs transition-colors cursor-pointer"
+                            >
+                              Review
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </div>
 

@@ -50,6 +50,7 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
         setCmdOpen((prev) => !prev);
       } else if (e.key === 'Escape') {
         setCmdOpen(false);
+        setMobileMenuOpen(false);
       }
     };
     window.addEventListener('keydown', onKeyDown);
@@ -71,27 +72,39 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
     j.title.toLowerCase().includes(cmdQuery.toLowerCase())
   );
 
-  const renderSidebarContent = () => (
+  const renderSidebarContent = (isMobileDrawer = false) => (
     <>
       <div className="flex flex-col">
-        <div
-          onClick={onGoLanding}
-          className="h-16 px-space-xl flex items-center gap-3 border-b border-[#263449]/70 bg-[#0B1020]/90 cursor-pointer hover:bg-[#151E32]/60 transition-colors group"
-          title="Back to HireSwift AI Landing Page"
-        >
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform shrink-0">
-            <BrandLogo className="w-9 h-9" />
-          </div>
-          <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-1.5">
-              <span className="font-heading font-bold text-base tracking-tight text-white leading-none">
-                HireSwift<span className="text-[#8B5CF6]">AI</span>
+        <div className="h-16 px-4 lg:px-space-xl flex items-center justify-between gap-2 border-b border-[#263449]/70 bg-[#0B1020]/90">
+          <div
+            onClick={onGoLanding}
+            className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity group min-w-0"
+            title="Back to HireSwift AI Landing Page"
+          >
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform shrink-0">
+              <BrandLogo className="w-9 h-9" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="font-heading font-bold text-base tracking-tight text-white leading-none">
+                  HireSwift<span className="text-[#8B5CF6]">AI</span>
+                </span>
+              </div>
+              <span className="font-label-sm text-label-sm text-[#94A3B8] font-medium mt-1 truncate">
+                AI Recruitment
               </span>
             </div>
-            <span className="font-label-sm text-label-sm text-[#94A3B8] font-medium mt-1">
-              AI Recruitment
-            </span>
           </div>
+          {isMobileDrawer && (
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-label="Close navigation menu"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-[#94A3B8] hover:bg-[#151E32] hover:text-white cursor-pointer shrink-0"
+            >
+              <span className="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          )}
         </div>
 
         <nav className="flex flex-col gap-1 p-space-md">
@@ -109,7 +122,7 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
                   onNavigate(item.id);
                   setMobileMenuOpen(false);
                 }}
-                className={`w-full flex items-center gap-space-md px-space-md py-2 rounded-xl transition-all text-left cursor-pointer ${
+                className={`w-full flex items-center gap-space-md px-space-md py-2.5 lg:py-2 rounded-xl transition-all text-left cursor-pointer ${
                   isActive
                     ? 'bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-semibold shadow-lg shadow-indigo-600/25 border border-white/15'
                     : 'font-body-sm text-body-sm text-[#94A3B8] hover:bg-[#151E32] hover:text-white border border-transparent'
@@ -136,7 +149,7 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
                   onNavigate(item.id);
                   setMobileMenuOpen(false);
                 }}
-                className={`w-full flex items-center gap-space-md px-space-md py-2 rounded-xl transition-all text-left cursor-pointer ${
+                className={`w-full flex items-center gap-space-md px-space-md py-2.5 lg:py-2 rounded-xl transition-all text-left cursor-pointer ${
                   isActive
                     ? 'bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] text-white font-semibold shadow-lg shadow-indigo-600/25 border border-white/15'
                     : 'font-body-sm text-body-sm text-[#94A3B8] hover:bg-[#151E32] hover:text-white border border-transparent'
@@ -156,81 +169,89 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
     <div className="bg-[#0B1020] font-body-md text-[#F8FAFC] antialiased min-h-screen">
       {/* Desktop Fixed Sidebar */}
       <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-[250px] bg-[#0B1020]/95 backdrop-blur-xl border-r border-[#263449]/80 z-40 flex-col justify-between overflow-y-auto">
-        {renderSidebarContent()}
+        {renderSidebarContent(false)}
       </aside>
 
-      {/* Mobile Drawer Sidebar */}
+      {/* Mobile & Tablet Drawer Sidebar */}
       {mobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+            className="fixed inset-0 bg-black/65 backdrop-blur-xs"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <aside className="relative w-[250px] h-full bg-surface-container-low border-r border-outline-variant/30 z-10 flex flex-col justify-between overflow-y-auto">
-            {renderSidebarContent()}
+          <aside className="relative w-[270px] max-w-[85vw] h-full bg-surface-container-low border-r border-outline-variant/30 z-10 flex flex-col justify-between overflow-y-auto">
+            {renderSidebarContent(true)}
           </aside>
         </div>
       )}
 
       {/* Main Content Wrapper */}
       <div className="lg:pl-[250px]">
-        {/* Fixed Top Header */}
-        <header className="fixed top-0 left-0 lg:left-[250px] right-0 h-16 bg-[#0B1020]/80 backdrop-blur-xl border-b border-[#263449]/70 z-30 px-4 lg:px-gutter-desktop flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 lg:gap-space-lg min-w-0">
+        {/* Fixed Top Header (<= 64px mobile height) */}
+        <header className="fixed top-0 left-0 lg:left-[250px] right-0 h-16 bg-[#0B1020]/85 backdrop-blur-xl border-b border-[#263449]/70 z-30 px-3 sm:px-4 lg:px-gutter-desktop flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-3 lg:gap-space-lg min-w-0 flex-1 md:flex-initial">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden p-1.5 rounded-lg text-[#94A3B8] hover:bg-[#151E32] hover:text-white cursor-pointer"
+              className="lg:hidden min-h-[44px] min-w-[44px] -ml-1 flex items-center justify-center rounded-xl text-[#94A3B8] hover:bg-[#151E32] hover:text-white cursor-pointer shrink-0"
               aria-label="Open navigation menu"
             >
               <span className="material-symbols-outlined text-[22px]">menu</span>
             </button>
-            <div className="flex items-center gap-space-xs font-body-sm text-body-sm text-[#94A3B8] truncate">
+            <div className="flex items-center gap-space-xs font-body-sm text-body-sm text-[#94A3B8] min-w-0 truncate">
               <button
                 type="button"
                 onClick={onGoLanding}
-                className="text-[#94A3B8] hover:text-white transition-colors cursor-pointer"
+                className="hidden sm:inline text-[#94A3B8] hover:text-white transition-colors cursor-pointer shrink-0"
               >
                 Home
               </button>
-              <span className="text-[#263449]">/</span>
+              <span className="hidden sm:inline text-[#263449] shrink-0">/</span>
               <button
                 type="button"
                 onClick={() => onNavigate('dashboard')}
-                className="text-white font-semibold hover:text-[#8B5CF6] transition-colors cursor-pointer"
+                className="hidden sm:inline text-white font-semibold hover:text-[#8B5CF6] transition-colors cursor-pointer shrink-0"
               >
                 HireSwift
               </button>
-              <span className="text-[#263449]">/</span>
+              <span className="hidden sm:inline text-[#263449] shrink-0">/</span>
               <span className="text-[#8B5CF6] font-semibold truncate">{currentNavLabel}</span>
             </div>
           </div>
 
-          {/* Search Command Bar */}
+          {/* Search Command Bar (Tablet & Desktop) */}
           <button
             type="button"
             onClick={() => setCmdOpen(true)}
-            className="hidden md:flex items-center w-80 lg:w-96 px-space-md py-1.5 bg-[#151E32]/85 rounded-xl border border-[#263449] text-[#94A3B8] hover:border-[#8B5CF6]/60 transition-all cursor-pointer text-left"
+            className="hidden md:flex items-center w-64 lg:w-96 px-space-md py-1.5 bg-[#151E32]/85 rounded-xl border border-[#263449] text-[#94A3B8] hover:border-[#8B5CF6]/60 transition-all cursor-pointer text-left shrink"
           >
-            <span className="material-symbols-outlined text-[18px] text-[#94A3B8] mr-2">search</span>
+            <span className="material-symbols-outlined text-[18px] text-[#94A3B8] mr-2 shrink-0">search</span>
             <span className="font-body-sm text-body-sm text-[#94A3B8] flex-1 truncate">
               Search candidates, jobs, skills...
             </span>
-            <kbd className="font-mono-code text-[11px] px-1.5 py-0.5 rounded bg-[#1B2740] border border-[#263449] text-[#F8FAFC]">
+            <kbd className="font-mono-code text-[11px] px-1.5 py-0.5 rounded bg-[#1B2740] border border-[#263449] text-[#F8FAFC] shrink-0">
               ⌘K
             </kbd>
           </button>
 
           {/* Header Right Controls */}
-          <div className="flex items-center gap-2 sm:gap-space-md shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-space-md shrink-0">
+            <button
+              type="button"
+              onClick={() => setCmdOpen(true)}
+              aria-label="Open quick search"
+              className="md:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-[#151E32]/85 border border-[#263449] text-[#94A3B8] hover:text-white cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[19px]">search</span>
+            </button>
             <button
               type="button"
               onClick={() => onNavigate('resume-upload')}
-              className="flex items-center gap-space-xs px-3.5 py-1.5 bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-white rounded-xl font-label-md text-label-md font-semibold transition-all shadow-lg shadow-indigo-600/25 border border-white/15 cursor-pointer whitespace-nowrap"
+              className="flex items-center gap-1 sm:gap-space-xs min-h-[40px] sm:min-h-0 px-2.5 sm:px-3.5 py-1.5 bg-gradient-to-r from-[#4F46E5] to-[#8B5CF6] hover:opacity-95 text-white rounded-xl font-label-md text-xs sm:text-label-md font-semibold transition-all shadow-lg shadow-indigo-600/25 border border-white/15 cursor-pointer whitespace-nowrap shrink-0"
             >
               <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
               <span className="hidden sm:inline">+ Analyze Resumes</span>
-              <span className="sm:hidden">+ Analyze</span>
+              <span className="sm:hidden">Analyze</span>
             </button>
           </div>
         </header>
@@ -272,7 +293,7 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
                 <div className="px-2 pb-1.5 font-label-sm text-outline uppercase tracking-wider">
                   Quick Navigation
                 </div>
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                   {WORKSPACE_NAV.slice(0, 6).map((item) => (
                     <button
                       key={item.id}
@@ -281,12 +302,12 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
                         onNavigate(item.id);
                         setCmdOpen(false);
                       }}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-container-low hover:bg-surface-container-high text-left text-xs text-on-surface cursor-pointer"
+                      className="flex items-center gap-2 px-3 py-2.5 sm:py-2 rounded-lg bg-surface-container-low hover:bg-surface-container-high text-left text-xs text-on-surface cursor-pointer"
                     >
-                      <span className="material-symbols-outlined text-[16px] text-primary">
+                      <span className="material-symbols-outlined text-[16px] text-primary shrink-0">
                         {item.icon}
                       </span>
-                      <span>{item.label}</span>
+                      <span className="truncate">{item.label}</span>
                     </button>
                   ))}
                 </div>
@@ -306,13 +327,13 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
                           onSelectCandidate(c);
                           setCmdOpen(false);
                         }}
-                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-surface-container-high text-left cursor-pointer"
+                        className="w-full flex items-center justify-between gap-2 px-3 py-2.5 sm:py-2 rounded-lg hover:bg-surface-container-high text-left cursor-pointer"
                       >
-                        <div>
+                        <div className="min-w-0 truncate">
                           <span className="text-sm font-medium text-on-surface">{c.name}</span>
                           <span className="text-xs text-outline ml-2">{c.role}</span>
                         </div>
-                        <span className="font-mono-code text-xs text-tertiary">{c.matchScore}%</span>
+                        <span className="font-mono-code text-xs text-tertiary shrink-0">{c.matchScore}%</span>
                       </button>
                     ))}
                   </div>
@@ -334,10 +355,10 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
                           onNavigate('job-details');
                           setCmdOpen(false);
                         }}
-                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-surface-container-high text-left cursor-pointer"
+                        className="w-full flex items-center justify-between gap-2 px-3 py-2.5 sm:py-2 rounded-lg hover:bg-surface-container-high text-left cursor-pointer"
                       >
-                        <span className="text-sm font-medium text-on-surface">{j.title}</span>
-                        <span className="font-mono-code text-xs text-on-surface-variant">
+                        <span className="text-sm font-medium text-on-surface truncate">{j.title}</span>
+                        <span className="font-mono-code text-xs text-on-surface-variant shrink-0">
                           {j.location}
                         </span>
                       </button>
