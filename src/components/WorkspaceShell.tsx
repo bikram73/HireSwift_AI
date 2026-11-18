@@ -259,7 +259,10 @@ export const WorkspaceShell: React.FC<WorkspaceShellProps> = ({
         {/* Main Viewport */}
         <main className="relative pt-20 sm:pt-24 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-margin-desktop lg:pb-margin-desktop bg-[#0B1020] subtle-grid min-h-screen overflow-x-hidden">
           <div className="pointer-events-none fixed top-16 left-0 lg:left-[250px] right-0 h-[420px] glow-conic blur-3xl opacity-60" />
-          <AmbientBackground className="fixed top-16 left-0 lg:left-[250px] right-0 bottom-0" />
+          <AmbientBackground
+            intensity="workspace"
+            className="fixed top-16 left-0 lg:left-[250px] right-0 bottom-0"
+          />
           <div key={activeRoute} className="pt-2 relative z-10 page-enter">{children}</div>
         </main>
       </div>
