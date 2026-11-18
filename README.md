@@ -37,7 +37,7 @@
 | View the technologies, frameworks, libraries, and programming languages used in the project. 👉 | <a href="#-tech-stack"><img src="https://img.shields.io/badge/🛠️%20Tech%20Stack-0891B2?style=for-the-badge" /></a> |
 | Explore the complete project folder structure and organization of frontend and backend files. 👉 | <a href="#-file-structure"><img src="https://img.shields.io/badge/📂%20File%20Structure-10B981?style=for-the-badge" /></a> |
 | Follow the prerequisites, environment configuration, installation steps, and local development setup. 👉 | <a href="#-installation--setup"><img src="https://img.shields.io/badge/🚀%20Installation%20%26%20Setup-F97316?style=for-the-badge" /></a> |
-| Learn how to configure the Gemini API and integrate AI-powered resume analysis. 👉 | <a href="#-gemini-api-configuration"><img src="https://img.shields.io/badge/🔑%20Gemini%20API%20Configuration-7C3AED?style=for-the-badge" /></a> |
+| Learn how to configure the Gemini API, fallback AI models (OpenRouter & Groq), and integrate AI-powered resume analysis. 👉 | <a href="#-ai-models--fallback-configuration"><img src="https://img.shields.io/badge/🔑%20AI%20%26%20Fallback%20Models-7C3AED?style=for-the-badge" /></a> |
 | Understand the REST API endpoints, request parameters, response formats, and usage examples. 👉 | <a href="#-api-documentation"><img src="https://img.shields.io/badge/🌐%20API%20Documentation-0EA5E9?style=for-the-badge" /></a> |
 | Explore the system architecture, application modules, AI integration, processing pipeline, and technical design. 👉 | <a href="./ARCHITECTURE.md"><img src="https://img.shields.io/badge/🏗️%20Architecture%20Document-DC2626?style=for-the-badge" /></a> |
 | Review the detailed technical implementation, AI processing methodology, validation strategy, and engineering decisions. 👉 | <a href="./TECHNICAL_REPORT.md"><img src="https://img.shields.io/badge/📊%20Technical%20Report-2563EB?style=for-the-badge" /></a> |
@@ -252,7 +252,7 @@ hireswift-ai/
 ### ✅ Prerequisites
 - **Node.js `v22.18+`** *(verified on `v22.23.2` for native `npm start` / `node server.ts`; for **Node 20 LTS**, run `npm run build && npm run start:compiled` or `npm run dev`)*
 - **npm** (or **bun**)
-- *(Optional)* A **Gemini API key** for live LLM extraction (app runs cleanly with deterministic heuristics even without a key)
+- *(Optional)* API keys for **Google Gemini** (primary), **OpenRouter** (Tier 2 fallback), or **Groq** (Tier 3 fallback) for live LLM extraction—app also runs cleanly using the built-in deterministic heuristic parser even without any keys
 
 ### 📥 Local Development Setup
 
@@ -271,7 +271,7 @@ hireswift-ai/
    ```bash
    cp .env.example .env
    ```
-   Open `.env` and add your API key (see [Gemini API Configuration](#-gemini-api-configuration)).
+   Open `.env` and add your primary Gemini key and fallback provider keys (see [AI Models & Fallback Configuration](#-ai-models--fallback-configuration)).
 
 4. **Start the full-stack development server**
    ```bash
@@ -303,20 +303,20 @@ This repository is pre-configured with `netlify.toml` and `netlify/functions/api
 
 ---
 
-## 🔑 Gemini API Configuration
+## 🔑 AI Models & Fallback Configuration
 
 HireSwift AI keeps all API keys **strictly on the server side** (`server.ts` / `netlify/functions/api.ts`)—never exposed to browser bundles or local storage.
 
-### 🤖 Configured 3-Tier AI Model Stack
+### 🤖 Configured 3-Tier AI & Heuristic Fallback Stack
 
-HireSwift AI implements a **3-tier automatic AI fallback chain** (**Gemini → OpenRouter → Groq → Deterministic Local Parser**):
+HireSwift AI implements a **3-tier automatic AI fallback chain** plus a local safety net (**Gemini → OpenRouter → Groq → Deterministic Local Parser**) across `/api/resumes/parse`, `/api/jobs/analyze`, `/api/matching/analyze`, and `/api/matching/skill-gap`:
 
-| Tier | Provider | Chosen Model ID | Role in HireSwift AI |
+| Tier | Provider | Configured Model ID | Role & Capabilities |
 |:---:|:---|:---|:---|
-| **1 (Primary)** | **Google Gemini** | `gemini-3.5-flash-lite` | Primary multimodal PDF OCR, structured resume JSON parsing, JD analysis, matching rationales, and skill-gap coaching. |
-| **2 (Fallback)** | **OpenRouter** | `meta-llama/llama-3.3-70b-instruct:free` | Automatic cloud fallback if Gemini fails, times out, or hits quota limits. |
-| **3 (Final AI)** | **Groq** | `llama-3.1-8b-instant` | Ultra-fast inference safety fallback when both Gemini and OpenRouter fail or are unavailable. |
-| **4 (Local)** | **Heuristic Engine** | Built-in Deterministic Parser | Zero-downtime regex/NLP extraction fallback when no AI provider is reachable. |
+| **1 (Primary)** | **Google Gemini** (`GEMINI_API_KEY`) | `gemini-3.5-flash-lite` | Primary multimodal PDF OCR (supports text & base64 scanned PDFs), structured resume JSON parsing, JD analysis, matching rationales, and skill-gap coaching. |
+| **2 (Fallback)** | **OpenRouter** (`OPENROUTER_API_KEY`) | `meta-llama/llama-3.3-70b-instruct:free` | Automatic OpenAI-compatible cloud JSON fallback if Gemini fails, times out (`25s`), or hits rate/quota limits. |
+| **3 (Final AI)** | **Groq** (`GROQ_API_KEY`) | `llama-3.1-8b-instant` | Ultra-fast LPU inference fallback when both Gemini and OpenRouter fail or are unconfigured. |
+| **4 (Local)** | **Heuristic Engine** *(No API key needed)* | Built-in Deterministic Parser | Zero-downtime regex/NLP extraction and rubric explanation fallback when all cloud providers are unavailable or keys are omitted. |
 
 ### 📝 Environment Variables (`.env` / Netlify)
 
