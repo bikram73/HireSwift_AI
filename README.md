@@ -1,6 +1,10 @@
 <div align="center">
 
-# ⚡ HireSwift AI — Smart Applicant Tracking System
+<a href="https://hireswift-ai.netlify.app/" target="_blank">
+  <img src="./public/hireswift-logo.svg" alt="HireSwiftAI Logo" height="68" />
+</a>
+
+# HireSwift AI — Smart Applicant Tracking System
 
 **High-Velocity Resume Parsing, Deterministic Weighted Matching & End-to-End Recruitment Workspace**
 
