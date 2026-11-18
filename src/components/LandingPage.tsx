@@ -321,8 +321,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
             <div className="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2.5 px-3 sm:px-4 py-1.5 rounded-full bg-[#151E32]/90 border border-[#263449] shadow-inner text-[11px] sm:text-sm font-medium text-[#F8FAFC] text-center">
               <span className="inline-flex items-center justify-center w-2 h-2 rounded-full bg-[#8B5CF6] animate-pulse shrink-0" />
               <span>3-Tier AI + Heuristic ATS Engine</span>
-              <span className="hidden sm:inline text-[#263449]">•</span>
-              <span className="text-[#8B5CF6] font-semibold">PDF, DOCX &amp; Scanned OCR</span>
+              <span className="text-[#94A3B8]" aria-hidden="true">•</span>
+              <span className="text-[#A78BFA] font-semibold">PDF, DOCX &amp; Scanned OCR</span>
             </div>
           </div>
 
