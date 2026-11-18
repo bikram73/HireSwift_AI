@@ -474,7 +474,7 @@ Contributions are welcome! To contribute:
 
 ## 📜 License
 
-This project uses the **Apache License 2.0** (`SPDX-License-Identifier: Apache-2.0`). See repository headers for license terms.
+This project is licensed under the **Apache License 2.0** (`SPDX-License-Identifier: Apache-2.0`). See the [LICENSE](./LICENSE) file for the full license text and terms.
 
 ---
 
