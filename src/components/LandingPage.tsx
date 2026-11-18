@@ -822,7 +822,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterWorkspace }) =>
           </div>
 
           <div className="pt-8 border-t border-[#263449] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#94A3B8]/60">
-            <p>© 2026 HireSwift AI. Licensed under Apache-2.0.</p>
+            <p>2026 HireSwift AI. Built for modern high-velocity recruitment.</p>
             <div className="flex items-center gap-6">
               <a
                 className="inline-flex items-center gap-2 hover:text-white transition-colors"
