@@ -1,3 +1,4 @@
+import { jsPDF } from 'jspdf';
 import {
   CandidateProfile,
   DuplicateStatus,
@@ -418,6 +419,315 @@ export function exportObjectToJson(filename: string, data: unknown) {
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export function toCandidateFileSlug(name: string): string {
+  return (
+    name
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '') || 'candidate'
+  );
+}
+
+export function exportCandidateToCsv(
+  candidate: CandidateProfile,
+  matchResult?: MatchResult | null,
+  jobTitle?: string
+) {
+  const slug = toCandidateFileSlug(candidate.name);
+  const score = matchResult?.overallScore ?? candidate.matchScore;
+  const category = matchResult?.category ?? getMatchCategory(score);
+
+  exportRowsToCsv(
+    `${slug}_profile.csv`,
+    [
+      'ID',
+      'Name',
+      'Email',
+      'Phone',
+      'Location',
+      'Remote Available',
+      'Target Role',
+      'Evaluated Job',
+      'Degree',
+      'Branch',
+      'College',
+      'CGPA',
+      '10th / 12th',
+      'Graduation Year',
+      'Experience (Yrs)',
+      'Skills',
+      'Projects',
+      'Certifications',
+      'Match Score (%)',
+      'Match Category',
+      'Stage',
+      'Duplicate Status',
+      'Summary',
+    ],
+    [
+      [
+        candidate.id,
+        candidate.name,
+        candidate.email,
+        candidate.phone ?? 'Not Listed',
+        candidate.location,
+        candidate.remoteAvailable ? 'Yes' : 'No',
+        candidate.role,
+        jobTitle ?? candidate.role,
+        candidate.educationDetail.degree,
+        candidate.educationDetail.branch,
+        candidate.educationDetail.college,
+        candidate.educationDetail.cgpa ?? 'Not Listed',
+        candidate.tenthTwelfth,
+        candidate.educationDetail.graduationYear ?? 'N/A',
+        candidate.experienceYears,
+        candidate.skills.join('; '),
+        candidate.projects.map((p) => p.name).join('; ') || 'None',
+        candidate.certifications.join('; ') || 'None',
+        score,
+        category,
+        candidate.status,
+        candidate.duplicateStatus,
+        candidate.summary,
+      ],
+    ]
+  );
+}
+
+export function exportCandidateToJson(
+  candidate: CandidateProfile,
+  matchResult?: MatchResult | null,
+  jobTitle?: string
+) {
+  const slug = toCandidateFileSlug(candidate.name);
+  const { resumeObjectUrl: _omitUrl, ...cleanCandidate } = candidate;
+  exportObjectToJson(`${slug}_profile.json`, {
+    exportedAt: new Date().toISOString(),
+    evaluatedJobTitle: jobTitle ?? candidate.role,
+    candidate: cleanCandidate,
+    ...(matchResult ? { matchEvaluation: matchResult } : {}),
+  });
+}
+
+function sanitizePdfText(value: string): string {
+  return value
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2013\u2014]/g, '-')
+    .replace(/\u2022/g, '*')
+    .replace(/\u2192/g, '->')
+    .replace(/[^\x20-\x7E\n]/g, ' ');
+}
+
+export function exportCandidateToPdf(
+  candidate: CandidateProfile,
+  matchResult?: MatchResult | null,
+  jobTitle?: string
+) {
+  const slug = toCandidateFileSlug(candidate.name);
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 42;
+  const maxWidth = pageWidth - margin * 2;
+  const score = matchResult?.overallScore ?? candidate.matchScore;
+  const category = matchResult?.category ?? getMatchCategory(score);
+
+  let y = 48;
+
+  const ensureSpace = (needed: number) => {
+    if (y + needed > pageHeight - 48) {
+      doc.addPage();
+      y = 48;
+    }
+  };
+
+  const drawSectionTitle = (title: string) => {
+    ensureSpace(32);
+    y += 8;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10.5);
+    doc.setTextColor(79, 70, 229);
+    doc.text(sanitizePdfText(title.toUpperCase()), margin, y);
+    y += 5;
+    doc.setDrawColor(215, 220, 232);
+    doc.setLineWidth(0.75);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 14;
+  };
+
+  const drawParagraph = (text: string, fontSize = 9.5, bold = false, color: [number, number, number] = [30, 41, 59]) => {
+    const clean = sanitizePdfText(text || '');
+    if (!clean.trim()) return;
+    doc.setFont('helvetica', bold ? 'bold' : 'normal');
+    doc.setFontSize(fontSize);
+    doc.setTextColor(...color);
+    const lines = doc.splitTextToSize(clean, maxWidth) as string[];
+    const lineHeight = fontSize * 1.4;
+    ensureSpace(lines.length * lineHeight + 4);
+    doc.text(lines, margin, y);
+    y += lines.length * lineHeight + 4;
+  };
+
+  // Top Header Banner
+  doc.setFillColor(15, 23, 42);
+  doc.rect(0, 0, pageWidth, 102, 'F');
+  doc.setFillColor(79, 70, 229);
+  doc.rect(0, 98, pageWidth, 4, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(165, 180, 252);
+  doc.text('HIRESWIFT AI  |  CANDIDATE PROFILE DOSSIER', margin, 26);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(19);
+  doc.setTextColor(255, 255, 255);
+  doc.text(sanitizePdfText(candidate.name), margin, 52);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(203, 213, 225);
+  doc.text(
+    sanitizePdfText(`${candidate.role}  |  Stage: ${candidate.status}`),
+    margin,
+    70
+  );
+  doc.text(
+    sanitizePdfText(
+      `${candidate.email}  |  ${candidate.phone ?? 'Phone N/A'}  |  ${candidate.location} (${candidate.remoteAvailable ? 'Open to Remote' : 'On-site/Hybrid'})`
+    ),
+    margin,
+    85
+  );
+
+  // Score badge in top-right of banner
+  doc.setFillColor(30, 41, 59);
+  doc.roundedRect(pageWidth - margin - 118, 22, 118, 52, 6, 6, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(17);
+  doc.setTextColor(52, 211, 153);
+  doc.text(`${score}%`, pageWidth - margin - 59, 46, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(226, 232, 240);
+  doc.text(sanitizePdfText(category), pageWidth - margin - 59, 62, { align: 'center' });
+
+  y = 124;
+
+  // Executive Summary
+  drawSectionTitle('Executive Summary');
+  drawParagraph(candidate.summary);
+
+  // Academics & Education
+  drawSectionTitle('Education & Academics');
+  drawParagraph(
+    `${candidate.educationDetail.degree} in ${candidate.educationDetail.branch} - ${candidate.educationDetail.college}`,
+    9.5,
+    true
+  );
+  drawParagraph(
+    `CGPA: ${candidate.cgpa}  |  Class of ${candidate.educationDetail.graduationYear ?? 'N/A'}  |  10th / 12th: ${candidate.tenthTwelfth}`,
+    9,
+    false,
+    [71, 85, 105]
+  );
+  if (candidate.educationDetail.postgraduateDetails) {
+    drawParagraph(`Postgraduate: ${candidate.educationDetail.postgraduateDetails}`, 9);
+  }
+
+  // Experience & Internships
+  drawSectionTitle(`Experience (${candidate.experience})`);
+  if (candidate.workHistory.length === 0 && candidate.internships.length === 0) {
+    drawParagraph('No formal employment or internships listed on resume.', 9, false, [100, 116, 139]);
+  } else {
+    for (const item of candidate.workHistory) {
+      drawParagraph(`${item.role} - ${item.company} (${item.duration})`, 9.5, true);
+      if (item.description) drawParagraph(item.description, 9, false, [71, 85, 105]);
+    }
+    for (const intern of candidate.internships) {
+      drawParagraph(`[Internship] ${intern.role} - ${intern.company} (${intern.duration})`, 9.5, true);
+      if (intern.description) drawParagraph(intern.description, 9, false, [71, 85, 105]);
+    }
+  }
+
+  // Technical Skills & Certifications
+  drawSectionTitle('Technical Skills & Certifications');
+  drawParagraph(
+    candidate.skills.length > 0 ? candidate.skills.join(', ') : 'No skills extracted.',
+    9.5
+  );
+  if (candidate.certifications.length > 0) {
+    drawParagraph(`Certifications: ${candidate.certifications.join(', ')}`, 9, false, [71, 85, 105]);
+  }
+
+  // Projects & Highlights
+  if (candidate.projects.length > 0 || candidate.highlights.length > 0) {
+    drawSectionTitle('Projects & Key Highlights');
+    for (const proj of candidate.projects) {
+      const tech = proj.technologies.length > 0 ? ` [${proj.technologies.join(', ')}]` : '';
+      drawParagraph(`${proj.name}${tech}`, 9.5, true);
+      if (proj.description) drawParagraph(proj.description, 9, false, [71, 85, 105]);
+    }
+    for (const highlight of candidate.highlights) {
+      drawParagraph(`* ${highlight}`, 9);
+    }
+  }
+
+  // Match Evaluation Breakdown
+  if (matchResult) {
+    drawSectionTitle(`AI Match Evaluation${jobTitle ? ` - ${jobTitle}` : ''}`);
+    drawParagraph(
+      `Overall Fit: ${matchResult.overallScore}% (${matchResult.category})  |  Required Skill Coverage: ${matchResult.requiredSkillCoverage}%`,
+      9.5,
+      true
+    );
+    drawParagraph(
+      `Sub-scores -> Skills: ${matchResult.categoryScores.skills}% | Experience: ${matchResult.categoryScores.experience}% | Education: ${matchResult.categoryScores.education}% | Projects: ${matchResult.categoryScores.projects}% | Certifications: ${matchResult.categoryScores.certifications}% | Responsibilities: ${matchResult.categoryScores.responsibilities}%`,
+      9,
+      false,
+      [71, 85, 105]
+    );
+    if (matchResult.matchedSkills.length > 0) {
+      drawParagraph(`Matched Skills: ${matchResult.matchedSkills.join(', ')}`, 9);
+    }
+    if (matchResult.missingRequiredSkills.length > 0) {
+      drawParagraph(`Missing Required Skills: ${matchResult.missingRequiredSkills.join(', ')}`, 9, false, [185, 28, 28]);
+    }
+    drawParagraph(matchResult.explanation, 9, false, [71, 85, 105]);
+  }
+
+  // Page Footers
+  const totalPages = doc.getNumberOfPages();
+  const dateLabel = new Date().toISOString().slice(0, 10);
+  for (let p = 1; p <= totalPages; p++) {
+    doc.setPage(p);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(148, 163, 184);
+    doc.text(
+      `HireSwift AI Smart ATS  |  Exported ${dateLabel}`,
+      margin,
+      pageHeight - 24
+    );
+    doc.text(
+      `Page ${p} of ${totalPages}`,
+      pageWidth - margin,
+      pageHeight - 24,
+      { align: 'right' }
+    );
+  }
+
+  const pdfBlob = doc.output('blob');
+  const url = URL.createObjectURL(pdfBlob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${slug}_profile.pdf`;
   a.click();
   URL.revokeObjectURL(url);
 }

@@ -1,7 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAts } from '../../context/AtsContext';
 import { CandidateProfile, HiringStage, MatchCategory, WorkspaceRoute } from '../../data/atsData';
-import { exportObjectToJson, exportRowsToCsv, normalizeSkillName } from '../../utils/atsEngine';
+import {
+  exportCandidateToCsv,
+  exportCandidateToJson,
+  exportCandidateToPdf,
+  exportObjectToJson,
+  exportRowsToCsv,
+  normalizeSkillName,
+} from '../../utils/atsEngine';
 import { CUSTOM_JOB_OPTION_VALUE, CustomTargetJobModal } from '../CustomTargetJobModal';
 
 interface CandidatesViewProps {
@@ -76,6 +83,11 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
     typeof window !== 'undefined' ? window.innerWidth >= 768 : true
   );
   const [duplicateReviewCand, setDuplicateReviewCand] = useState<CandidateProfile | null>(null);
+  const [downloadMenu, setDownloadMenu] = useState<{
+    candidateId: string;
+    top: number;
+    left: number;
+  } | null>(null);
   const [deletePrompt, setDeletePrompt] = useState<
     | { kind: 'single'; candidate: CandidateProfile }
     | { kind: 'selected'; ids: string[] }
@@ -84,6 +96,35 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
     | { kind: 'duplicate-merge'; candidate: CandidateProfile; targetId: string }
     | null
   >(null);
+
+  useEffect(() => {
+    if (!downloadMenu) return;
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (
+        target?.closest('[data-download-menu="true"]') ||
+        target?.closest('[data-download-trigger="true"]')
+      ) {
+        return;
+      }
+      setDownloadMenu(null);
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setDownloadMenu(null);
+    };
+    const handleClose = () => setDownloadMenu(null);
+
+    document.addEventListener('mousedown', handlePointerDown);
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('scroll', handleClose, true);
+    window.addEventListener('resize', handleClose);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('scroll', handleClose, true);
+      window.removeEventListener('resize', handleClose);
+    };
+  }, [downloadMenu]);
 
   useEffect(() => {
     if (stageFilterPreset) {
@@ -178,13 +219,16 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
     return candidates.map((cand) => {
       const targetJobId = matchJobId === 'target' ? cand.targetJobId : matchJobId;
       const match = getMatchFor(cand, targetJobId);
+      const jobTitle = jobs.find((j) => j.id === targetJobId)?.title ?? cand.role;
       return {
         cand,
+        match,
+        jobTitle,
         score: match?.overallScore ?? cand.matchScore,
         category: match?.category ?? ('Good Match' as MatchCategory),
       };
     });
-  }, [candidates, matchJobId, getMatchFor]);
+  }, [candidates, jobs, matchJobId, getMatchFor]);
 
   const filteredCandidates = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -850,6 +894,41 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                               </button>
                               <button
                                 type="button"
+                                data-download-trigger="true"
+                                aria-haspopup="menu"
+                                aria-expanded={downloadMenu?.candidateId === cand.id}
+                                aria-label={`Download ${cand.name}`}
+                                title={`Download ${cand.name} (CSV / JSON / PDF)`}
+                                onClick={(e) => {
+                                  if (downloadMenu?.candidateId === cand.id) {
+                                    setDownloadMenu(null);
+                                    return;
+                                  }
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  const menuWidth = 176;
+                                  const menuHeight = 136;
+                                  const left = Math.max(
+                                    12,
+                                    Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 12)
+                                  );
+                                  const top =
+                                    rect.bottom + menuHeight + 12 > window.innerHeight
+                                      ? Math.max(12, rect.top - menuHeight - 6)
+                                      : rect.bottom + 6;
+                                  setDownloadMenu({ candidateId: cand.id, top, left });
+                                }}
+                                className={`p-2 md:p-1.5 rounded-lg transition-colors cursor-pointer ${
+                                  downloadMenu?.candidateId === cand.id
+                                    ? 'bg-[#8B5CF6]/25 text-[#c3c0ff]'
+                                    : 'text-outline hover:text-white hover:bg-surface-container-high'
+                                }`}
+                              >
+                                <span className="material-symbols-outlined text-[16px]">
+                                  download
+                                </span>
+                              </button>
+                              <button
+                                type="button"
                                 onClick={() => setDeletePrompt({ kind: 'single', candidate: cand })}
                                 title={`Delete ${cand.name}`}
                                 aria-label={`Delete ${cand.name}`}
@@ -866,6 +945,72 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                 </table>
               </div>
             )}
+
+            {/* Individual Candidate Download Menu */}
+            {downloadMenu && (() => {
+              const activeRow = filteredCandidates.find((r) => r.cand.id === downloadMenu.candidateId);
+              if (!activeRow) return null;
+              const { cand, match, jobTitle } = activeRow;
+              return (
+                <div
+                  role="menu"
+                  data-download-menu="true"
+                  aria-label={`Download ${cand.name} formats`}
+                  style={{ top: `${downloadMenu.top}px`, left: `${downloadMenu.left}px` }}
+                  className="fixed z-50 w-44 rounded-xl bg-[#151E32]/95 backdrop-blur-xl border border-[#263449] shadow-2xl shadow-black/50 p-1.5 flex flex-col gap-0.5 text-xs"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="px-2.5 py-1 text-[10px] font-mono-code uppercase tracking-wider text-outline border-b border-[#263449]/70 mb-0.5 truncate">
+                    {cand.name}
+                  </div>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      exportCandidateToCsv(cand, match, jobTitle);
+                      setDownloadMenu(null);
+                      showToast(`Downloaded ${cand.name} profile (CSV)`);
+                    }}
+                    className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left text-on-surface hover:bg-[#1B2740] hover:text-white transition-colors cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[15px] text-emerald-400">
+                      table_chart
+                    </span>
+                    <span>Download CSV</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      exportCandidateToJson(cand, match, jobTitle);
+                      setDownloadMenu(null);
+                      showToast(`Downloaded ${cand.name} profile (JSON)`);
+                    }}
+                    className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left text-on-surface hover:bg-[#1B2740] hover:text-white transition-colors cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[15px] text-sky-400">
+                      code
+                    </span>
+                    <span>Download JSON</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      exportCandidateToPdf(cand, match, jobTitle);
+                      setDownloadMenu(null);
+                      showToast(`Downloaded ${cand.name} profile (PDF)`);
+                    }}
+                    className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left text-on-surface hover:bg-[#1B2740] hover:text-white transition-colors cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[15px] text-rose-400">
+                      picture_as_pdf
+                    </span>
+                    <span>Download PDF</span>
+                  </button>
+                </div>
+              );
+            })()}
 
             {/* Pagination Footer */}
             {filteredCandidates.length > 0 && (

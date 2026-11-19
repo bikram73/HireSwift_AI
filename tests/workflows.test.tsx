@@ -619,4 +619,53 @@ describe('UI Integration & Defect Verification (PRD Modules 4–23)', () => {
     fireEvent.pointerMove(container, { clientX: 10, clientY: 10, pointerType: 'touch' });
     expect(card.getAttribute('data-cursor-glow')).toBeNull();
   });
+
+  it('CAN-EXPORT-INDIVIDUAL-001: Candidates table row provides individual CSV, JSON, and PDF download options', async () => {
+    const downloads: string[] = [];
+    const origCreateObjectURL = URL.createObjectURL;
+    const origRevokeObjectURL = URL.revokeObjectURL;
+    URL.createObjectURL = vi.fn(() => 'blob:mock-individual');
+    URL.revokeObjectURL = vi.fn();
+
+    const origCreateEl = document.createElement.bind(document);
+    const createElSpy = vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
+      const el = origCreateEl(tag);
+      if (tag === 'a') {
+        vi.spyOn(el as HTMLAnchorElement, 'click').mockImplementation(() => {
+          downloads.push((el as HTMLAnchorElement).download);
+        });
+      }
+      return el;
+    });
+
+    try {
+      render(
+        <AtsProvider>
+          <CandidatesView onNavigate={vi.fn()} onSelectCandidate={vi.fn()} />
+        </AtsProvider>
+      );
+
+      const firstCand = DEMO_CANDIDATES[0];
+      const downloadTrigger = screen.getByRole('button', { name: `Download ${firstCand.name}` });
+
+      fireEvent.click(downloadTrigger);
+      const csvItem = screen.getByRole('menuitem', { name: /Download CSV/i });
+      fireEvent.click(csvItem);
+
+      fireEvent.click(downloadTrigger);
+      const jsonItem = screen.getByRole('menuitem', { name: /Download JSON/i });
+      fireEvent.click(jsonItem);
+
+      fireEvent.click(downloadTrigger);
+      const pdfItem = screen.getByRole('menuitem', { name: /Download PDF/i });
+      fireEvent.click(pdfItem);
+
+      const slug = firstCand.name.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+      expect(downloads).toEqual([`${slug}_profile.csv`, `${slug}_profile.json`, `${slug}_profile.pdf`]);
+    } finally {
+      createElSpy.mockRestore();
+      URL.createObjectURL = origCreateObjectURL;
+      URL.revokeObjectURL = origRevokeObjectURL;
+    }
+  });
 });

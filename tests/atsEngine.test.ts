@@ -11,6 +11,9 @@ import {
   computeExtractionConfidence,
   computeMatchResult,
   detectDuplicates,
+  exportCandidateToCsv,
+  exportCandidateToJson,
+  exportCandidateToPdf,
   exportRowsToCsv,
   getMatchCategory,
   normalizePhone,
@@ -591,5 +594,67 @@ describe('Evidence-Based Extraction Confidence (Issue 2)', () => {
     expect(conf.email).toBe(0.99);
     expect(conf.education).toBe(1);
     expect(conf.skills).toBe(0.92);
+  });
+});
+
+describe('Individual Candidate Exports (CSV / JSON / PDF)', () => {
+  it('exports a single candidate profile as CSV, JSON, and valid PDF binary', async () => {
+    const cand = makeCandidate({ resumeObjectUrl: 'blob:http://localhost/transient-only' });
+    const job = makeJob();
+    const match = computeMatchResult(cand, job, DEFAULT_SCORING_WEIGHTS);
+
+    const capturedBlobs: Blob[] = [];
+    const downloadedNames: string[] = [];
+    const origCreateObjectURL = URL.createObjectURL;
+    const origRevokeObjectURL = URL.revokeObjectURL;
+
+    URL.createObjectURL = vi.fn((blob: Blob) => {
+      capturedBlobs.push(blob);
+      return 'blob:mock-download';
+    });
+    URL.revokeObjectURL = vi.fn();
+
+    const origCreateEl = document.createElement.bind(document);
+    const createElSpy = vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
+      const el = origCreateEl(tag);
+      if (tag === 'a') {
+        vi.spyOn(el as HTMLAnchorElement, 'click').mockImplementation(() => {
+          downloadedNames.push((el as HTMLAnchorElement).download);
+        });
+      }
+      return el;
+    });
+
+    try {
+      exportCandidateToCsv(cand, match, job.title);
+      exportCandidateToJson(cand, match, job.title);
+      exportCandidateToPdf(cand, match, job.title);
+
+      expect(downloadedNames).toEqual([
+        'test_candidate_profile.csv',
+        'test_candidate_profile.json',
+        'test_candidate_profile.pdf',
+      ]);
+      expect(capturedBlobs).toHaveLength(3);
+
+      const csvText = await capturedBlobs[0].text();
+      expect(csvText).toContain('Name,Email');
+      expect(csvText).toContain('Test Candidate');
+      expect(csvText).toContain(job.title);
+
+      const jsonParsed = JSON.parse(await capturedBlobs[1].text());
+      expect(jsonParsed.candidate.name).toBe('Test Candidate');
+      expect(jsonParsed.candidate.resumeObjectUrl).toBeUndefined();
+      expect(jsonParsed.matchEvaluation.overallScore).toBe(match.overallScore);
+
+      const pdfBytes = new Uint8Array(await capturedBlobs[2].arrayBuffer());
+      const pdfHeader = new TextDecoder().decode(pdfBytes.slice(0, 5));
+      expect(pdfHeader).toBe('%PDF-');
+      expect(pdfBytes.length).toBeGreaterThan(800);
+    } finally {
+      createElSpy.mockRestore();
+      URL.createObjectURL = origCreateObjectURL;
+      URL.revokeObjectURL = origRevokeObjectURL;
+    }
   });
 });
