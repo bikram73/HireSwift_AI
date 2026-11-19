@@ -276,6 +276,33 @@ test.describe('HireSwift AI End-to-End Browser Verification', () => {
     await expect(page.getByText(/Showing 1–20 of 31 candidates/i)).toBeVisible();
     expect(Date.now() - filterStart).toBeLessThan(500);
 
+    // Individual Candidate CSV, JSON & PDF download menu from Row 1
+    const rowDownloadIcon = page.locator('table tbody tr:first-child td:nth-of-type(8) button:nth-of-type(3) > span').first();
+    await rowDownloadIcon.click();
+    const menu = page.locator('[data-download-menu="true"]');
+    await expect(menu).toBeVisible();
+    const menuBox = await menu.boundingBox();
+    expect(menuBox).not.toBeNull();
+    expect(menuBox!.y).toBeGreaterThanOrEqual(0);
+    expect(menuBox!.x).toBeGreaterThanOrEqual(0);
+
+    const csvDownloadPromise = page.waitForEvent('download');
+    await menu.getByRole('menuitem', { name: /Download CSV/i }).click();
+    const csvDownload = await csvDownloadPromise;
+    expect(csvDownload.suggestedFilename()).toMatch(/_profile\.csv$/);
+
+    await rowDownloadIcon.click();
+    const jsonDownloadPromise = page.waitForEvent('download');
+    await page.locator('[data-download-menu="true"]').getByRole('menuitem', { name: /Download JSON/i }).click();
+    const jsonDownload = await jsonDownloadPromise;
+    expect(jsonDownload.suggestedFilename()).toMatch(/_profile\.json$/);
+
+    await rowDownloadIcon.click();
+    const pdfDownloadPromise = page.waitForEvent('download');
+    await page.locator('[data-download-menu="true"]').getByRole('menuitem', { name: /Download PDF/i }).click();
+    const pdfDownload = await pdfDownloadPromise;
+    expect(pdfDownload.suggestedFilename()).toMatch(/_profile\.pdf$/);
+
     // Candidate Ranking: Top 5 & Name (A-Z) sort
     await page.locator('aside button', { hasText: 'Candidate Ranking' }).first().click();
     await page.getByLabel('Ranking Sort Order').selectOption('name');

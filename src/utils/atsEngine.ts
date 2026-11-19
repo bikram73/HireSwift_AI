@@ -394,6 +394,25 @@ export function detectDuplicates(
   return { status: 'Unique' };
 }
 
+function triggerBlobDownload(filename: string, blob: Blob) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  if (a.style) {
+    a.style.display = 'none';
+  }
+  const canAttach = typeof Node !== 'undefined' && a instanceof Node && Boolean(document.body);
+  if (canAttach) {
+    document.body.appendChild(a);
+  }
+  a.click();
+  if (canAttach && a.parentNode) {
+    a.parentNode.removeChild(a);
+  }
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
 export function exportRowsToCsv(filename: string, headers: string[], rows: (string | number | null | undefined)[][]) {
   const escapeCell = (val: string | number | null | undefined) => {
     const s = val === null || val === undefined ? '' : String(val);
@@ -404,23 +423,13 @@ export function exportRowsToCsv(filename: string, headers: string[], rows: (stri
   };
   const csvContent = [headers.map(escapeCell).join(','), ...rows.map((r) => r.map(escapeCell).join(','))].join('\n');
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+  triggerBlobDownload(filename, blob);
 }
 
 export function exportObjectToJson(filename: string, data: unknown) {
   const jsonContent = JSON.stringify(data, null, 2);
   const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+  triggerBlobDownload(filename, blob);
 }
 
 export function toCandidateFileSlug(name: string): string {
@@ -724,10 +733,5 @@ export function exportCandidateToPdf(
   }
 
   const pdfBlob = doc.output('blob');
-  const url = URL.createObjectURL(pdfBlob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${slug}_profile.pdf`;
-  a.click();
-  URL.revokeObjectURL(url);
+  triggerBlobDownload(`${slug}_profile.pdf`, pdfBlob);
 }

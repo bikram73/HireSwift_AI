@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useAts } from '../../context/AtsContext';
 import { CandidateProfile, HiringStage, MatchCategory, WorkspaceRoute } from '../../data/atsData';
 import {
@@ -116,12 +117,10 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
 
     document.addEventListener('mousedown', handlePointerDown);
     window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('scroll', handleClose, true);
     window.addEventListener('resize', handleClose);
     return () => {
       document.removeEventListener('mousedown', handlePointerDown);
       window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('scroll', handleClose, true);
       window.removeEventListener('resize', handleClose);
     };
   }, [downloadMenu]);
@@ -900,13 +899,14 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                                 aria-label={`Download ${cand.name}`}
                                 title={`Download ${cand.name} (CSV / JSON / PDF)`}
                                 onClick={(e) => {
+                                  e.stopPropagation();
                                   if (downloadMenu?.candidateId === cand.id) {
                                     setDownloadMenu(null);
                                     return;
                                   }
                                   const rect = e.currentTarget.getBoundingClientRect();
                                   const menuWidth = 176;
-                                  const menuHeight = 136;
+                                  const menuHeight = 148;
                                   const left = Math.max(
                                     12,
                                     Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 12)
@@ -946,18 +946,18 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
               </div>
             )}
 
-            {/* Individual Candidate Download Menu */}
+            {/* Individual Candidate Download Menu (portaled to body to escape backdrop-filter/overflow clipping) */}
             {downloadMenu && (() => {
               const activeRow = filteredCandidates.find((r) => r.cand.id === downloadMenu.candidateId);
               if (!activeRow) return null;
               const { cand, match, jobTitle } = activeRow;
-              return (
+              const menuNode = (
                 <div
                   role="menu"
                   data-download-menu="true"
                   aria-label={`Download ${cand.name} formats`}
                   style={{ top: `${downloadMenu.top}px`, left: `${downloadMenu.left}px` }}
-                  className="fixed z-50 w-44 rounded-xl bg-[#151E32]/95 backdrop-blur-xl border border-[#263449] shadow-2xl shadow-black/50 p-1.5 flex flex-col gap-0.5 text-xs"
+                  className="fixed z-[9999] w-44 rounded-xl bg-[#151E32]/98 backdrop-blur-xl border border-[#263449] shadow-2xl shadow-black/60 p-1.5 flex flex-col gap-0.5 text-xs"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="px-2.5 py-1 text-[10px] font-mono-code uppercase tracking-wider text-outline border-b border-[#263449]/70 mb-0.5 truncate">
@@ -1010,6 +1010,7 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
                   </button>
                 </div>
               );
+              return typeof document !== 'undefined' ? createPortal(menuNode, document.body) : menuNode;
             })()}
 
             {/* Pagination Footer */}
