@@ -662,6 +662,10 @@ describe('UI Integration & Defect Verification (PRD Modules 4–23)', () => {
 
       const slug = firstCand.name.toLowerCase().replace(/[^a-z0-9]+/g, '_');
       expect(downloads).toEqual([`${slug}_profile.csv`, `${slug}_profile.json`, `${slug}_profile.pdf`]);
+
+      const exportAllPdfBtn = screen.getByRole('button', { name: /Export PDF/i });
+      fireEvent.click(exportAllPdfBtn);
+      expect(downloads[3]).toMatch(/^hireswift_candidates_\d{4}-\d{2}-\d{2}\.pdf$/);
     } finally {
       createElSpy.mockRestore();
       URL.createObjectURL = origCreateObjectURL;

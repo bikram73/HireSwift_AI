@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useAts } from '../../context/AtsContext';
 import { CandidateProfile, HiringStage, MatchCategory, WorkspaceRoute } from '../../data/atsData';
 import {
+  exportCandidatesListToPdf,
   exportCandidateToCsv,
   exportCandidateToJson,
   exportCandidateToPdf,
@@ -433,6 +434,22 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
     showToast(`Exported ${filteredCandidates.length} candidate(s) to CSV`);
   };
 
+  const handleExportPdf = () => {
+    const scopeLabel =
+      matchJobId === 'target'
+        ? 'Candidate Target Jobs'
+        : jobs.find((j) => j.id === matchJobId)?.title ?? 'Candidate Directory';
+    exportCandidatesListToPdf(
+      filteredCandidates.map(({ cand, match, jobTitle }) => ({
+        candidate: cand,
+        matchResult: match,
+        jobTitle,
+      })),
+      scopeLabel
+    );
+    showToast(`Exported ${filteredCandidates.length} candidate(s) as PDF`);
+  };
+
   const avgScore =
     filteredCandidates.length > 0
       ? Math.round(
@@ -486,6 +503,15 @@ export const CandidatesView: React.FC<CandidatesViewProps> = ({
           >
             <span className="material-symbols-outlined text-[17px] text-[#94A3B8]">code</span>
             <span>Export JSON</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleExportPdf}
+            disabled={filteredCandidates.length === 0}
+            className="min-h-[42px] sm:min-h-0 flex items-center justify-center gap-space-xs px-3 sm:px-4 py-2 rounded-xl bg-[#151E32] border border-[#263449] text-white font-label-md text-xs sm:text-label-md hover:bg-[#1B2740] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm cursor-pointer whitespace-nowrap"
+          >
+            <span className="material-symbols-outlined text-[17px] text-rose-400">picture_as_pdf</span>
+            <span>Export PDF</span>
           </button>
           <button
             type="button"

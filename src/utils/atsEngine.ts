@@ -735,3 +735,230 @@ export function exportCandidateToPdf(
   const pdfBlob = doc.output('blob');
   triggerBlobDownload(`${slug}_profile.pdf`, pdfBlob);
 }
+
+export function exportCandidatesListToPdf(
+  entries: Array<{
+    candidate: CandidateProfile;
+    matchResult?: MatchResult | null;
+    jobTitle?: string;
+  }>,
+  scopeLabel = 'Filtered Candidate Directory'
+) {
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 38;
+  const maxWidth = pageWidth - margin * 2;
+  const dateLabel = new Date().toISOString().slice(0, 10);
+
+  let y = 44;
+
+  const ensureSpace = (needed: number) => {
+    if (y + needed > pageHeight - 46) {
+      doc.addPage();
+      y = 44;
+    }
+  };
+
+  // Header Banner
+  doc.setFillColor(15, 23, 42);
+  doc.rect(0, 0, pageWidth, 94, 'F');
+  doc.setFillColor(79, 70, 229);
+  doc.rect(0, 90, pageWidth, 4, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(165, 180, 252);
+  doc.text('HIRESWIFT AI  |  CANDIDATES DIRECTORY REPORT', margin, 26);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.setTextColor(255, 255, 255);
+  doc.text(`All Candidates Export (${entries.length})`, margin, 52);
+
+  const avgScore =
+    entries.length > 0
+      ? Math.round(
+          entries.reduce(
+            (sum, item) => sum + (item.matchResult?.overallScore ?? item.candidate.matchScore),
+            0
+          ) / entries.length
+        )
+      : 0;
+  const shortlistedCount = entries.filter((e) => e.candidate.status === 'Shortlisted').length;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9.5);
+  doc.setTextColor(203, 213, 225);
+  doc.text(
+    sanitizePdfText(
+      `Scope: ${scopeLabel}  |  Avg Match: ${avgScore}%  |  Shortlisted: ${shortlistedCount}  |  Date: ${dateLabel}`
+    ),
+    margin,
+    72
+  );
+
+  y = 114;
+
+  if (entries.length === 0) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text('No candidates available in the current view.', margin, y);
+  } else {
+    // Summary Roster Table Header
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(79, 70, 229);
+    doc.text('CANDIDATE OVERVIEW', margin, y);
+    y += 10;
+
+    const drawTableHeader = () => {
+      ensureSpace(24);
+      doc.setFillColor(241, 245, 249);
+      doc.rect(margin, y, maxWidth, 20, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(51, 65, 85);
+      doc.text('#', margin + 6, y + 13);
+      doc.text('CANDIDATE', margin + 26, y + 13);
+      doc.text('ACADEMICS', margin + 200, y + 13);
+      doc.text('EXP', margin + 350, y + 13);
+      doc.text('MATCH', margin + 402, y + 13);
+      doc.text('STAGE', margin + 455, y + 13);
+      y += 24;
+    };
+
+    drawTableHeader();
+
+    entries.forEach((entry, idx) => {
+      const { candidate, matchResult } = entry;
+      const score = matchResult?.overallScore ?? candidate.matchScore;
+      if (y + 22 > pageHeight - 48) {
+        doc.addPage();
+        y = 44;
+        drawTableHeader();
+      }
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.2);
+      doc.setTextColor(30, 41, 59);
+      doc.text(String(idx + 1), margin + 6, y + 8);
+      doc.setFont('helvetica', 'bold');
+      doc.text(sanitizePdfText(candidate.name.slice(0, 28)), margin + 26, y + 8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(71, 85, 105);
+      doc.text(sanitizePdfText(`${candidate.education} (${candidate.cgpa})`.slice(0, 28)), margin + 200, y + 8);
+      doc.text(sanitizePdfText(candidate.experience.slice(0, 10)), margin + 350, y + 8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(score >= 80 ? 16 : 79, score >= 80 ? 185 : 70, score >= 80 ? 129 : 229);
+      doc.text(`${score}%`, margin + 402, y + 8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(30, 41, 59);
+      doc.text(sanitizePdfText(candidate.status), margin + 455, y + 8);
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.5);
+      doc.line(margin, y + 14, pageWidth - margin, y + 14);
+      y += 18;
+    });
+
+    // Detailed Candidate Profiles
+    y += 14;
+    ensureSpace(36);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(79, 70, 229);
+    doc.text('DETAILED CANDIDATE PROFILES', margin, y);
+    y += 12;
+
+    entries.forEach((entry, idx) => {
+      const { candidate, matchResult, jobTitle } = entry;
+      const score = matchResult?.overallScore ?? candidate.matchScore;
+      const category = matchResult?.category ?? getMatchCategory(score);
+
+      const skillsStr = sanitizePdfText(candidate.skills.slice(0, 12).join(', ') || 'None');
+      const summaryStr = sanitizePdfText(candidate.summary || '');
+      const skillLines = doc.splitTextToSize(`Skills: ${skillsStr}`, maxWidth - 16) as string[];
+      const summaryLines = doc.splitTextToSize(summaryStr, maxWidth - 16) as string[];
+      const blockHeight = 62 + skillLines.length * 11 + Math.min(summaryLines.length, 3) * 11;
+
+      ensureSpace(blockHeight + 10);
+
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(203, 213, 225);
+      doc.setLineWidth(0.6);
+      doc.roundedRect(margin, y, maxWidth, blockHeight, 5, 5, 'FD');
+
+      let cy = y + 16;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(15, 23, 42);
+      doc.text(sanitizePdfText(`${idx + 1}. ${candidate.name}  -  ${candidate.role}`), margin + 10, cy);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(79, 70, 229);
+      doc.text(
+        sanitizePdfText(`${score}% (${category}) | ${candidate.status}`),
+        pageWidth - margin - 10,
+        cy,
+        { align: 'right' }
+      );
+
+      cy += 14;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.2);
+      doc.setTextColor(71, 85, 105);
+      doc.text(
+        sanitizePdfText(
+          `${candidate.email}  |  ${candidate.phone ?? 'Phone N/A'}  |  ${candidate.location}  |  Exp: ${candidate.experience}`
+        ),
+        margin + 10,
+        cy
+      );
+
+      cy += 12;
+      doc.text(
+        sanitizePdfText(
+          `${candidate.educationDetail.degree} (${candidate.educationDetail.branch}) - ${candidate.educationDetail.college} | ${candidate.cgpa} | 10th/12th: ${candidate.tenthTwelfth}${jobTitle ? ` | Job: ${jobTitle}` : ''}`
+        ),
+        margin + 10,
+        cy
+      );
+
+      cy += 14;
+      doc.setTextColor(30, 41, 59);
+      doc.text(skillLines, margin + 10, cy);
+      cy += skillLines.length * 11 + 2;
+
+      if (summaryLines.length > 0) {
+        doc.setTextColor(100, 116, 139);
+        doc.text(summaryLines.slice(0, 3), margin + 10, cy);
+      }
+
+      y += blockHeight + 10;
+    });
+  }
+
+  // Page Footers
+  const totalPages = doc.getNumberOfPages();
+  for (let p = 1; p <= totalPages; p++) {
+    doc.setPage(p);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(148, 163, 184);
+    doc.text(
+      `HireSwift AI Smart ATS  |  ${entries.length} Candidate(s)  |  Exported ${dateLabel}`,
+      margin,
+      pageHeight - 22
+    );
+    doc.text(
+      `Page ${p} of ${totalPages}`,
+      pageWidth - margin,
+      pageHeight - 22,
+      { align: 'right' }
+    );
+  }
+
+  const pdfBlob = doc.output('blob');
+  triggerBlobDownload(`hireswift_candidates_${dateLabel}.pdf`, pdfBlob);
+}

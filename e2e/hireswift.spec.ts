@@ -303,6 +303,12 @@ test.describe('HireSwift AI End-to-End Browser Verification', () => {
     const pdfDownload = await pdfDownloadPromise;
     expect(pdfDownload.suggestedFilename()).toMatch(/_profile\.pdf$/);
 
+    // Header "Export PDF" for all filtered candidates
+    const allPdfPromise = page.waitForEvent('download');
+    await page.getByRole('button', { name: /Export PDF/i }).click();
+    const allPdfDownload = await allPdfPromise;
+    expect(allPdfDownload.suggestedFilename()).toMatch(/^hireswift_candidates_\d{4}-\d{2}-\d{2}\.pdf$/);
+
     // Candidate Ranking: Top 5 & Name (A-Z) sort
     await page.locator('aside button', { hasText: 'Candidate Ranking' }).first().click();
     await page.getByLabel('Ranking Sort Order').selectOption('name');

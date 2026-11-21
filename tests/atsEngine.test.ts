@@ -11,6 +11,7 @@ import {
   computeExtractionConfidence,
   computeMatchResult,
   detectDuplicates,
+  exportCandidatesListToPdf,
   exportCandidateToCsv,
   exportCandidateToJson,
   exportCandidateToPdf,
@@ -651,6 +652,52 @@ describe('Individual Candidate Exports (CSV / JSON / PDF)', () => {
       const pdfHeader = new TextDecoder().decode(pdfBytes.slice(0, 5));
       expect(pdfHeader).toBe('%PDF-');
       expect(pdfBytes.length).toBeGreaterThan(800);
+    } finally {
+      createElSpy.mockRestore();
+      URL.createObjectURL = origCreateObjectURL;
+      URL.revokeObjectURL = origRevokeObjectURL;
+    }
+  });
+
+  it('exports all candidates as a single multi-candidate PDF report', async () => {
+    const job = makeJob();
+    const entries = DEMO_CANDIDATES.slice(0, 6).map((candidate) => ({
+      candidate,
+      matchResult: computeMatchResult(candidate, job, DEFAULT_SCORING_WEIGHTS),
+      jobTitle: job.title,
+    }));
+
+    const capturedBlobs: Blob[] = [];
+    const downloadedNames: string[] = [];
+    const origCreateObjectURL = URL.createObjectURL;
+    const origRevokeObjectURL = URL.revokeObjectURL;
+
+    URL.createObjectURL = vi.fn((blob: Blob) => {
+      capturedBlobs.push(blob);
+      return 'blob:mock-all-pdf';
+    });
+    URL.revokeObjectURL = vi.fn();
+
+    const origCreateEl = document.createElement.bind(document);
+    const createElSpy = vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
+      const el = origCreateEl(tag);
+      if (tag === 'a') {
+        vi.spyOn(el as HTMLAnchorElement, 'click').mockImplementation(() => {
+          downloadedNames.push((el as HTMLAnchorElement).download);
+        });
+      }
+      return el;
+    });
+
+    try {
+      exportCandidatesListToPdf(entries, job.title);
+      expect(downloadedNames).toHaveLength(1);
+      expect(downloadedNames[0]).toMatch(/^hireswift_candidates_\d{4}-\d{2}-\d{2}\.pdf$/);
+      expect(capturedBlobs).toHaveLength(1);
+      const pdfBytes = new Uint8Array(await capturedBlobs[0].arrayBuffer());
+      const pdfHeader = new TextDecoder().decode(pdfBytes.slice(0, 5));
+      expect(pdfHeader).toBe('%PDF-');
+      expect(pdfBytes.length).toBeGreaterThan(1500);
     } finally {
       createElSpy.mockRestore();
       URL.createObjectURL = origCreateObjectURL;
