@@ -30,8 +30,11 @@
 
 | **📖 Description** | **🚀 Section** |
 |:---|:---:|
-| Explore the project overview, purpose, and key capabilities of HireSwift AI. 👉 | <a href="#-about-the-project"><img src="https://img.shields.io/badge/📖%20About%20the%20Project-4F46E5?style=for-the-badge" /></a> |
+| Explore the project overview, purpose, and core objectives of HireSwift AI. 👉 | <a href="#-about-the-project"><img src="https://img.shields.io/badge/📖%20About%20the%20Project-4F46E5?style=for-the-badge" /></a> |
+| Understand the recruitment bottlenecks tackled and our end-to-end proposed solution. 👉 | <a href="#-problem-statement--proposed-solution"><img src="https://img.shields.io/badge/📌%20Problem%20%26%20Solution-DC2626?style=for-the-badge" /></a> |
+| See what makes HireSwift AI unique compared to traditional black-box ATS tools. 👉 | <a href="#-what-makes-hireswift-ai-unique"><img src="https://img.shields.io/badge/🌟%20Uniqueness-9333EA?style=for-the-badge" /></a> |
 | Discover all the features and functionalities available in the recruitment platform. 👉 | <a href="#-features"><img src="https://img.shields.io/badge/✨%20Features-4F46E5?style=for-the-badge" /></a> |
+| Inspect the full-stack client, scoring engine, API & serverless system architecture. 👉 | <a href="#-project-architecture"><img src="https://img.shields.io/badge/🏗️%20Project%20Architecture-2563EB?style=for-the-badge" /></a> |
 | Understand the complete resume processing, AI extraction, and candidate matching workflow. 👉 | <a href="#-how-it-works"><img src="https://img.shields.io/badge/⚙️%20How%20It%20Works-0891B2?style=for-the-badge" /></a> |
 | Explore the AI-powered candidate evaluation, matching criteria, scoring weights, and ranking methodology. 👉 | <a href="#-ai-matching--scoring-system"><img src="https://img.shields.io/badge/🤖%20AI%20Matching%20%26%20Scoring-8B5CF6?style=for-the-badge" /></a> |
 | View the technologies, frameworks, libraries, and programming languages used in the project. 👉 | <a href="#-tech-stack"><img src="https://img.shields.io/badge/🛠️%20Tech%20Stack-0891B2?style=for-the-badge" /></a> |
@@ -39,7 +42,7 @@
 | Follow the prerequisites, environment configuration, installation steps, and local development setup. 👉 | <a href="#-installation--setup"><img src="https://img.shields.io/badge/🚀%20Installation%20%26%20Setup-F97316?style=for-the-badge" /></a> |
 | Learn how to configure the Gemini API, fallback AI models (OpenRouter & Groq), and integrate AI-powered resume analysis. 👉 | <a href="#-ai-models--fallback-configuration"><img src="https://img.shields.io/badge/🔑%20AI%20%26%20Fallback%20Models-7C3AED?style=for-the-badge" /></a> |
 | Understand the REST API endpoints, request parameters, response formats, and usage examples. 👉 | <a href="#-api-documentation"><img src="https://img.shields.io/badge/🌐%20API%20Documentation-0EA5E9?style=for-the-badge" /></a> |
-| Explore the system architecture, application modules, AI integration, processing pipeline, and technical design. 👉 | <a href="./ARCHITECTURE.md"><img src="https://img.shields.io/badge/🏗️%20Architecture%20Document-DC2626?style=for-the-badge" /></a> |
+| Read the standalone deep-dive architecture specification. 👉 | <a href="./ARCHITECTURE.md"><img src="https://img.shields.io/badge/🏗️%20Architecture%20Document-DC2626?style=for-the-badge" /></a> |
 | Review the detailed technical implementation, AI processing methodology, validation strategy, and engineering decisions. 👉 | <a href="./TECHNICAL_REPORT.md"><img src="https://img.shields.io/badge/📊%20Technical%20Report-2563EB?style=for-the-badge" /></a> |
 | Inspect the complete end-to-end QA test report, regression coverage, defect fixes, and browser verification evidence. 👉 | <a href="./QA_TEST_REPORT.md"><img src="https://img.shields.io/badge/🧪%20QA%20Test%20Report-16A34A?style=for-the-badge" /></a> |
 | Understand candidate profile fields, resume extraction, job requirements, and application data handling. 👉 | <a href="#-candidate-data-management"><img src="https://img.shields.io/badge/👥%20Candidate%20Data%20Management-0D9488?style=for-the-badge" /></a> |
@@ -64,8 +67,39 @@
 ### 🎯 Core Objectives
 - **Eliminate manual resume screening bottlenecks** by parsing PDF and DOCX resumes into structured candidate profiles in seconds.
 - **Keep scoring transparent and auditable** by pairing a deterministic 6-category scoring engine with grounded AI rationale and custom interview questions.
-- **Unify the entire recruitment lifecycle**—from ingestion, JD creation, candidate ranking, side-by-side comparison, skill gap diagnostics, and Kanban hiring stages to candidate email drafting and executive exports.
+- **Unify the entire recruitment lifecycle**—from ingestion, JD creation, candidate ranking, side-by-side comparison, skill gap diagnostics, and Kanban hiring stages to candidate email drafting and CSV/JSON/PDF exports.
 - **Run seamlessly anywhere** with zero external database setup required—using local session persistence (`localStorage`) plus dual deployment support for **Node/Express** and **Netlify Serverless Functions**.
+
+---
+
+## 📌 Problem Statement & Proposed Solution
+
+### ❗ Problem Statement
+Small companies, startups, and lean engineering teams routinely receive **hundreds of unstructured PDF and DOCX resumes** for a single job opening. Without enterprise ATS infrastructure:
+- **Slow Manual Screening**: HR teams scan resumes by hand, taking weeks to shortlist qualified candidates and losing top talent to faster competitors.
+- **Missed Qualified Profiles & Inconsistent Criteria**: Filtering across 10th/12th percentages, CGPA, graduation year, experience bounds, and normalized skill aliases (`JS` vs `JavaScript`, `K8s` vs `Kubernetes`) is error-prone in spreadsheets.
+- **Duplicate Submissions**: Candidates apply multiple times with slightly renamed files or updated resumes, cluttering shortlists.
+- **Opaque "Black-Box" AI Scoring**: Many AI tools invent missing metrics, penalize unstated CGPA as `0`, or fail completely when a single LLM provider hits rate limits.
+
+### ✅ Proposed Solution
+**HireSwift AI** solves these challenges with a fast, browser-first **Smart Applicant Tracking System** powered by a **hybrid client-extraction + deterministic scoring + multi-model AI architecture**:
+1. **Bulk Resume Ingestion & Parsing**: Upload multiple `.pdf` (text-searchable & scanned OCR) and `.docx` resumes at once, extract text locally in the browser, fingerprint files via **SHA-256** to catch duplicates, and structure profiles via AI or deterministic heuristics.
+2. **Structured Job Description Analyzer**: Paste raw JDs or upload JD documents to automatically extract required vs. preferred skills, academic cutoffs, experience windows, and responsibilities.
+3. **Explainable Weighted Matching & Precision Filtering**: Score every candidate across 6 transparent rubric dimensions (`35% / 20% / 15% / 15% / 5% / 10%`), filter precisely by 10th/12th %, CGPA, graduation year, AND/OR skills, and inspect AI-generated match rationales and skill gaps.
+4. **End-to-End Hiring Workspace**: Manage candidates through a 5-stage Kanban pipeline (`Applied → Shortlisted → Interview → Offer / Rejected`), compare up to 4 finalists side-by-side, generate personalized bulk emails (`.eml` / `mailto:`), and export individual or directory-wide reports as **CSV**, **JSON**, or formatted **PDF**.
+
+---
+
+## 🌟 What Makes HireSwift AI Unique
+
+| Differentiator | How HireSwift AI Delivers It |
+| :--- | :--- |
+| **Zero-Hallucination Grounded Scoring** | Unstated fields remain `null` rather than invented; missing CGPA receives a neutral `72` baseline instead of `0`, and extraction confidence scores drop to `0` when evidence is absent. |
+| **Hybrid Deterministic + AI Architecture** | Objective mathematical scoring runs instantaneously in-browser (`O(n)`), while LLMs enrich parsing, OCR, interview prompts, and skill-gap coaching—keeping rankings reproducible. |
+| **4-Stage Resilient AI Failover** | Requests cascade automatically across **Google Gemini (`gemini-3.5-flash-lite`) → OpenRouter (`llama-3.3-70b-instruct:free`) → Groq (`llama-3.1-8b-instant`) → Built-in Regex/NLP Heuristic Parser** with zero downtime even without API keys. |
+| **Privacy-First Local Persistence** | Runs without external databases or user logins; candidate state persists in `localStorage` with permission-gated deletion, and raw `resumeTextPreview` strings are kept volatile in memory rather than written to browser storage. |
+| **Individual & Bulk PDF Dossiers** | Export a single candidate profile (`CSV`, `JSON`, or formatted A4 `PDF` dossier) directly from table rows, or export the entire filtered candidate roster as a multi-page `PDF` executive report. |
+| **Dual Runtime Parity** | Identical REST handlers in `lib/atsApi.ts` power both local/cloud **Express (`server.ts`)** and **Netlify Serverless Functions (`netlify/functions/api.ts`)**. |
 
 ---
 
@@ -78,7 +112,7 @@
 
 ### 📊 Workspace Modules (14 Views)
 - **📈 Dashboard (`dashboard`)**: 8 live KPI cards (total candidates, active jobs, applications received, shortlisted, interviews scheduled, offers released, rejected, avg match score), Application Trends chart, Conversion Funnel, Stage Distribution donut chart, Top In-Demand Skills breakdown, Top Matching Candidates table, Recent Activity stream, and quick dataset load/reset controls.
-- **👥 Candidates Directory (`candidates`)**: Searchable, sortable, paginated repository with bulk shortlist/stage/compare/CSV-export actions, permission-gated individual/selected/all deletion from `localStorage`, and a slide-in **Precision Filters Drawer** (min/max CGPA, 10th/12th percentage cutoffs, degree level, branch, college, graduation year, experience range, location/remote availability, match score range, hiring stage, AND/OR technical skills toggle).
+- **👥 Candidates Directory (`candidates`)**: Searchable, sortable, paginated repository with header bulk actions (**Export CSV**, **Export JSON**, **Export PDF** multi-page directory report, and **Delete All**), **per-candidate row Download menu** (`Download CSV`, `Download JSON`, `Download PDF` dossier), bulk shortlist/stage/compare actions, permission-gated deletion from `localStorage`, and a slide-in **Precision Filters Drawer** (min/max CGPA, 10th/12th percentage cutoffs, degree level, branch, college, graduation year, experience range, location/remote availability, match score range, hiring stage, AND/OR technical skills toggle).
 - **📤 Bulk Resume Upload (`resume-upload`)**: Multi-file drag-and-drop uploader for `.pdf` and `.docx` resumes with per-file validation, SHA-256 content hashing, exact/potential duplicate detection & merge/delete workflow, scanned PDF OCR fallback, custom target job role creation, real-time progress telemetry, and editable candidate review before saving.
 - **💼 Job Management & Job Details (`job-management`, `job-details`)**: Create, edit, pause, close, or delete job requisitions, featuring an **AI JD Analyzer** (with sample JD loader and `.pdf`/`.docx` JD upload via `CustomJobRoleModal` / `CustomTargetJobModal`) that extracts required vs. preferred skills, experience bounds, minimum CGPA, qualifications, and responsibilities.
 - **🧠 AI Matching (`ai-matching`)**: Interactive radar & bar breakdown across all 6 evaluation dimensions, matched/missing skill chips, transferable skills, interview questions generator, and on-demand deep AI rationale evaluation.
@@ -90,6 +124,35 @@
 - **📉 Reports (`reports`)**: Visual analytics across hiring funnel conversion, source/skill distribution, and downloadable CSV / JSON executive summaries.
 - **⚙️ Settings & ❓ Help Center (`settings`, `help-center`)**: Configurable scoring rubric weights, max upload file size limit, demo dataset import/reset, session JSON export/clear, keyboard shortcuts, and interactive documentation.
 - **🪪 Slide-Over Candidate Profile Drawer (`CandidateDrawer`)**: Full candidate dossier with tabs for Overview, Academics (10th/12th/UG/PG), Work & Projects, Resume Preview, Timeline, quick stage actions, and confirmation-gated candidate deletion.
+
+---
+
+## 🏗️ Project Architecture
+
+HireSwift AI separates client-side document parsing, deterministic evaluation, and server-side AI orchestration into clean, loosely coupled layers *(full architectural breakdown in [ARCHITECTURE.md](./ARCHITECTURE.md))*:
+
+```text
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                       1. PRESENTATION & WORKSPACE LAYER                      │
+│  React 19 + Tailwind CSS v4 · LandingPage · WorkspaceShell (14 Views)        │
+│  CandidateDrawer · Charts (Recharts) · PDF/CSV/JSON Dossier Exports (jsPDF)  │
+└───────────────────────────────────────┬──────────────────────────────────────┘
+                                        │
+┌───────────────────────────────────────▼──────────────────────────────────────┐
+│                   2. CLIENT PROCESSING & STATE ENGINE (Browser)              │
+│  • AtsContext.tsx     : Session state, localStorage persistence & AI cache   │
+│  • fileExtractor.ts   : PDF.js worker + Mammoth DOCX + SHA-256 fingerprint   │
+│  • atsEngine.ts       : 6-category scoring, alias normalizer, dedup & jsPDF  │
+└───────────────────────────────────────┬──────────────────────────────────────┘
+                                        │ HTTPS /api/* JSON (no client secrets)
+┌───────────────────────────────────────▼──────────────────────────────────────┐
+│                   3. UNIFIED API & SERVERLESS RUNTIME                        │
+│  • Express (server.ts) & Netlify Functions (netlify/functions/api.ts)        │
+│  • Shared Business Logic (lib/atsApi.ts):                                    │
+│      Tier 1: Google Gemini ──► Tier 2: OpenRouter ──► Tier 3: Groq           │
+│      ──► Tier 4: Deterministic Regex/NLP Safety Net                          │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -170,12 +233,13 @@ HireSwift AI enforces **strict factual grounding**: unverified fields stay `null
 - **React `19.0.1`** & **React DOM `19.0.1`** — Component architecture, hooks & Context API state store
 - **Tailwind CSS `4.3.3`** (`@tailwindcss/vite`) — Dark-navy glassmorphism UI design system
 - **Recharts `3.10.1`** — Application trend area charts, conversion funnels, and distribution donuts
+- **jsPDF `4.2.1`** — Client-side A4 PDF candidate dossiers and multi-candidate directory reports
 - **Lucide React `0.546.0`** & **Material Symbols** — Crisp vector iconography
 - **Motion `12.23.24`** — Smooth UI transitions
 - **PDF.js (`pdfjs-dist 6.5.438`)** — Client-side PDF text layer parsing & scanned-document detection
 - **Mammoth (`1.13.0`)** — Client-side `.docx` text extraction
 
-### ⚙️ Backend & AI
+### ⚙️ Backend, AI & Testing
 - **Node.js `22.18+`** *(native TypeScript execution verified on `v22.23.2`; Node `20 LTS` supported via compiled `npm run start:compiled` or `tsx`)* & **Express `4.21.2`** — Local/cloud full-stack server with Vite dev middleware
 - **Multi-Provider 3-Tier AI Stack** — Automatic cascading fallback across:
   - **Tier 1 — Google Gemini (`@google/genai 3.3.0`)**: `gemini-3.5-flash-lite` *(primary multimodal PDF OCR & structured JSON extraction)*
@@ -183,6 +247,7 @@ HireSwift AI enforces **strict factual grounding**: unverified fields stay `null
   - **Tier 3 — Groq API**: `llama-3.1-8b-instant` *(ultra-fast low-latency final AI fallback)*
 - **Netlify Functions (`netlify/functions/api.ts`)** — Zero-config serverless API deployment bundled via `esbuild`
 - **Vite `8.3.0`**, **TSX `4.21.0`**, **Dotenv `17.2.3`** — Fast dev server, bundling & environment management
+- **Vitest `5.1.0`**, **Testing Library**, **Supertest `7.3.2`**, **Playwright `1.65.1`** — Automated unit, API parity, and headless Chromium E2E testing
 
 ---
 
@@ -222,7 +287,7 @@ hireswift-ai/
 │   ├── data/
 │   │   └── atsData.ts              # Strict TypeScript interfaces, default weights & sample dataset
 │   ├── utils/
-│   │   ├── atsEngine.ts            # Weighted scoring engine, alias normalizer & duplicate detector
+│   │   ├── atsEngine.ts            # Weighted scoring, alias normalizer, dedup & CSV/JSON/PDF exports
 │   │   └── fileExtractor.ts        # PDF.js, Mammoth DOCX & Web Crypto SHA-256 extractor
 │   ├── App.tsx                     # Root router (Landing-first + workspace hash navigation)
 │   ├── index.css                   # Tailwind v4 setup, ambient keyframes & glassmorphism theme tokens
@@ -427,7 +492,7 @@ Every candidate profile (`CandidateProfile` in `src/data/atsData.ts`) captures c
 3. **Precision Filter** → Narrow large talent pools in **Candidates** using CGPA, 10th/12th scores, graduation year, and AND/OR skill combinations.
 4. **Rank & Evaluate Fit** → Inspect sorted leaderboards in **Candidate Ranking** & drill into sub-scores or AI interview prompts in **AI Matching**.
 5. **Compare Finalists** → Pin up to 4 candidates in **Compare Candidates** to contrast academic scores, skills, and project depth side-by-side.
-6. **Advance Pipeline & Communicate** → Drag or move candidates across **Hiring Pipeline** stages, log interview slots/notes, and dispatch formatted messages from **Email Center**.
+6. **Advance Pipeline, Communicate & Export** → Drag or move candidates across **Hiring Pipeline** stages, log interview slots/notes, dispatch formatted messages from **Email Center**, and export individual dossiers or full candidate directories as **CSV**, **JSON**, or **PDF**.
 
 ---
 
@@ -473,7 +538,7 @@ Verified continuously across the codebase (full report in [QA_TEST_REPORT.md](./
 - 🔌 Direct SMTP / Google Workspace / Microsoft Graph email dispatch from Email Center
 - 📅 Two-way calendar sync for automated interview slot booking
 - 🗄️ Optional multi-user cloud database synchronization & team audit trails
-- 📊 Custom PDF scorecard export per candidate dossier
+- 🏢 Role-based multi-recruiter workspaces & blind resume review mode
 - 🔗 Webhook triggers for external job boards and referral portals
 
 ---
@@ -500,4 +565,4 @@ This project is licensed under the **Apache License 2.0** (`SPDX-License-Identif
 - **Live App**: [https://hireswift-ai.netlify.app/](https://hireswift-ai.netlify.app/)
 - **GitHub Repository**: [https://github.com/bikram73/HireSwift_AI](https://github.com/bikram73/HireSwift_AI)
 - **Maintainer**: Bikram (`bikram8548@gmail.com`)
-- **Acknowledgements**: Built with **React 19**, **Tailwind CSS**, **Recharts**, **PDF.js**, **Mammoth**, **Express**, **Netlify Functions**, and the **Google GenAI SDK**.
+- **Acknowledgements**: Built with **React 19**, **Tailwind CSS**, **Recharts**, **jsPDF**, **PDF.js**, **Mammoth**, **Express**, **Netlify Functions**, and the **Google GenAI SDK**.

@@ -15,7 +15,18 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const PORT = Number(process.env.PORT) || 3000;
+function getCliArg(flag: string): string | undefined {
+  const idx = process.argv.indexOf(flag);
+  if (idx !== -1 && idx + 1 < process.argv.length) {
+    return process.argv[idx + 1];
+  }
+  const prefix = `${flag}=`;
+  const eqArg = process.argv.find((arg) => arg.startsWith(prefix));
+  return eqArg ? eqArg.slice(prefix.length) : undefined;
+}
+
+const PORT = Number(getCliArg('--port') ?? process.env.PORT) || 3000;
+const HOST = getCliArg('--host') ?? process.env.HOST ?? '0.0.0.0';
 
 async function startServer() {
   const app = express();
@@ -88,11 +99,25 @@ async function startServer() {
   });
 
   if (process.env.NODE_ENV !== 'production') {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
+    const disableHmr = process.env.DISABLE_HMR === 'true';
+    const vitePromise = createViteServer({
+      server: {
+        middlewareMode: true,
+        ...(disableHmr ? { hmr: false, ws: false } : {}),
+      },
       appType: 'spa',
     });
-    app.use(vite.middlewares);
+    vitePromise.catch((err) => {
+      console.error('Vite dev middleware initialization failed:', err);
+    });
+    app.use(async (req, res, next) => {
+      try {
+        const vite = await vitePromise;
+        vite.middlewares(req, res, next);
+      } catch (err) {
+        next(err);
+      }
+    });
   } else {
     const distPath = path.resolve(__dirname, 'dist');
     app.use(express.static(distPath));
@@ -101,8 +126,8 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`HireSwift AI server running at http://0.0.0.0:${PORT}`);
+  app.listen(PORT, HOST, () => {
+    console.log(`HireSwift AI server running at http://${HOST}:${PORT}`);
   });
 }
 
